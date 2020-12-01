@@ -236,14 +236,14 @@ aoc_z$Group <- fct_explicit_na(aoc_z$Group) #makes sure that species get counted
 
 human_v1 <- human %>% # start with original dataset
   # full dataset filters.
-  mutate(effect_f = factor(case_when(effect == "Y" ~ "Yes",
+  mutate(effect_h_f = factor(case_when(effect == "Y" ~ "Yes",
                                      effect == "N" ~ "No"),
                            levels = c("No", "Yes"))) %>%
   # removing NAs to make data set nicer
   replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable")) 
 
 human_setup <- human_v1 %>% # start with original dataset
-  mutate(size_f = factor(case_when(
+  mutate(size_h_f = factor(case_when(
     size.category == 1 ~ "1nm < 100nm",
     size.category == 2 ~ "100nm < 1µm",
     size.category == 3 ~ "1µm < 100µm",
@@ -251,13 +251,13 @@ human_setup <- human_v1 %>% # start with original dataset
     size.category == 0 ~ "Not Reported"), 
     levels = c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm", "Not Reported"))) %>% # creates new column with nicer names and order by size levels.
   # shape category data tidying.
-  mutate(shape_f = factor(case_when(
+  mutate(shape_h_f = factor(case_when(
     shape == "fragment" ~ "Fragment",
     shape == "sphere" ~ "Sphere",
     shape == NA ~ "Not Reported"),
     levels = c("Fragment", "Sphere", "Not Reported"))) %>% # order our different shapes.
   # polymer category data tidying.
-  mutate(poly_f = factor(case_when(
+  mutate(poly_h_f = factor(case_when(
     polymer == "PA" ~ "Polyamide",
     polymer == "PE" ~ "Polyethylene",
     polymer == "PMMA" ~ "Polymethylmethacrylate",
@@ -268,7 +268,7 @@ human_setup <- human_v1 %>% # start with original dataset
     polymer == "TR" ~ "Tire Rubber"))) %>%
   # taxonomic category data tidying.
   
-  mutate(lvl1_f = factor(case_when(lvl1 == "alimentary.excretory" ~ "Alimentary, Excretory",
+  mutate(lvl1_h_f = factor(case_when(lvl1 == "alimentary.excretory" ~ "Alimentary, Excretory",
                                    lvl1 == "behavioral.sense.neuro" ~ "Behavioral, Sensory, Neurological",
                                    lvl1 == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
                                    lvl1 == "cell.morphology.structure" ~ "Cell Morphology and Structure",
@@ -280,7 +280,7 @@ human_setup <- human_v1 %>% # start with original dataset
                                    lvl1 == "respiratory" ~ "Respiratory",
                                    lvl1 == "stress" ~ "Stress"))) %>% # creates new column with nicer names.
   # Level 2 Data tidying
-  mutate(lvl2_f = factor(case_when(lvl2 == "actinobacteria" ~ "Actinobacteria",
+  mutate(lvl2_h_f = factor(case_when(lvl2 == "actinobacteria" ~ "Actinobacteria",
                                    lvl2 == "amino.acid.metabolism" ~ "Amino Acid Metabolism",
                                    lvl2 == "apoptosis.cell.cycle"~"Apoptosis and Cell Cycle",
                                    lvl2 == "bacteriodetes"~ "Bacteriodetes",
@@ -331,18 +331,18 @@ human_setup <- human_v1 %>% # start with original dataset
                                    lvl2 == "thyroid" ~ "Thyroid",
                                    lvl2 == "verrucomicrobiae" ~ "Verrucomicrobiae",
                                    lvl2 == "vision" ~ "Vision"))) %>% #Renames for widget
-  mutate(bio_f = factor(case_when(bio.org == "cell"~"Cell", #Bio Org Data Tidying
+  mutate(bio_h_f = factor(case_when(bio.org == "cell"~"Cell", #Bio Org Data Tidying
                                   bio.org == "organism"~"Organism",
                                   bio.org == "subcell"~"Subcell",
                                   bio.org == "tissue" ~ "Tissue")))%>%
-  mutate(vivo_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
+  mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
                                    invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
-  mutate(life_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
+  mutate(life_h_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
                                    life.stage == "early,f2"~"Early, F2 Generation",
                                    life.stage == "juvenile"~"Juvenile",
                                    life.stage == "adult"~"Adult",
                                    life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
-  mutate(exposure_route_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
+  mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
                                              exposure.route == "drinking.water" ~ "Drinking Water",
                                              exposure.route == "food" ~ "Food",
                                              exposure.route == "gavage" ~ "Gavage",
@@ -866,18 +866,18 @@ tabPanel("6: Exploration: Humans",
          column(width = 12,
                 
                 column(width = 3,
-                       pickerInput(inputId = "lvl1_check", # endpoint checklist
+                       pickerInput(inputId = "lvl1_h_check", # endpoint checklist
                                    label = "Broad Endpoint Category:", 
-                                   choices = levels(human_setup$lvl1_f),
-                                   selected = levels(human_setup$lvl1_f),
+                                   choices = levels(human_setup$lvl1_h_f),
+                                   selected = levels(human_setup$lvl1_h_f),
                                    options = list(`actions-box` = TRUE), # option to de/select all
                                    multiple = TRUE)), # allows for multiple inputs
                 
                 column(width = 3,
-                       pickerInput(inputId = "poly_check", # polymer checklist
+                       pickerInput(inputId = "poly_h_check", # polymer checklist
                                    label = "Polymer:", 
-                                   choices = levels(human_setup$poly_f),
-                                   selected = levels(human_setup$poly_f),
+                                   choices = levels(human_setup$poly_h_f),
+                                   selected = levels(human_setup$poly_h_f),
                                    options = list(`actions-box` = TRUE), 
                                    multiple = TRUE))),
                 
@@ -896,10 +896,10 @@ tabPanel("6: Exploration: Humans",
                        htmlOutput("secondSelection")), # dependent endpoint checklist
                 
                 column(width = 3,
-                       pickerInput(inputId = "shape_check", # shape checklist
+                       pickerInput(inputId = "shape_h_check", # shape checklist
                                    label = "Shape:", 
-                                   choices = levels(human_setup$shape_f),
-                                   selected = levels(human_setup$shape_f),
+                                   choices = levels(human_setup$shape_h_f),
+                                   selected = levels(human_setup$shape_h_f),
                                    options = list(`actions-box` = TRUE), 
                                    multiple = TRUE))),
                 
@@ -915,26 +915,26 @@ tabPanel("6: Exploration: Humans",
          column(width = 12,
                 
                 column(width = 3,
-                       pickerInput(inputId = "effect_check",  # Effect Yes/No widget
+                       pickerInput(inputId = "effect_h_check",  # Effect Yes/No widget
                                    label = "Effect:",
-                                   choices = levels(human_setup$effect_f),
-                                   selected = levels(human_setup$effect_f),
+                                   choices = levels(human_setup$effect_h_f),
+                                   selected = levels(human_setup$effect_h_f),
                                    options = list(`actions-box` = TRUE),
                                    multiple = TRUE)),
                 
                 column(width = 3,
-                       pickerInput(inputId = "size_check", # Environment checklist
+                       pickerInput(inputId = "size_h_check", # Environment checklist
                                    label = "Size Category:", 
-                                   choices = levels(human_setup$size_f),
-                                   selected = levels(human_setup$size_f),
+                                   choices = levels(human_setup$size_h_f),
+                                   selected = levels(human_setup$size_h_f),
                                    options = list(`actions-box` = TRUE), 
                                    multiple = TRUE)),
                 
                 column(width = 3,
-                       pickerInput(inputId = "life_check", # life stage checklist
+                       pickerInput(inputId = "life_h_check", # life stage checklist
                                    label = "Life Stages:", 
-                                   choices = levels(human_setup$life_f),
-                                   selected = levels(human_setup$life_f),
+                                   choices = levels(human_setup$life_h_f),
+                                   selected = levels(human_setup$life_h_f),
                                    options = list(`actions-box` = TRUE), 
                                    multiple = TRUE))),
          
@@ -950,19 +950,19 @@ tabPanel("6: Exploration: Humans",
                 #min = 0, max = 4000, value = 4000)),
                 
                 column(width = 3,
-                       pickerInput(inputId = "bio_check", # bio org checklist
+                       pickerInput(inputId = "bio_h_check", # bio org checklist
                                    label = "Level of Biological Organization", 
-                                   choices = levels(human_setup$bio_f),
-                                   selected = levels(human_setup$bio_f),
+                                   choices = levels(human_setup$bio_h_f),
+                                   selected = levels(human_setup$bio_h_f),
                                    options = list(`actions-box` = TRUE),
                                    multiple = TRUE)), 
          
          #In vitro/in vivo widget - commented out for now
           column(width = 3,
-                      pickerInput(inputId = "vivo_check", 
+                      pickerInput(inputId = "vivo_h_check", 
                                   label = "In Vitro or In Vivo:", 
-                                  choices = levels(human_setup$vivo_f),
-                                  selected = levels(human_setup$vivo_f),   
+                                  choices = levels(human_setup$vivo_h_f),
+                                  selected = levels(human_setup$vivo_h_f),   
                                   options = list(`actions-box` = TRUE), 
                                   multiple = TRUE))),
          
@@ -1008,31 +1008,31 @@ tabPanel("6: Exploration: Humans",
          column(width = 12,
                 
                 column(width = 12,
-                       plotOutput(outputId = "lvl_plot_react"),
+                       plotOutput(outputId = "lvl_h_plot_react"),
                        br())), 
          
          column(width = 12,
                 
                 column(width = 12,
-                       plotOutput(outputId = "lvl2_plot_react"),
+                       plotOutput(outputId = "lvl2_h_plot_react"),
                        br())), 
          
          column(width = 12,
                 
                 column(width = 12,
-                       plotOutput(outputId = "size_plot_react"),
+                       plotOutput(outputId = "size_h_plot_react"),
                        br())), 
          
          column(width = 12,
                 
                 column(width = 12,
-                       plotOutput(outputId = "shape_plot_react"),
+                       plotOutput(outputId = "shape_h_plot_react"),
                        br())), 
          
          column(width = 12,
                 
                 column(width = 12,
-                       plotOutput(outputId = "poly_plot_react"),
+                       plotOutput(outputId = "poly_h_plot_react"),
                        br()))), 
 
 
@@ -1756,13 +1756,13 @@ output$downloadSsdPlot <- downloadHandler(
   #Create dependent dropdown checklists: select lvl2 by lvl1.
   output$secondSelection <- renderUI({
     
-    lvl1_c <- input$lvl1_check # assign level values to "lvl1_c"
+    lvl1_h_c <- input$lvl1_h_check # assign level values to "lvl1_c"
     
     human_new <- human_setup %>% # take original dataset
-      filter(lvl1_f %in% lvl1_c) %>% # filter by level inputs
+      filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
       mutate(lvl2_f_new = factor(as.character(lvl2_f))) # new subset of factors
     
-    pickerInput(inputId = "lvl2_check", 
+    pickerInput(inputId = "lvl2_h_check", 
                 label = "Specific Endpoint within Broad Category:", 
                 choices = levels(human_new$lvl2_f_new),
                 selected = levels(human_new$lvl2_f_new),
@@ -1775,29 +1775,29 @@ output$downloadSsdPlot <- downloadHandler(
     # use the inputs to create a new dataset that will be fed into the renderPlot calls below
     
     # every selection widget should be represented as a new variable below
-    org_c <- input$organism_check # assign organism input values to "org_c"
-    lvl1_c <- input$lvl1_check # assign level values to "lvl1_c"
-    lvl2_c <- input$lvl2_check # assign lvl2 values to "lvl2_c"
-    bio_c <- input$bio_check # assign bio values to "bio_c"
-    effect_c <- input$effect_check # assign effect values to "effect_c"
-    life_c <- input$life_check #assign values to "life_check"
-    env_c <- input$env_check #assign values to "env_c"
-    poly_c <- input$poly_check # assign values to "poly_c"
-    shape_c <- input$shape_check # assign values to "shape_c" 
-    size_c <- input$size_check # assign values to "size_c" 
+    org_h_c <- input$organism_h_check # assign organism input values to "org_c"
+    lvl1_h_c <- input$lvl1_h_check # assign level values to "lvl1_c"
+    lvl2_h_c <- input$lvl2_h_check # assign lvl2 values to "lvl2_c"
+    bio_h_c <- input$bio_h_check # assign bio values to "bio_c"
+    effect_h_c <- input$effect_h_check # assign effect values to "effect_c"
+    life_h_c <- input$life_h_check #assign values to "life_check"
+    env_h_c <- input$env_h_check #assign values to "env_c"
+    poly_h_c <- input$poly_h_check # assign values to "poly_c"
+    shape_h_c <- input$shape_h_check # assign values to "shape_c" 
+    size_h_c <- input$size_h_check # assign values to "size_c" 
     range_n <- input$range # assign values to "range_n"
     
     human_setup %>% # take original dataset
-      filter(org_f %in% org_c) %>% # filter by organism inputs
-      filter(lvl1_f %in% lvl1_c) %>% # filter by level inputs
-      filter(lvl2_f %in% lvl2_c) %>% #filter by level 2 inputs 
-      filter(bio_f %in% bio_c) %>% #filter by bio organization
-      filter(effect_f %in% effect_c) %>% #filter by effect
-      filter(life_f %in% life_c) %>% #filter by life stage
-      filter(poly_f %in% poly_c) %>% #filter by polymer
-      filter(size_f %in% size_c) %>% #filter by size class
-      filter(shape_f %in% shape_c) %>% #filter by shape 
-      filter(env_f %in% env_c) #%>% #filter by environment
+      filter(org_h_f %in% org_h_c) %>% # filter by organism inputs
+      filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
+      filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
+      filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
+      filter(effect_h_f %in% effect_h_c) %>% #filter by effect
+      filter(life_h_f %in% life_h_c) %>% #filter by life stage
+      filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
+      filter(size_h_f %in% size_h_c) %>% #filter by size class
+      filter(shape_h_f %in% shape_h_c) %>% #filter by shape 
+      filter(env_h_f %in% env_h_c) #%>% #filter by environment
     #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
   })
@@ -1808,9 +1808,9 @@ output$downloadSsdPlot <- downloadHandler(
   
   # Size Plot
   
-  output$size_plot_react <- renderPlot({
+  output$size_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = size_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = size_h_f)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
@@ -1828,9 +1828,9 @@ output$downloadSsdPlot <- downloadHandler(
   
   # Shape Plot
   
-  output$shape_plot_react <- renderPlot({
+  output$shape_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = shape_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = shape_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
@@ -1848,9 +1848,9 @@ output$downloadSsdPlot <- downloadHandler(
   
   # Polymer Plot
   
-  output$poly_plot_react <- renderPlot({
+  output$poly_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = poly_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = poly_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
@@ -1868,9 +1868,9 @@ output$downloadSsdPlot <- downloadHandler(
   
   # Endpoint Plot
   
-  output$lvl_plot_react <- renderPlot({
+  output$lvl_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl1_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl1_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
@@ -1888,9 +1888,9 @@ output$downloadSsdPlot <- downloadHandler(
   
   #Lvl2 Plot 
   
-  output$lvl2_plot_react <- renderPlot({
+  output$lvl2_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl2_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl2_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
