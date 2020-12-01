@@ -247,7 +247,6 @@ human_setup <- human_v1 %>% # start with original dataset
     size.category == 2 ~ "100nm < 1µm",
     size.category == 3 ~ "1µm < 100µm",
     size.category == 4 ~ "100µm < 1mm",
-    size.category == 5 ~ "1mm < 5mm",
     size.category == 0 ~ "Not Reported"), 
     levels = c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm", "1mm < 5mm", "Not Reported"))) %>% # creates new column with nicer names and order by size levels.
   # shape category data tidying.
@@ -338,10 +337,11 @@ human_setup <- human_v1 %>% # start with original dataset
                                   bio.org == "tissue" ~ "Tissue")))%>%
   mutate(vivo_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
                                    invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget (Not using a widget right now, but saving for human health database)
-  mutate(life_f = factor(case_when(life.stage == "Early"~"Early",
-                                   life.stage == "Juvenile"~"Juvenile",
-                                   life.stage == "Adult"~"Adult",
-                                   life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
+  mutate(life_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
+                                   life.stage == "early,f2"~"Early, F2 Generation",
+                                   life.stage == "juvenile"~"Juvenile",
+                                   life.stage == "adult"~"Adult",
+                                   life.stage == "Not Reported"~"Not Reported"))) #Renames for widget
 
 #### User Interface ####
 
