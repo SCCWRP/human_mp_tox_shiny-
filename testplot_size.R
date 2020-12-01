@@ -1,0 +1,151 @@
+library(tidyverse) #General everything
+library(RColorBrewer) #plot colors
+library(ggplot2) #General plotting
+library(ggrepel) #For adding text labels that repel away from data points
+library(calecopal) #Color palette
+library(shiny) #Runs shiny
+library(shinythemes) #Shiny theme for the page
+library(shinyWidgets) #Widgets
+library(scales) #SSD - Use the percent format
+library(reshape2) #Overview tab - melts bars together
+library(ssdtools) #SSD package
+library(DT) #Build HTML data tables
+library(plotly) #Make plots interactive
+library(viridis) #Colors
+library(scales) #To use "percent" function
+library(shinyjs) #Exploration tab - reset button
+
+human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
+
+human_v1 <- human %>% # start with original dataset
+  # full dataset filters.
+  mutate(effect_h_f = factor(case_when(effect == "Y" ~ "Yes",
+                                       effect == "N" ~ "No"),
+                             levels = c("No", "Yes"))) %>%
+  # removing NAs to make data set nicer
+  replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable")) 
+
+human_setup <- human_v1 %>% # start with original dataset
+  mutate(size_h_f = factor(case_when(
+    size.category == 1 ~ "1nm < 100nm",
+    size.category == 2 ~ "100nm < 1µm",
+    size.category == 3 ~ "1µm < 100µm",
+    size.category == 4 ~ "100µm < 1mm",
+    size.category == 0 ~ "Not Reported"), 
+    levels = c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm", "Not Reported"))) %>% # creates new column with nicer names and order by size levels.
+  # shape category data tidying.
+  mutate(shape_h_f = factor(case_when(
+    shape == "fragment" ~ "Fragment",
+    shape == "sphere" ~ "Sphere",
+    shape == NA ~ "Not Reported"),
+    levels = c("Fragment", "Sphere", "Not Reported"))) %>% # order our different shapes.
+  # polymer category data tidying.
+  mutate(poly_h_f = factor(case_when(
+    polymer == "PA" ~ "Polyamide",
+    polymer == "PE" ~ "Polyethylene",
+    polymer == "PMMA" ~ "Polymethylmethacrylate",
+    polymer == "PP" ~ "Polypropylene",
+    polymer == "PS" ~ "Polystyrene",
+    polymer == "PUR" ~ "Polyurathane",
+    polymer == "PVC" ~ "Polyvinylchloride",
+    polymer == "TR" ~ "Tire Rubber"))) %>%
+  # taxonomic category data tidying.
+  
+  mutate(lvl1_h_f = factor(case_when(lvl1 == "alimentary.excretory" ~ "Alimentary, Excretory",
+                                     lvl1 == "behavioral.sense.neuro" ~ "Behavioral, Sensory, Neurological",
+                                     lvl1 == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
+                                     lvl1 == "cell.morphology.structure" ~ "Cell Morphology and Structure",
+                                     lvl1 == "circulatory" ~ "Circulatory",
+                                     lvl1 == "fitness" ~ "Fitness",
+                                     lvl1 == "immune" ~ "Immune",
+                                     lvl1 == "metabolism" ~ "Metabolism",
+                                     lvl1 == "microbiome" ~ "Microbiome",
+                                     lvl1 == "respiratory" ~ "Respiratory",
+                                     lvl1 == "stress" ~ "Stress"))) %>% # creates new column with nicer names.
+  # Level 2 Data tidying
+  mutate(lvl2_h_f = factor(case_when(lvl2 == "actinobacteria" ~ "Actinobacteria",
+                                     lvl2 == "amino.acid.metabolism" ~ "Amino Acid Metabolism",
+                                     lvl2 == "apoptosis.cell.cycle"~"Apoptosis and Cell Cycle",
+                                     lvl2 == "bacteriodetes"~ "Bacteriodetes",
+                                     lvl2 == "bile.acid" ~ "Bile Acid",
+                                     lvl2 == "body.condition"~"Body Condition",
+                                     lvl2 == "carb.metabolism"~"Carb Metabolism",
+                                     lvl2 == "cell.aggregation"~"Cell Aggregation",
+                                     lvl2 == "cell.membrane"~"Cell Membrane",
+                                     lvl2 == "circulatory"~"Circulatory",
+                                     lvl2 == "complement"~"Complement",
+                                     lvl2 == "coordination"~"Coordination",
+                                     lvl2 == "cytotoxicity"~"Cytotoxicity",
+                                     lvl2 == "development" ~ "Development",
+                                     lvl2 == "digestive.tract.histo"~"Digestive Tract Histological Abnormalities",
+                                     lvl2 == "diversity"~ "Diversity",
+                                     lvl2 == "dna.damage" ~ "DNA Damage",
+                                     lvl2 == "energy.metabolism" ~ "Energy Metabolism",
+                                     lvl2 == "exploration" ~ "Exploration",
+                                     lvl2 == "firmicutes"~ "Firmicutes",
+                                     lvl2 == "gen.stress" ~ "General Stress",
+                                     lvl2 == "hemolysis" ~ "Hemolysis",
+                                     lvl2 == "immune.cells"~"Immune Cells",
+                                     lvl2 == "immune.other"~"Immune Other ",
+                                     lvl2 == "inflammation" ~ "Inflammation",
+                                     lvl2 == "intestinal.inflammation" ~ "Intestinal Inflammation",
+                                     lvl2 == "intestinal.ion.transport" ~ "Intestinal Ion Transport",
+                                     lvl2 == "intestinal.muscus.secretion" ~ "Intestinal Mucus Secretion",
+                                     lvl2 == "intestinal.permeability" ~ "Intestinal Permeability",
+                                     lvl2 == "intestinal.tight.junctions" ~ "Intestinal Tight Junctions",
+                                     lvl2 == "kidney.histo"~"Kidney Histological abnormalities",
+                                     lvl2 == "lipid.metabolism"~"Lipid Metabolism",
+                                     lvl2 == "liver.histo"~"Liver Histological Abnormalities",
+                                     lvl2 == "locomotion"~"Locomotion",
+                                     lvl2 == "lungs.histo" ~ "Lung Histological Abnormalities",
+                                     lvl2 == "lysosome" ~ "Lyosome",
+                                     lvl2 == "melainabacteria" ~ "melainabacteria",
+                                     lvl2 == "morphology.gen" ~ "General Morphology",
+                                     lvl2 == "mortality"~"Mortality",
+                                     lvl2 == "nervous.system"~"Nervous System",
+                                     lvl2 == "oxidative.stress"~"Oxidative Stress",
+                                     lvl2 == "patescibacteria" ~ "Patescibacteria",
+                                     lvl2 == "permeability" ~ "Permeability",
+                                     lvl2 == "proliferation" ~ "Proliferation",
+                                     lvl2 == "proteobacteria"~"Protebacteria",
+                                     lvl2 == "respiration"~"Respiration",
+                                     lvl2 == "spleen.histo" ~ "Spleen Histological Abnormalities",
+                                     lvl2 == "tenericutes" ~ "Tenericutes",
+                                     lvl2 == "thyroid" ~ "Thyroid",
+                                     lvl2 == "verrucomicrobiae" ~ "Verrucomicrobiae",
+                                     lvl2 == "vision" ~ "Vision"))) %>% #Renames for widget
+  mutate(bio_h_f = factor(case_when(bio.org == "cell"~"Cell", #Bio Org Data Tidying
+                                    bio.org == "organism"~"Organism",
+                                    bio.org == "subcell"~"Subcell",
+                                    bio.org == "tissue" ~ "Tissue")))%>%
+  mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
+                                     invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
+  mutate(life_h_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
+                                     life.stage == "early,f2"~"Early, F2 Generation",
+                                     life.stage == "juvenile"~"Juvenile",
+                                     life.stage == "adult"~"Adult",
+                                     life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
+  mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
+                                               exposure.route == "drinking.water" ~ "Drinking Water",
+                                               exposure.route == "food" ~ "Food",
+                                               exposure.route == "gavage" ~ "Gavage",
+                                               exposure.route == "gestation" ~ "Gestation",
+                                               exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
+                                               exposure.route == "inhalation" ~ "Inhalation",
+                                               exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
+                                               exposure.route == "iv.injection" ~ "IV Injection")))
+
+testplot <- ggplot(human_setup, aes(x = dose.mg.mL.nominal, y = size_h_f)) +
+  geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+  scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
+                labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+  scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
+  scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+  theme_classic() +
+  theme(text = element_text(size=18), 
+        legend.position = "right") +
+  labs(x = "Concentration (mg/mL)",
+       y = "Size",
+       color = "Effect?",
+       fill = "Effect?")
+testplot
