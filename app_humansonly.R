@@ -136,8 +136,8 @@ human_setup <- human_v1 %>% # start with original dataset
                                     bio.org == "organism"~"Organism",
                                     bio.org == "subcell"~"Subcell",
                                     bio.org == "tissue" ~ "Tissue")))%>%
-  mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
-                                     invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
+  #mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
+                                     #invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
   mutate(life_h_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
                                      life.stage == "early,f2"~"Early, F2 Generation",
                                      life.stage == "juvenile"~"Juvenile",
@@ -390,16 +390,15 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                                          choices = levels(human_setup$bio_h_f),
                                                                          selected = levels(human_setup$bio_h_f),
                                                                          options = list(`actions-box` = TRUE),
-                                                                         multiple = TRUE)), 
+                                                                         multiple = TRUE))), 
                                                       
                                                       #In vitro/in vivo widget - commented out for now
-                                                      column(width = 3,
-                                                             pickerInput(inputId = "vivo_h_check", 
-                                                                         label = "In Vitro or In Vivo:", 
-                                                                         choices = levels(human_setup$vivo_h_f),
-                                                                         selected = levels(human_setup$vivo_h_f),   
-                                                                         options = list(`actions-box` = TRUE), 
-                                                                         multiple = TRUE))),
+                                                      #pickerInput(inputId = "vivo_h_check", 
+                                                                         #label = "In Vitro or In Vivo:", 
+                                                                         #choices = levels(human_setup$vivo_h_f),
+                                                                         #selected = levels(human_setup$vivo_h_f),   
+                                                                         #options = list(`actions-box` = TRUE), 
+                                                                         #multiple = TRUE))),
                                                
                                                # New row of widgets
                                                column(width=12,
@@ -540,7 +539,8 @@ server <- function(input, output) {
     poly_h_c <- input$poly_h_check # assign values to "poly_c"
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c"
-    exposure_route_h_c<-input$exposure_route_h_check #assign values to exposure 
+    exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
+    #vivo_h_c <- input$vivo_h_check
     range_n <- input$range # assign values to "range_n"
     
     human_setup %>% # take original dataset
@@ -551,7 +551,8 @@ server <- function(input, output) {
       filter(life_h_f %in% life_h_c) %>% #filter by life stage
       filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
       filter(size_h_f %in% size_h_c) %>% #filter by size class
-      filter(exposure_route_h_f %in% exposure_route_h_c)%>%
+      filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
+      #filter(vivo_h_f %in% vivo_h_c)%>% #filter by invivo or invitro
       filter(shape_h_f %in% shape_h_c) #filter by shape 
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
