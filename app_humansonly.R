@@ -151,7 +151,10 @@ human_setup <- human_v1 %>% # start with original dataset
                                                exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
                                                exposure.route == "inhalation" ~ "Inhalation",
                                                exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
-                                               exposure.route == "iv.injection" ~ "IV Injection")))
+                                               exposure.route == "iv.injection" ~ "IV Injection",
+                                               exposure.route ==  "Not Applicable"~"Not Applicable")))
+
+#xtabs(~invitro.invivo, human)
 
 #### User Interface ####
 
