@@ -1811,7 +1811,7 @@ output$downloadSsdPlot <- downloadHandler(
   output$size_h_plot_react <- renderPlot({
     
     ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = size_h_f)) +
-      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
