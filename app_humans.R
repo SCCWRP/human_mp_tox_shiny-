@@ -1819,7 +1819,7 @@ output$downloadSsdPlot <- downloadHandler(
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
-      labs(x = "Concentration (mg/L)",
+      labs(x = "Concentration (mg/mL)",
            y = "Size",
            color = "Effect?",
            fill = "Effect?")
@@ -1839,7 +1839,7 @@ output$downloadSsdPlot <- downloadHandler(
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
-      labs(x = "Concentration (mg/L)",
+      labs(x = "Concentration (mg/mL)",
            y = "Shape",
            color = "Effect?",
            fill = "Effect?")
@@ -1859,7 +1859,7 @@ output$downloadSsdPlot <- downloadHandler(
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
-      labs(x = "Concentration (mg/L)",
+      labs(x = "Concentration (mg/mL)",
            y = "Polymer",
            color = "Effect?",
            fill = "Effect?")
@@ -1879,7 +1879,7 @@ output$downloadSsdPlot <- downloadHandler(
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
-      labs(x = "Concentration (mg/L)",
+      labs(x = "Concentration (mg/mL)",
            y = "Endpoint",
            color = "Effect?",
            fill = "Effect?")
@@ -1899,7 +1899,7 @@ output$downloadSsdPlot <- downloadHandler(
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
-      labs(x = "Concentration (mg/L)",
+      labs(x = "Concentration (mg/mL)",
            y = "Specific Endpoint",
            color = "Effect?",
            fill = "Effect?")
@@ -1915,7 +1915,7 @@ output$downloadSsdPlot <- downloadHandler(
       paste('data-', Sys.Date(), '.csv', sep='')
     },
     content = function(file) {
-      write.csv(aoc_filter() %>%
+      write.csv(human_filter() %>%
                   select(-c(effect_f, size_f, shape_f, poly_f, org_f, lvl1_f, lvl2_f, bio_f, vivo_f, life_f, env_f)), 
                 file, row.names = FALSE)
     }
