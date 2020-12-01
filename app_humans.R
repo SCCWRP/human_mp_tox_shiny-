@@ -5,8 +5,6 @@
 
 #### Setup ####
 
-#Test push
-
 # Anything that should only happen ONCE should be placed in this setup section, prior to the actual shiny structure.
 
 # Load packages
@@ -245,7 +243,7 @@ human_v1 <- human %>% # start with original dataset
                                      effect == "N" ~ "No"),
                            levels = c("No", "Yes"))) %>%
   # removing NAs to make data set nicer
-  replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported")) 
+  replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable")) 
 
 human_setup <- human_v1 %>% # start with original dataset
   mutate(size_f = factor(case_when(
@@ -342,12 +340,21 @@ human_setup <- human_v1 %>% # start with original dataset
                                   bio.org == "subcell"~"Subcell",
                                   bio.org == "tissue" ~ "Tissue")))%>%
   mutate(vivo_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
-                                   invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget (Not using a widget right now, but saving for human health database)
+                                   invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
   mutate(life_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
                                    life.stage == "early,f2"~"Early, F2 Generation",
                                    life.stage == "juvenile"~"Juvenile",
                                    life.stage == "adult"~"Adult",
-                                   life.stage == "Not Reported"~"Not Reported"))) #Renames for widget
+                                   life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
+  mutate(exposure_route_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
+                                             exposure.route == "drinking.water" ~ "Drinking Water",
+                                             exposure.route == "food" ~ "Food",
+                                             exposure.route == "gavage" ~ "Gavage",
+                                             exposure.route == "gestation" ~ "Gestation",
+                                             exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
+                                             exposure.route == "inhalation" ~ "Inhalation",
+                                             exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
+                                             exposure.route == "iv.injection" ~ "IV Injection")))
 
 #### User Interface ####
 
