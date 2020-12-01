@@ -117,7 +117,7 @@ human_setup <- human_v1 %>% # start with original dataset
                                      lvl2 == "locomotion"~"Locomotion",
                                      lvl2 == "lungs.histo" ~ "Lung Histological Abnormalities",
                                      lvl2 == "lysosome" ~ "Lyosome",
-                                     lvl2 == "melainabacteria" ~ "melainabacteria",
+                                     lvl2 == "melainabacteria" ~ "Melainabacteria",
                                      lvl2 == "morphology.gen" ~ "General Morphology",
                                      lvl2 == "mortality"~"Mortality",
                                      lvl2 == "nervous.system"~"Nervous System",
@@ -136,8 +136,8 @@ human_setup <- human_v1 %>% # start with original dataset
                                     bio.org == "organism"~"Organism",
                                     bio.org == "subcell"~"Subcell",
                                     bio.org == "tissue" ~ "Tissue")))%>%
-  #mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
-                                     #invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
+  mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
+                                     invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
   mutate(life_h_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
                                      life.stage == "early,f2"~"Early, F2 Generation",
                                      life.stage == "juvenile"~"Juvenile",
@@ -152,8 +152,6 @@ human_setup <- human_v1 %>% # start with original dataset
                                                exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
                                                exposure.route == "iv.injection" ~ "IV Injection",
                                                exposure.route ==  "Not Applicable"~"Not Applicable")))
-
-#xtabs(~invitro.invivo, human)
 
 #### User Interface ####
 
@@ -390,15 +388,15 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                                          choices = levels(human_setup$bio_h_f),
                                                                          selected = levels(human_setup$bio_h_f),
                                                                          options = list(`actions-box` = TRUE),
-                                                                         multiple = TRUE))), 
+                                                                         multiple = TRUE)), 
                                                       
                                                       #In vitro/in vivo widget - commented out for now
-                                                      #pickerInput(inputId = "vivo_h_check", 
-                                                                         #label = "In Vitro or In Vivo:", 
-                                                                         #choices = levels(human_setup$vivo_h_f),
-                                                                         #selected = levels(human_setup$vivo_h_f),   
-                                                                         #options = list(`actions-box` = TRUE), 
-                                                                         #multiple = TRUE))),
+                                                      pickerInput(inputId = "vivo_h_check", 
+                                                                         label = "In Vitro or In Vivo:",
+                                                                         choices = levels(human_setup$vivo_h_f),
+                                                                         selected = levels(human_setup$vivo_h_f),
+                                                                         options = list(`actions-box` = TRUE),
+                                                                         multiple = TRUE)),
                                                
                                                # New row of widgets
                                                column(width=12,
@@ -540,8 +538,8 @@ server <- function(input, output) {
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c"
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
-    #vivo_h_c <- input$vivo_h_check
-    range_n <- input$range # assign values to "range_n"
+    vivo_h_c <- input$vivo_h_check
+    #range_n <- input$range # assign values to "range_n"
     
     human_setup %>% # take original dataset
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
@@ -550,10 +548,11 @@ server <- function(input, output) {
       filter(effect_h_f %in% effect_h_c) %>% #filter by effect
       filter(life_h_f %in% life_h_c) %>% #filter by life stage
       filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
+      filter(shape_h_f %in% shape_h_c) %>% #filter by shape
       filter(size_h_f %in% size_h_c) %>% #filter by size class
       filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
-      #filter(vivo_h_f %in% vivo_h_c)%>% #filter by invivo or invitro
-      filter(shape_h_f %in% shape_h_c) #filter by shape 
+      filter(vivo_h_f %in% vivo_h_c) #filter by invivo or invitro
+       
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
   })
@@ -684,15 +683,15 @@ server <- function(input, output) {
   # Need to call all widgets individually by their ids.
   # See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
   observeEvent(input$reset_input, {
-    shinyjs::reset("lvl1_check")
-    shinyjs::reset("poly_check")
-    shinyjs::reset("organism_check")
-    shinyjs::reset("shape_check")
-    shinyjs::reset("env_check")
-    shinyjs::reset("effect_check")
-    shinyjs::reset("size_check")
-    shinyjs::reset("life_check")
-    shinyjs::reset("bio_check")
+    shinyjs::reset("lvl1_h_check")
+    shinyjs::reset("poly_h_check")
+    shinyjs::reset("shape_h_check")
+    shinyjs::reset("effect_h_check")
+    shinyjs::reset("size_h_check")
+    shinyjs::reset("life_h_check")
+    shinyjs::reset("bio_h_check")
+    shinyjs::reset("vivo_h_check")
+    shinyjs::reset("exposure_route_h_check")
   }) #If we add more widgets, make sure they get added here.   
   
 } #Server end

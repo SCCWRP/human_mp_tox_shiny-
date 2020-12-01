@@ -119,23 +119,23 @@ human_setup <- human_v1 %>% # start with original dataset
                                     bio.org == "subcell"~"Subcell",
                                     bio.org == "tissue" ~ "Tissue")))%>%
   mutate(vivo_h_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
-                                     invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
+  invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
   mutate(life_h_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
                                      life.stage == "early,f2"~"Early, F2 Generation",
                                      life.stage == "juvenile"~"Juvenile",
                                      life.stage == "adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
   mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
-                                               exposure.route == "drinking.water" ~ "Drinking Water",
                                                exposure.route == "food" ~ "Food",
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
                                                exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
                                                exposure.route == "inhalation" ~ "Inhalation",
                                                exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
-                                               exposure.route == "iv.injection" ~ "IV Injection")))
+                                               exposure.route == "iv.injection" ~ "IV Injection",
+                                               exposure.route ==  "Not Applicable"~"Not Applicable")))
 
-testplot <- ggplot(human_setup, aes(x = dose.mg.mL.nominal, y = size_h_f)) +
+testplot <- ggplot(human_setup, aes(x = dose.mg.mL.nominal, y = vivo_h_f)) +
   geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
   scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                 labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
