@@ -876,7 +876,7 @@ tabPanel("6: Exploration: Humans",
                                    choices = levels(human_setup$poly_f),
                                    selected = levels(human_setup$poly_f),
                                    options = list(`actions-box` = TRUE), 
-                                   multiple = TRUE)),
+                                   multiple = TRUE))),
                 
                 #column(width = 3,
                        #pickerInput(inputId = "organism_check", # organismal checklist
@@ -898,7 +898,7 @@ tabPanel("6: Exploration: Humans",
                                    choices = levels(human_setup$shape_f),
                                    selected = levels(human_setup$shape_f),
                                    options = list(`actions-box` = TRUE), 
-                                   multiple = TRUE)),
+                                   multiple = TRUE))),
                 
                 #column(width = 3,
                        #pickerInput(inputId = "env_check", # Environment checklist
@@ -938,7 +938,7 @@ tabPanel("6: Exploration: Humans",
          # New row of widgets
          column(width=12,
                 
-                column(width = 3),
+                #column(width = 3),
                 
                 #Slider Widget - commented out for now
                 #column(width = 3,
@@ -952,7 +952,7 @@ tabPanel("6: Exploration: Humans",
                                    choices = levels(human_setup$bio_f),
                                    selected = levels(human_setup$bio_f),
                                    options = list(`actions-box` = TRUE),
-                                   multiple = TRUE))), 
+                                   multiple = TRUE)), 
          
          #In vitro/in vivo widget - commented out for now
           column(width = 3,
@@ -1031,7 +1031,7 @@ tabPanel("6: Exploration: Humans",
                 column(width = 12,
                        plotOutput(outputId = "poly_plot_react"),
                        br()))), 
-#),
+
 
 #### Resources UI ####
 
