@@ -144,7 +144,6 @@ human_setup <- human_v1 %>% # start with original dataset
                                      life.stage == "adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
   mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
-                                               exposure.route == "drinking.water" ~ "Drinking Water",
                                                exposure.route == "food" ~ "Food",
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
@@ -306,6 +305,14 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                                          label = "Polymer:", 
                                                                          choices = levels(human_setup$poly_h_f),
                                                                          selected = levels(human_setup$poly_h_f),
+                                                                         options = list(`actions-box` = TRUE), 
+                                                                         multiple = TRUE)),
+                                                      
+                                                      column(width = 3,
+                                                             pickerInput(inputId = "exposure_route_h_check", # polymer checklist
+                                                                         label = "Exposure Route:", 
+                                                                         choices = levels(human_setup$exposure_route_h_f),
+                                                                         selected = levels(human_setup$exposure_route_h_f),
                                                                          options = list(`actions-box` = TRUE), 
                                                                          multiple = TRUE))),
                                                
@@ -532,7 +539,8 @@ server <- function(input, output) {
     life_h_c <- input$life_h_check #assign values to "life_check"
     poly_h_c <- input$poly_h_check # assign values to "poly_c"
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
-    size_h_c <- input$size_h_check # assign values to "size_c" 
+    size_h_c <- input$size_h_check # assign values to "size_c"
+    exposure_route_h_c<-input$exposure_route_h_check #assign values to exposure 
     range_n <- input$range # assign values to "range_n"
     
     human_setup %>% # take original dataset
@@ -543,6 +551,7 @@ server <- function(input, output) {
       filter(life_h_f %in% life_h_c) %>% #filter by life stage
       filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
       filter(size_h_f %in% size_h_c) %>% #filter by size class
+      filter(exposure_route_h_f %in% exposure_route_h_c)%>%
       filter(shape_h_f %in% shape_h_c) #filter by shape 
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
