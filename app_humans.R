@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 #### Aquatic Microplastics Toxicology Shiny App
 #### File created: September 23, 2020
 #### Code contributors: Heili Lowman, Leah Thornton Hampton, Scott Coffin, Emily Darin
@@ -9,7 +9,7 @@
 
 # Load packages
 library(tidyverse) #General everything
-library(RColorBrewer)
+library(RColorBrewer) #plot colors
 library(ggplot2) #General plotting
 library(ggrepel) #For adding text labels that repel away from data points
 library(calecopal) #Color palette
@@ -3130,4 +3130,4 @@ output$downloadSsdPlot <- downloadHandler(
 shinyApp(ui = ui, server = server)
 
 # End of R Shiny app script.
->>>>>>> ed35442a7117082f3f3d40f98499c1544c422ccd
+
