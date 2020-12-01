@@ -234,9 +234,6 @@ aoc_z$Group <- fct_explicit_na(aoc_z$Group) #makes sure that species get counted
 #### Overview Human Setup ####
 #### Exploration Human Setup ####
 
-
-#push test
-
 human_v1 <- human %>% # start with original dataset
   # full dataset filters.
   mutate(effect_f = factor(case_when(effect == "Y" ~ "Yes",
@@ -1814,7 +1811,7 @@ output$downloadSsdPlot <- downloadHandler(
   
   output$size_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.L.master, y = size_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = size_f)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
@@ -1834,7 +1831,7 @@ output$downloadSsdPlot <- downloadHandler(
   
   output$shape_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.L.master, y = shape_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = shape_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
@@ -1854,7 +1851,7 @@ output$downloadSsdPlot <- downloadHandler(
   
   output$poly_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.L.master, y = poly_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = poly_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
@@ -1874,7 +1871,7 @@ output$downloadSsdPlot <- downloadHandler(
   
   output$lvl_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.L.master, y = lvl1_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl1_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
@@ -1894,7 +1891,7 @@ output$downloadSsdPlot <- downloadHandler(
   
   output$lvl2_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.L.master, y = lvl2_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl2_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
