@@ -1826,6 +1826,7 @@ output$downloadSsdPlot <- downloadHandler(
     
   })
   
+  
   # Shape Plot
   
   output$shape_h_plot_react <- renderPlot({
@@ -1833,7 +1834,7 @@ output$downloadSsdPlot <- downloadHandler(
     ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = shape_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
-      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
@@ -1853,7 +1854,7 @@ output$downloadSsdPlot <- downloadHandler(
     ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = poly_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
-      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
       theme_classic() +
@@ -1873,7 +1874,7 @@ output$downloadSsdPlot <- downloadHandler(
     ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl1_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
-      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       theme_classic() +
@@ -1893,7 +1894,7 @@ output$downloadSsdPlot <- downloadHandler(
     ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl2_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
-      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       theme_classic() +
@@ -1915,8 +1916,10 @@ output$downloadSsdPlot <- downloadHandler(
       paste('data-', Sys.Date(), '.csv', sep='')
     },
     content = function(file) {
+
       write.csv(human_filter() %>%
                   select(-c(effect_f, size_f, shape_f, poly_f, org_f, lvl1_f, lvl2_f, bio_f, vivo_f, life_f, env_f)), 
+
                 file, row.names = FALSE)
     }
   )
