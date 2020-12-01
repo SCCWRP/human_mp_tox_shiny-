@@ -1003,11 +1003,11 @@ tabPanel("6: Exploration: Humans",
          
          # New row
          column(width = 12,
-                hr(), # adds divider
+                hr()), # adds divider
                 
-                column(width = 12,
-                       plotOutput(outputId = "organism_plot_react"),
-                       br())), 
+                #column(width = 12,
+                       #plotOutput(outputId = "organism_plot_react"),
+                       #br())), 
          
          column(width = 12,
                 
@@ -1791,7 +1791,7 @@ output$downloadSsdPlot <- downloadHandler(
     size_c <- input$size_check # assign values to "size_c" 
     range_n <- input$range # assign values to "range_n"
     
-    aoc_setup %>% # take original dataset
+    human_setup %>% # take original dataset
       filter(org_f %in% org_c) %>% # filter by organism inputs
       filter(lvl1_f %in% lvl1_c) %>% # filter by level inputs
       filter(lvl2_f %in% lvl2_c) %>% #filter by level 2 inputs 
