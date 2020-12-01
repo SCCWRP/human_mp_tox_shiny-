@@ -844,8 +844,194 @@ tabPanel("6: Exploration: Humans",
          p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
          br(), 
          p("Download the data: Click the 'Download Data' button to retrieve the selected dataset as a '.csv' file."),
-         br(), 
-),
+         br(),
+         
+         
+         # widget headers
+         column(width=12,
+                
+                column(width = 3,
+                       h4("Effects")),
+                
+                column(width = 3,
+                       h4("Particle Characteristics")),
+                
+                column(width = 3,
+                       h4("Biological Factors"))),
+         
+         # widgets
+         column(width = 12,
+                
+                column(width = 3,
+                       pickerInput(inputId = "lvl1_check", # endpoint checklist
+                                   label = "Broad Endpoint Category:", 
+                                   choices = levels(human_setup$lvl1_f),
+                                   selected = levels(human_setup$lvl1_f),
+                                   options = list(`actions-box` = TRUE), # option to de/select all
+                                   multiple = TRUE)), # allows for multiple inputs
+                
+                column(width = 3,
+                       pickerInput(inputId = "poly_check", # polymer checklist
+                                   label = "Polymer:", 
+                                   choices = levels(human_setup$poly_f),
+                                   selected = levels(human_setup$poly_f),
+                                   options = list(`actions-box` = TRUE), 
+                                   multiple = TRUE)),
+                
+                #column(width = 3,
+                       #pickerInput(inputId = "organism_check", # organismal checklist
+                                  #label = "Organisms:", 
+                                   #choices = levels(human_setup$org_f),
+                                   #selected = levels(human_setup$org_f),
+                                   #options = list(`actions-box` = TRUE), 
+                                   #multiple = TRUE))), 
+         
+         # New row of widgets
+         column(width = 12,
+                
+                column(width = 3,
+                       htmlOutput("secondSelection")), # dependent endpoint checklist
+                
+                column(width = 3,
+                       pickerInput(inputId = "shape_check", # shape checklist
+                                   label = "Shape:", 
+                                   choices = levels(human_setup$shape_f),
+                                   selected = levels(human_setup$shape_f),
+                                   options = list(`actions-box` = TRUE), 
+                                   multiple = TRUE)),
+                
+                #column(width = 3,
+                       #pickerInput(inputId = "env_check", # Environment checklist
+                                   #label = "Environment:", 
+                                   #choices = levels(human_setup$env_f),
+                                   #selected = levels(human_setup$env_f),
+                                   #options = list(`actions-box` = TRUE), 
+                                   #multiple = TRUE))), 
+         
+         # New row of widgets
+         column(width = 12,
+                
+                column(width = 3,
+                       pickerInput(inputId = "effect_check",  # Effect Yes/No widget
+                                   label = "Effect:",
+                                   choices = levels(human_setup$effect_f),
+                                   selected = levels(human_setup$effect_f),
+                                   options = list(`actions-box` = TRUE),
+                                   multiple = TRUE)),
+                
+                column(width = 3,
+                       pickerInput(inputId = "size_check", # Environment checklist
+                                   label = "Size Category:", 
+                                   choices = levels(human_setup$size_f),
+                                   selected = levels(human_setup$size_f),
+                                   options = list(`actions-box` = TRUE), 
+                                   multiple = TRUE)),
+                
+                column(width = 3,
+                       pickerInput(inputId = "life_check", # life stage checklist
+                                   label = "Life Stages:", 
+                                   choices = levels(human_setup$life_f),
+                                   selected = levels(human_setup$life_f),
+                                   options = list(`actions-box` = TRUE), 
+                                   multiple = TRUE))),
+         
+         # New row of widgets
+         column(width=12,
+                
+                column(width = 3),
+                
+                #Slider Widget - commented out for now
+                #column(width = 3,
+                #sliderInput("range", # Allows for max input
+                #label = "Particle Size (µm):", #Labels widget
+                #min = 0, max = 4000, value = 4000)),
+                
+                column(width = 3,
+                       pickerInput(inputId = "bio_check", # bio org checklist
+                                   label = "Level of Biological Organization", 
+                                   choices = levels(human_setup$bio_f),
+                                   selected = levels(human_setup$bio_f),
+                                   options = list(`actions-box` = TRUE),
+                                   multiple = TRUE))), 
+         
+         #In vitro/in vivo widget - commented out for now
+          column(width = 3,
+                      pickerInput(inputId = "vivo_check", 
+                                  label = "In Vitro or In Vivo:", 
+                                  choices = levels(human_setup$vivo_f),
+                                  selected = levels(human_setup$vivo_f),   
+                                  options = list(`actions-box` = TRUE), 
+                                  multiple = TRUE))),
+         
+         # New row of widgets
+         column(width=12,
+                column(width = 3,
+                       actionButton("go", "Update Filters", class = "btn-success")), # adds update action button
+                # "go" is the internal name to refer to the button
+                # "Update Filters" is the title that appears on the app
+                
+                column(width = 3,
+                       downloadButton("downloadData", "Download Data", class = "btn-info")), # adds download button
+                
+                # "downloadData" is the internal name
+                # "Download Data" is the title that appears on the button
+                
+                column(width = 3,
+                       actionButton("reset_input", "Reset Filters"))), # adds update button
+         
+         # "Reset_input" is the internal name
+         # "Reset Filter" is the title that appears on the button  
+         
+         # New row
+         column(width=12,  
+                column(width = 3,
+                       br(),
+                       strong(p("To Begin: Click the 'Update Filters' button above.")),
+                       br()),
+                column(width = 3),
+                column(width = 3,
+                       br(),
+                       strong(p("To Reset: Click the 'Reset Filters' button above, followed by the 'Update Filters' button to the left.")),
+                       br())), 
+         
+         # New row
+         column(width = 12,
+                hr(), # adds divider
+                
+                column(width = 12,
+                       plotOutput(outputId = "organism_plot_react"),
+                       br())), 
+         
+         column(width = 12,
+                
+                column(width = 12,
+                       plotOutput(outputId = "lvl_plot_react"),
+                       br())), 
+         
+         column(width = 12,
+                
+                column(width = 12,
+                       plotOutput(outputId = "lvl2_plot_react"),
+                       br())), 
+         
+         column(width = 12,
+                
+                column(width = 12,
+                       plotOutput(outputId = "size_plot_react"),
+                       br())), 
+         
+         column(width = 12,
+                
+                column(width = 12,
+                       plotOutput(outputId = "shape_plot_react"),
+                       br())), 
+         
+         column(width = 12,
+                
+                column(width = 12,
+                       plotOutput(outputId = "poly_plot_react"),
+                       br()))), 
+#),
 
 #### Resources UI ####
 
@@ -1563,6 +1749,190 @@ output$downloadSsdPlot <- downloadHandler(
 
 #### Overview Human S ####
 #### Exploration Human S ####
+  
+  #Create dependent dropdown checklists: select lvl2 by lvl1.
+  output$secondSelection <- renderUI({
+    
+    lvl1_c <- input$lvl1_check # assign level values to "lvl1_c"
+    
+    human_new <- human_setup %>% # take original dataset
+      filter(lvl1_f %in% lvl1_c) %>% # filter by level inputs
+      mutate(lvl2_f_new = factor(as.character(lvl2_f))) # new subset of factors
+    
+    pickerInput(inputId = "lvl2_check", 
+                label = "Specific Endpoint within Broad Category:", 
+                choices = levels(human_new$lvl2_f_new),
+                selected = levels(human_new$lvl2_f_new),
+                options = list(`actions-box` = TRUE),
+                multiple = TRUE)})
+  
+  # Create new dataset based on widget filtering and adjusted to reflect the presence of the "update" button.
+  human_filter <- eventReactive(list(input$go),{
+    # eventReactive explicitly delays activity until you press the button
+    # use the inputs to create a new dataset that will be fed into the renderPlot calls below
+    
+    # every selection widget should be represented as a new variable below
+    org_c <- input$organism_check # assign organism input values to "org_c"
+    lvl1_c <- input$lvl1_check # assign level values to "lvl1_c"
+    lvl2_c <- input$lvl2_check # assign lvl2 values to "lvl2_c"
+    bio_c <- input$bio_check # assign bio values to "bio_c"
+    effect_c <- input$effect_check # assign effect values to "effect_c"
+    life_c <- input$life_check #assign values to "life_check"
+    env_c <- input$env_check #assign values to "env_c"
+    poly_c <- input$poly_check # assign values to "poly_c"
+    shape_c <- input$shape_check # assign values to "shape_c" 
+    size_c <- input$size_check # assign values to "size_c" 
+    range_n <- input$range # assign values to "range_n"
+    
+    aoc_setup %>% # take original dataset
+      filter(org_f %in% org_c) %>% # filter by organism inputs
+      filter(lvl1_f %in% lvl1_c) %>% # filter by level inputs
+      filter(lvl2_f %in% lvl2_c) %>% #filter by level 2 inputs 
+      filter(bio_f %in% bio_c) %>% #filter by bio organization
+      filter(effect_f %in% effect_c) %>% #filter by effect
+      filter(life_f %in% life_c) %>% #filter by life stage
+      filter(poly_f %in% poly_c) %>% #filter by polymer
+      filter(size_f %in% size_c) %>% #filter by size class
+      filter(shape_f %in% shape_c) %>% #filter by shape 
+      filter(env_f %in% env_c) #%>% #filter by environment
+    #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
+    
+  })
+  
+  
+  # Use newly created dataset from above to generate plots for size, shape, polymer, and endpoint plots on four different rows.
+  
+  
+  # Size Plot
+  
+  output$size_plot_react <- renderPlot({
+    
+    ggplot(human_filter(), aes(x = dose.mg.L.master, y = size_f)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
+                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
+      scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
+      scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+      theme_classic() +
+      theme(text = element_text(size=18), 
+            legend.position = "right") +
+      labs(x = "Concentration (mg/L)",
+           y = "Size",
+           color = "Effect?",
+           fill = "Effect?")
+    
+  })
+  
+  # Shape Plot
+  
+  output$shape_plot_react <- renderPlot({
+    
+    ggplot(human_filter(), aes(x = dose.mg.L.master, y = shape_f)) +
+      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
+                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      scale_color_manual(values = c("#C7EAE5","#35978F")) +
+      scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
+      theme_classic() +
+      theme(text = element_text(size=18), 
+            legend.position = "right") +
+      labs(x = "Concentration (mg/L)",
+           y = "Shape",
+           color = "Effect?",
+           fill = "Effect?")
+    
+  })
+  
+  # Polymer Plot
+  
+  output$poly_plot_react <- renderPlot({
+    
+    ggplot(human_filter(), aes(x = dose.mg.L.master, y = poly_f)) +
+      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
+                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      scale_color_manual(values = c("#FAB455", "#A5683C")) +
+      scale_fill_manual(values = c("#FAB455", "#A5683C")) +
+      theme_classic() +
+      theme(text = element_text(size=18),
+            legend.position = "right") +
+      labs(x = "Concentration (mg/L)",
+           y = "Polymer",
+           color = "Effect?",
+           fill = "Effect?")
+    
+  })
+  
+  # Endpoint Plot
+  
+  output$lvl_plot_react <- renderPlot({
+    
+    ggplot(human_filter(), aes(x = dose.mg.L.master, y = lvl1_f)) +
+      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
+                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      scale_color_manual(values = c("#A99CD9", "#6C568C")) +
+      scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
+      theme_classic() +
+      theme(text = element_text(size=18),
+            legend.position = "right") +
+      labs(x = "Concentration (mg/L)",
+           y = "Endpoint",
+           color = "Effect?",
+           fill = "Effect?")
+    
+  })
+  
+  #Lvl2 Plot 
+  
+  output$lvl2_plot_react <- renderPlot({
+    
+    ggplot(human_filter(), aes(x = dose.mg.L.master, y = lvl2_f)) +
+      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000), 
+                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100, 10000, 1000000)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_f, fill = effect_f)) +
+      scale_color_manual(values = c("#A99CD9", "#6C568C")) +
+      scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
+      theme_classic() +
+      theme(text = element_text(size=18),
+            legend.position = "right") +
+      labs(x = "Concentration (mg/L)",
+           y = "Specific Endpoint",
+           color = "Effect?",
+           fill = "Effect?")
+    
+  })
+  
+  
+  
+  # Create downloadable csv of filtered dataset.
+  # Removed columns created above so the dataset matches Leah's original dataset.
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste('data-', Sys.Date(), '.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(aoc_filter() %>%
+                  select(-c(effect_f, size_f, shape_f, poly_f, org_f, lvl1_f, lvl2_f, bio_f, vivo_f, life_f, env_f)), 
+                file, row.names = FALSE)
+    }
+  )
+  
+  # Create "reset" button to revert all filters back to what they began as.
+  # Need to call all widgets individually by their ids.
+  # See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
+  observeEvent(input$reset_input, {
+    shinyjs::reset("lvl1_check")
+    shinyjs::reset("poly_check")
+    shinyjs::reset("organism_check")
+    shinyjs::reset("shape_check")
+    shinyjs::reset("env_check")
+    shinyjs::reset("effect_check")
+    shinyjs::reset("size_check")
+    shinyjs::reset("life_check")
+    shinyjs::reset("bio_check")
+  }) #If we add more widgets, make sure they get added here.   
+  
   } #Server end
 
 #### Full App ####
