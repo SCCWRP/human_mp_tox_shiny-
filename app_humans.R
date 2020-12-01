@@ -1760,7 +1760,7 @@ output$downloadSsdPlot <- downloadHandler(
     
     human_new <- human_setup %>% # take original dataset
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-      mutate(lvl2_f_new = factor(as.character(lvl2_f))) # new subset of factors
+      mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
     
     pickerInput(inputId = "lvl2_h_check", 
                 label = "Specific Endpoint within Broad Category:", 
@@ -1775,20 +1775,20 @@ output$downloadSsdPlot <- downloadHandler(
     # use the inputs to create a new dataset that will be fed into the renderPlot calls below
     
     # every selection widget should be represented as a new variable below
-    org_h_c <- input$organism_h_check # assign organism input values to "org_c"
+    # org_h_c <- input$organism_h_check # assign organism input values to "org_c"
     lvl1_h_c <- input$lvl1_h_check # assign level values to "lvl1_c"
     lvl2_h_c <- input$lvl2_h_check # assign lvl2 values to "lvl2_c"
     bio_h_c <- input$bio_h_check # assign bio values to "bio_c"
     effect_h_c <- input$effect_h_check # assign effect values to "effect_c"
     life_h_c <- input$life_h_check #assign values to "life_check"
-    env_h_c <- input$env_h_check #assign values to "env_c"
+    # env_h_c <- input$env_h_check #assign values to "env_c"
     poly_h_c <- input$poly_h_check # assign values to "poly_c"
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c" 
     range_n <- input$range # assign values to "range_n"
     
     human_setup %>% # take original dataset
-      filter(org_h_f %in% org_h_c) %>% # filter by organism inputs
+      # filter(org_h_f %in% org_h_c) %>% # filter by organism inputs
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
       filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
       filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
@@ -1796,8 +1796,8 @@ output$downloadSsdPlot <- downloadHandler(
       filter(life_h_f %in% life_h_c) %>% #filter by life stage
       filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
       filter(size_h_f %in% size_h_c) %>% #filter by size class
-      filter(shape_h_f %in% shape_h_c) %>% #filter by shape 
-      filter(env_h_f %in% env_h_c) #%>% #filter by environment
+      filter(shape_h_f %in% shape_h_c) #%>% #filter by shape 
+      # filter(env_h_f %in% env_h_c) #%>% #filter by environment
     #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
   })
@@ -1918,7 +1918,7 @@ output$downloadSsdPlot <- downloadHandler(
     content = function(file) {
 
       write.csv(human_filter() %>%
-                  select(-c(effect_f, size_f, shape_f, poly_f, org_f, lvl1_f, lvl2_f, bio_f, vivo_f, life_f, env_f)), 
+                   
 
                 file, row.names = FALSE)
     }
