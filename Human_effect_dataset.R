@@ -169,13 +169,13 @@ sizefinal
 A<-rbind(polyfinal,sizefinal)
 B<-rbind(A,shapefinal)
 C<-rbind(B,lvl1final)
-E<-rbind(c,lifefinal)
+D<-rbind(C,lifefinal)
 G<-rbind(D,vivofinal)
 Final_effect_dataset<-rbind(G,routefinal)
 
-Final_effect_dataset2.0<-Final_effect_dataset%>%
+Final_effect_datasetH<-Final_effect_dataset%>%
   mutate(plot_f=factor(plot))
 
-Final_effect_dataset2.0
+Final_effect_datasetH
 
-write.csv(Final_effect_dataset2.0, "Final_effect_dataset.csv")
+write.csv(Final_effect_datasetH, "Final_effect_datasetH.csv")
