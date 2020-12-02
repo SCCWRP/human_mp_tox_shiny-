@@ -248,7 +248,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 
 #### Overview Human UI ####
                                       
-                                      tabPanel("5: Overview: Humans", 
+                                      tabPanel("2: Overview: Humans", 
                                                br(), 
                                                h3("Overview of Toxicological Effects in Mammalian Systems", align = "center"),
                                                br(),
@@ -262,7 +262,10 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       ),
                                       
 #### Exploration Human UI ####
-                                      tabPanel("6: Exploration: Humans",
+                                      tabPanel("3: Exploration: Humans",
+                                               
+                                               shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
+                                               id = "heili-tab", # adds ID for resetting Heili's tab's filters
                                                
                                                h3("Exploration of Toxicological Effects in Mammalian Systems", align = "center"),
                                                br(), 
@@ -477,7 +480,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       
                                       #### Resources UI ####
                                       
-                                      tabPanel("7: Resources", 
+                                      tabPanel("4: Resources", 
                                                br(),
                                                p("Use the links below to view resource files. For access to the complete database (.xls file), please contact Dr. Leah Thornton Hampton directly (leahth@sccwrp.org)"),
                                                br(),     
@@ -491,7 +494,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       
                                       #### Contact UI ####
                                       
-                                      tabPanel("8: Contact", 
+                                      tabPanel("5: Contact", 
                                                br(),
                                                h4("For scientific questions or access to the complete database, please contact Dr. Leah Thornton Hampton (leahth@sccwrp.org)."),
                                                br(),
