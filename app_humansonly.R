@@ -33,6 +33,73 @@ human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 # All text inputs below.
 
 #### Overview Human Setup ####
+
+Final_effect_dataset <- read_csv("Final_effect_datasetH.csv")%>%
+  mutate(plot_f = case_when(
+    plot_f == "Polymer" ~ "Polymer",
+    plot_f == "Size" ~ "Size",
+    plot_f == "Shape" ~ "Shape",
+    plot_f == "Organism" ~ "Organism",
+    plot_f == "Lvl1" ~ "Endpoint Category",
+    plot_f == "Life.stage" ~ "Life Stage",
+    plot_f == "Invivo.invivo" ~ "In Vivo or In Vitro",
+    plot_f == "Exposure.route" ~ "Exposure Route"))%>%
+  mutate(plot_f = factor(plot_f))%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)
+
+# Adding function for multiple graph output.
+# Code adapted from https://gist.github.com/wch/5436415/ and comment at https://gist.github.com/wch/5436415/#gistcomment-1608976 .
+
+# Creates function called "get_plot_output_list" where the input variable is "input_n".
+get_plot_output_list <- function(input_n) {
+  
+  # For every value in "input_n", insert it as "i" into the function below and then save the full output into "plot_output_list":
+  plot_output_list <- lapply(input_n, function(i) {
+    
+    # Render the individual plots      
+    renderPlotly({
+      
+      # use the original dataset
+      Final_effect_dataset %>%
+        
+        # filter by input
+        filter(plot_f==i) %>%
+        
+        # generate plot
+        ggplot(aes(fill=effect, y= logEndpoints, x=Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette(case_when(i=="Polymer"~"wetland", i=="Organism"~"sbchannel", i=="Size"~"seagrass",i=="Shape"~"gayophytum",i=="Endpoint Category"~"figmtn",i=="Life Stage"~"dudleya",i=="Exposure Route"~"halfdome",i=="In Vivo or In Vitro"~"kelp2")))+
+        theme_classic() +
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Effect") +
+        guides(x = guide_axis(n.dodge = 2)) +
+        ggtitle(case_when(i=="Polymer"~"Polymer", i=="Organism"~"Organism", i=="Size"~"Particle Size",i=="Shape"~"Shape",i=="Endpoint Category"~"Endpoint Category",i=="Life Stage"~"Life Stage",i=="Exposure Route"~"Exposure Route",i=="In Vivo or In Vitro"~"In Vivo or In vitro"))+
+        theme(plot.title = element_text(hjust = 0.5, face="bold"))+
+        theme(legend.position = "right",
+              axis.ticks= element_blank(),
+              axis.text.x = element_text(angle=45, size = 10),
+              axis.text.y = element_blank(),
+              axis.title.x = element_blank())
+      
+      ggplotly(tooltip = 'Percent')%>%
+        config(displayModeBar = FALSE)
+      
+    })
+    
+  })
+  
+  do.call(tagList, plot_output_list) # Need to call it as a list to display properly.
+  
+  return(plot_output_list) # Returns the full list of stored plots.
+}
+
+
+
+
+
+
 #### Exploration Human Setup ####
 
 human_v1 <- human %>% # start with original dataset
@@ -260,7 +327,17 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                br(), 
                                                p("Detailed descriptions of data categories may be found under the Resources tab."),
                                                br(),
-                                      ),
+                                               
+                                               pickerInput(inputId = "Emily_check", # endpoint checklist
+                                                           label = "Overview", 
+                                                           choices = levels(Final_effect_dataset$plot_f),
+                                                           selected = levels(Final_effect_dataset$plot_f), 
+                                                           options = list(`actions-box` = TRUE), # option to de/select all
+                                                           multiple = TRUE), # allows for multiple inputs
+                                               br(),
+                                               
+                                               uiOutput(outputId= "Emily_plot")),
+                                      
                                       
 #### Exploration Human UI ####
                                       tabPanel("3: Exploration: Humans",
@@ -516,6 +593,17 @@ server <- function(input, output) {
   
   
   #### Overview Human S ####
+  
+  # Effect plot code for check box 
+  
+  # Insert the right number of plot output objects into the page using the function from the setup section.
+  output$Emily_plot <- renderUI({ 
+    
+    # Using user-provided selections.
+    get_plot_output_list(input$Emily_check) 
+    
+  })
+  
   #### Exploration Human S ####
   
   #Create dependent dropdown checklists: select lvl2 by lvl1.
