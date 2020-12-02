@@ -667,8 +667,6 @@ server <- function(input, output) {
     
   })
   
-  
-  
   # Create downloadable csv of filtered dataset.
   # Removed columns created above so the dataset matches Leah's original dataset.
   output$downloadData <- downloadHandler(
@@ -676,11 +674,9 @@ server <- function(input, output) {
       paste('data-', Sys.Date(), '.csv', sep='')
     },
     content = function(file) {
-      
       write.csv(human_filter() %>%
-                  
-                  
-                  file, row.names = FALSE)
+                  select(-c(effect_h_f, size_h_f, shape_h_f, poly_h_f, lvl1_h_f, lvl2_h_f, bio_h_f, vivo_h_f, life_h_f, exposure_route_h_f)), 
+                file, row.names = FALSE)
     }
   )
   
