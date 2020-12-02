@@ -338,7 +338,15 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                                          choices = levels(human_setup$shape_h_f),
                                                                          selected = levels(human_setup$shape_h_f),
                                                                          options = list(`actions-box` = TRUE), 
-                                                                         multiple = TRUE))),
+                                                                         multiple = TRUE)),
+                                               
+                                                     column(width = 3,
+                                                            pickerInput(inputId = "bio_h_check", # bio org checklist
+                                                                        label = "Level of Biological Organization", 
+                                                                        choices = levels(human_setup$bio_h_f),
+                                                                        selected = levels(human_setup$bio_h_f),
+                                                                        options = list(`actions-box` = TRUE),
+                                                                        multiple = TRUE))),
                                                
                                                #column(width = 3,
                                                #pickerInput(inputId = "env_check", # Environment checklist
@@ -386,21 +394,16 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                       #label = "Particle Size (µm):", #Labels widget
                                                       #min = 0, max = 4000, value = 4000)),
                                                       
-                                                      column(width = 3,
-                                                             pickerInput(inputId = "bio_h_check", # bio org checklist
-                                                                         label = "Level of Biological Organization", 
-                                                                         choices = levels(human_setup$bio_h_f),
-                                                                         selected = levels(human_setup$bio_h_f),
-                                                                         options = list(`actions-box` = TRUE),
-                                                                         multiple = TRUE)), 
+                                                       
                                                       
                                                       #In vitro/in vivo widget - commented out for now
+                                                    column(width = 3, offset = 6,  
                                                       pickerInput(inputId = "vivo_h_check", 
                                                                          label = "In Vitro or In Vivo:",
                                                                          choices = levels(human_setup$vivo_h_f),
                                                                          selected = levels(human_setup$vivo_h_f),
                                                                          options = list(`actions-box` = TRUE),
-                                                                         multiple = TRUE)),
+                                                                         multiple = TRUE))),
                                                
                                                # New row of widgets
                                                column(width=12,
