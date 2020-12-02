@@ -318,7 +318,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       
                                       tabPanel("2: Overview: Humans", 
                                                br(), 
-                                               h3("Overview of Toxicological Effects in Mammalian Systems", align = "center"),
+                                               h3("Overview of Toxicological Effects in Human Systems", align = "center"),
                                                br(),
                                                p("Check the boxes below to visualize figures. Each bar displays the total number of measured endpoints within the database. Measured endpoints where a statistically signifcant effect was detected as indicated by 'Y' or where a measurement was made but a significant effect was not detected 'N'."), 
                                                br(),
