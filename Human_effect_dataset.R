@@ -13,7 +13,8 @@ library(DT) #Build HTML data tables
 library(plotly) #Make plots interactive
 library(viridis) #Colors
 library(scales) #To use "percent" function
-library(shinyjs) #Exploration tab - reset bu
+library(shinyjs)
+library(tigerstats)#Exploration tab - reset bu
 
 aoc <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
