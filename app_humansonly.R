@@ -146,6 +146,7 @@ human_setup <- human_v1 %>% # start with original dataset
                                      life.stage == "early,f2"~"Early, F2 Generation",
                                      life.stage == "juvenile"~"Juvenile",
                                      life.stage == "adult"~"Adult",
+                                     life.stage == "Adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
   mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
                                                exposure.route == "food" ~ "Food",
@@ -273,7 +274,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                     were either reported in mass per volume or converted from doses originally presented as particle count per volume."),
                                                br(),
                                                p("The data displayed in these figures are not filtered for quality and only display data where doses were reported as 
-                      mass per volume or were converted from doses reported from counts per volume - other dosing units (e.g., particle mass/kg sediment) 
+                      mass per volume - other dosing units (e.g., particle mass/food mass) 
                       are not displayed but are available in the complete database file."),
                                                br(), 
                                                p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
