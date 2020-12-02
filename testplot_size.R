@@ -23,7 +23,7 @@ human_v1 <- human %>% # start with original dataset
                                        effect == "N" ~ "No"),
                              levels = c("No", "Yes"))) %>%
   # removing NAs to make data set nicer
-  replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable")) 
+  replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported")) 
 
 human_setup <- human_v1 %>% # start with original dataset
   mutate(size_h_f = factor(case_when(
@@ -37,7 +37,7 @@ human_setup <- human_v1 %>% # start with original dataset
   mutate(shape_h_f = factor(case_when(
     shape == "fragment" ~ "Fragment",
     shape == "sphere" ~ "Sphere",
-    shape == NA ~ "Not Reported"),
+    shape == "Not Reported" ~ "Not Reported"),
     levels = c("Fragment", "Sphere", "Not Reported"))) %>% # order our different shapes.
   # polymer category data tidying.
   mutate(poly_h_f = factor(case_when(
@@ -48,14 +48,17 @@ human_setup <- human_v1 %>% # start with original dataset
     polymer == "PS" ~ "Polystyrene",
     polymer == "PUR" ~ "Polyurathane",
     polymer == "PVC" ~ "Polyvinylchloride",
-    polymer == "TR" ~ "Tire Rubber"))) %>%
+    polymer == "TR" ~ "Tire Rubber",
+    polymer == "Not Reported" ~ "Not Reported"))) %>%
   # taxonomic category data tidying.
   
   mutate(lvl1_h_f = factor(case_when(lvl1 == "alimentary.excretory" ~ "Alimentary, Excretory",
-                                     lvl1 == "behavioral.sense.neuro" ~ "Behavioral, Sensory, Neurological",
+                                     lvl1 == "behavior.sense.neuro" ~ "Behavioral, Sensory, Neurological",
                                      lvl1 == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
                                      lvl1 == "cell.morphology.structure" ~ "Cell Morphology and Structure",
                                      lvl1 == "circulatory" ~ "Circulatory",
+                                     lvl1 == "cytotoxicity" ~ "Cytotoxicity",
+                                     lvl1 == "endocrine.signaling" ~ "Endocrine Signaling",
                                      lvl1 == "fitness" ~ "Fitness",
                                      lvl1 == "immune" ~ "Immune",
                                      lvl1 == "metabolism" ~ "Metabolism",
@@ -66,7 +69,7 @@ human_setup <- human_v1 %>% # start with original dataset
   mutate(lvl2_h_f = factor(case_when(lvl2 == "actinobacteria" ~ "Actinobacteria",
                                      lvl2 == "amino.acid.metabolism" ~ "Amino Acid Metabolism",
                                      lvl2 == "apoptosis.cell.cycle"~"Apoptosis and Cell Cycle",
-                                     lvl2 == "bacteriodetes"~ "Bacteriodetes",
+                                     lvl2 == "bacteroidetes"~ "Bacteriodetes",
                                      lvl2 == "bile.acid" ~ "Bile Acid",
                                      lvl2 == "body.condition"~"Body Condition",
                                      lvl2 == "carb.metabolism"~"Carb Metabolism",
@@ -99,10 +102,11 @@ human_setup <- human_v1 %>% # start with original dataset
                                      lvl2 == "locomotion"~"Locomotion",
                                      lvl2 == "lungs.histo" ~ "Lung Histological Abnormalities",
                                      lvl2 == "lysosome" ~ "Lyosome",
-                                     lvl2 == "melainabacteria" ~ "melainabacteria",
+                                     lvl2 == "melainabacteria" ~ "Melainabacteria",
                                      lvl2 == "morphology.gen" ~ "General Morphology",
                                      lvl2 == "mortality"~"Mortality",
                                      lvl2 == "nervous.system"~"Nervous System",
+                                     lvl2 == "nucleus" ~ "Nucleus",
                                      lvl2 == "oxidative.stress"~"Oxidative Stress",
                                      lvl2 == "patescibacteria" ~ "Patescibacteria",
                                      lvl2 == "permeability" ~ "Permeability",
@@ -126,16 +130,16 @@ human_setup <- human_v1 %>% # start with original dataset
                                      life.stage == "adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
   mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
-                                               exposure.route == "drinking.water" ~ "Drinking Water",
                                                exposure.route == "food" ~ "Food",
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
                                                exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
                                                exposure.route == "inhalation" ~ "Inhalation",
                                                exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
-                                               exposure.route == "iv.injection" ~ "IV Injection")))
+                                               exposure.route == "iv.injection" ~ "IV Injection",
+                                               exposure.route ==  "Not Applicable"~"Not Applicable")))
 
-testplot <- ggplot(human_setup, aes(x = dose.mg.mL.nominal, y = size_h_f)) +
+testplot <- ggplot(human_setup, aes(x = dose.mg.mL.nominal, y = vivo_h_f)) +
   geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
   scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                 labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
@@ -149,3 +153,4 @@ testplot <- ggplot(human_setup, aes(x = dose.mg.mL.nominal, y = size_h_f)) +
        color = "Effect?",
        fill = "Effect?")
 testplot
+
