@@ -146,9 +146,9 @@ human_setup <- human_v1 %>% # start with original dataset
                                      life.stage == "early,f2"~"Early, F2 Generation",
                                      life.stage == "juvenile"~"Juvenile",
                                      life.stage == "adult"~"Adult",
-                                     life.stage == "Adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
   mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
+                                               exposure.route == "drinking.water" ~ "Drinking Water",
                                                exposure.route == "food" ~ "Food",
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
