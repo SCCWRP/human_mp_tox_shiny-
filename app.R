@@ -230,7 +230,7 @@ human_setup <- human_v1 %>% # start with original dataset
 ui <- fluidPage(theme = shinytheme("flatly"),  
                 
                 # App title
-                titlePanel(h1("Microplastics Toxicity Database: Humans")),
+                titlePanel(h1("Microplastics Toxicity Database: Mammals")),
                 
                 # Title panel subtext
                 tags$div("This website is only intended for use by invited participants of the Microplastics Health Effects Workshop."),
@@ -272,11 +272,6 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                       These findings will be used directly by the state of California to fulfill ", a(href = "https://www.sccwrp.org/about/research-areas/
                       additional-research-areas/trash-pollution/microplastics-health-effects-webinar-series/history-california-microplastics-legislation/", 'legislative mandates', 
                                                                                                       .noWS = "outside")," regarding the management of microplastics in drinking water and the aquatic environment."),
-                                               
-                                               h3("Can I see the raw data?", align = "center"), #Section 3 
-                                               
-                                               p("Workshop participants also have access to the complete, raw database as an .xls file by directly contacting Dr. Leah Thornton Hampton (leahth@sccwrp.org), and are welcome to conduct their own analyses.
-                      Users may also download meta data associated with visualizations and analyses in the Exploration and Species Sensitivity Distribution tabs."),
                                                
                                                h3("Contributors", align = "center"), #Section 4: Contributors list with links to twitter and github
                                                
@@ -559,8 +554,6 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       #### Resources UI ####
                                       
                                       tabPanel("4: Resources", 
-                                               br(),
-                                               p("Use the links below to view resource files. For access to the complete database (.xls file), please contact Dr. Leah Thornton Hampton directly (leahth@sccwrp.org)"),
                                                br(),     
                                                h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
                                                br(),
