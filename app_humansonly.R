@@ -223,14 +223,14 @@ human_setup <- human_v1 %>% # start with original dataset
                                                exposure.route == "inhalation" ~ "Inhalation",
                                                exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
                                                exposure.route == "iv.injection" ~ "IV Injection",
-                                               exposure.route ==  "Not Applicable"~"Not Applicable")))
+                                               exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))
 
 #### User Interface ####
 
 ui <- fluidPage(theme = shinytheme("flatly"),  
                 
                 # App title
-                titlePanel(h1("Microplastics Toxicity Database")),
+                titlePanel(h1("Microplastics Toxicity Database: Humans")),
                 
                 # Title panel subtext
                 tags$div("This website is only intended for use by invited participants of the Microplastics Health Effects Workshop."),
@@ -316,7 +316,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 
 #### Overview Human UI ####
                                       
-                                      tabPanel("2: Overview: Humans", 
+                                      tabPanel("2: Overview", 
                                                br(), 
                                                h3("Overview of Toxicological Effects in Human Systems", align = "center"),
                                                br(),
@@ -340,7 +340,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       
                                       
 #### Exploration Human UI ####
-                                      tabPanel("3: Exploration: Humans",
+                                      tabPanel("3: Exploration",
                                                
                                                shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
                                                id = "heili-tab", # adds ID for resetting Heili's tab's filters
@@ -564,9 +564,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                br(),     
                                                h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
                                                br(),
-                                               h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ETy8vDCXe_pAq88Ky0Xob1gBmCdAXYCsEwDFqCfDTL-DNA?e=e7Ic21", 'Aquatic Organisms Study List')),
-                                               br(),
-                                               #h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES_FUiwiELtNpWgrPCS1Iw4Bkn3-aeiDjZxmtMLjg3uv3g?e=bmuNgG", 'Human Study List')),
+                                               h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES_FUiwiELtNpWgrPCS1Iw4Bkn3-aeiDjZxmtMLjg3uv3g?e=bmuNgG", 'Human Study List')),
                                                
                                                verbatimTextOutput(outputId = "Leah2")),
                                       
