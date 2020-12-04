@@ -107,8 +107,9 @@ human_v1 <- human %>% # start with original dataset
   mutate(effect_h_f = factor(case_when(effect == "Y" ~ "Yes",
                                        effect == "N" ~ "No"),
                              levels = c("No", "Yes"))) %>%
-  mutate(invitro_h_f = factor(case_when(invitro.invivo == "invitro"~"Invitro",
-                                        invitro.in)))
+  mutate(inv_h_f = factor(case_when(invitro.invivo == "invivo" ~ "In Vivo",
+                                    invitro.invivo == "invitro" ~ "In Vitro"),
+                          levels = c("In Vitro", "In Vivo"))) %>% #sort things by invivo or invitro
   
   # removing NAs to make data set nicer
   replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported")) 
