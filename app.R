@@ -663,14 +663,15 @@ server <- function(input, output) {
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
       scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
-      facet_wrap(~vivo_h_f)+
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
       labs(x = "Concentration (mg/mL)",
            y = "Size",
            color = "Effect?",
-           fill = "Effect?")
+           fill = "Effect?")+
+      facet_wrap(~vivo_h_f)
+    
     
   })
   
@@ -694,7 +695,8 @@ server <- function(input, output) {
       labs(x = "Concentration (mg/mL)",
            y = "Shape",
            color = "Effect?",
-           fill = "Effect?")
+           fill = "Effect?")+
+      facet_wrap(~vivo_h_f)
     
   })
   
@@ -714,7 +716,8 @@ server <- function(input, output) {
       labs(x = "Concentration (mg/mL)",
            y = "Polymer",
            color = "Effect?",
-           fill = "Effect?")
+           fill = "Effect?")+
+      facet_wrap(~vivo_h_f)
     
   })
   
@@ -734,7 +737,8 @@ server <- function(input, output) {
       labs(x = "Concentration (mg/mL)",
            y = "Endpoint",
            color = "Effect?",
-           fill = "Effect?")
+           fill = "Effect?")+
+      facet_wrap(~vivo_h_f)
     
   })
   
@@ -754,7 +758,8 @@ server <- function(input, output) {
       labs(x = "Concentration (mg/mL)",
            y = "Specific Endpoint",
            color = "Effect?",
-           fill = "Effect?")
+           fill = "Effect?")+
+      facet_wrap(~vivo_h_f)
     
   })
   
