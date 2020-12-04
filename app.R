@@ -461,7 +461,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                                          multiple = TRUE))),
                                                
                                                # New row of widgets
-                                               column(width=12,
+                                               #column(width=12,
                                                       
                                                       #column(width = 3),
                                                       
@@ -474,13 +474,12 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                        
                                                       
                                                       #In vitro/in vivo widget - commented out for now
-                                                    column(width = 3, offset = 6,  
-                                                      pickerInput(inputId = "vivo_h_check", 
-                                                                         label = "In Vitro or In Vivo:",
-                                                                         choices = levels(human_setup$vivo_h_f),
-                                                                         selected = levels(human_setup$vivo_h_f),
-                                                                         options = list(`actions-box` = TRUE),
-                                                                         multiple = TRUE))),
+                                                    ##pickerInput(inputId = "vivo_h_check", 
+                                                                         #label = "In Vitro or In Vivo:",
+                                                                         #choices = levels(human_setup$vivo_h_f),
+                                                                         #selected = levels(human_setup$vivo_h_f),
+                                                                         #options = list(`actions-box` = TRUE),
+                                                                         #multiple = TRUE))),
                                                
                                                # New row of widgets
                                                column(width=12,
