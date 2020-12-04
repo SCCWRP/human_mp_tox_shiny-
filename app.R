@@ -107,9 +107,6 @@ human_v1 <- human %>% # start with original dataset
   mutate(effect_h_f = factor(case_when(effect == "Y" ~ "Yes",
                                        effect == "N" ~ "No"),
                              levels = c("No", "Yes"))) %>%
-  mutate(inv_h_f = factor(case_when(invitro.invivo == "invivo" ~ "In Vivo",
-                                    invitro.invivo == "invitro" ~ "In Vitro"),
-                          levels = c("In Vitro", "In Vivo"))) %>% #sort things by invivo or invitro
   
   # removing NAs to make data set nicer
   replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported")) 
@@ -632,11 +629,11 @@ server <- function(input, output) {
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c"
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
-    vivo_h_c <- input$vivo_h_check
+    #vivo_h_c <- input$vivo_h_check
     #range_n <- input$range # assign values to "range_n"
     
     human_setup %>% # take original dataset
-      filter(vivo_h_f %in% vivo_h_c) %>% #filter by invivo or invitro
+      #filter(vivo_h_f %in% vivo_h_c) %>% #filter by invivo or invitro
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
       filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
       filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
@@ -666,6 +663,7 @@ server <- function(input, output) {
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
       scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+      facet_wrap(~vivo_h_f)+
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -675,6 +673,9 @@ server <- function(input, output) {
            fill = "Effect?")
     
   })
+  
+  
+  
   
   
   # Shape Plot
