@@ -43,7 +43,7 @@ Final_effect_dataset <- read_csv("Final_effect_datasetH.csv")%>%
     plot_f == "Lvl1" ~ "Endpoint Category",
     plot_f == "Life.stage" ~ "Life Stage",
     plot_f == "Invivo.invivo" ~ "In Vivo or In Vitro",
-    plot_f == "Exposure.route" ~ "Exposure Route"))%>%
+    plot_f == "Exposure.category" ~ "Exposure Category"))%>%
   mutate(plot_f = factor(plot_f))%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)
@@ -70,12 +70,12 @@ get_plot_output_list <- function(input_n) {
         ggplot(aes(fill=effect, y= logEndpoints, x=Type, Percent=Percent)) +
         geom_bar(position="stack", stat="identity") +
         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette(case_when(i=="Polymer"~"wetland", i=="Organism"~"sbchannel", i=="Size"~"seagrass",i=="Shape"~"gayophytum",i=="Endpoint Category"~"figmtn",i=="Life Stage"~"dudleya",i=="Exposure Route"~"halfdome",i=="In Vivo or In Vitro"~"kelp2")))+
+        scale_fill_manual(values = cal_palette(case_when(i=="Polymer"~"wetland", i=="Organism"~"sbchannel", i=="Size"~"seagrass",i=="Shape"~"gayophytum",i=="Endpoint Category"~"figmtn",i=="Life Stage"~"dudleya",i=="Exposure Category"~"halfdome",i=="In Vivo or In Vitro"~"kelp2")))+
         theme_classic() +
         ylab("Number of Endpoints Measured") +
         labs(fill="Effect") +
         guides(x = guide_axis(n.dodge = 2)) +
-        ggtitle(case_when(i=="Polymer"~"Polymer", i=="Organism"~"Organism", i=="Size"~"Particle Size",i=="Shape"~"Shape",i=="Endpoint Category"~"Endpoint Category",i=="Life Stage"~"Life Stage",i=="Exposure Route"~"Exposure Route",i=="In Vivo or In Vitro"~"In Vivo or In vitro"))+
+        ggtitle(case_when(i=="Polymer"~"Polymer", i=="Organism"~"Organism", i=="Size"~"Particle Size",i=="Shape"~"Shape",i=="Endpoint Category"~"Endpoint Category",i=="Life Stage"~"Life Stage",i=="Exposure Category"~"Exposure Category",i=="In Vivo or In Vitro"~"In Vivo or In vitro"))+
         theme(plot.title = element_text(hjust = 0.5, face="bold"))+
         theme(legend.position = "right",
               axis.ticks= element_blank(),
