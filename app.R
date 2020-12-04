@@ -226,14 +226,14 @@ human_setup <- human_v1 %>% # start with original dataset
                                                exposure.route == "inhalation" ~ "Inhalation",
                                                exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
                                                exposure.route == "iv.injection" ~ "IV Injection",
-                                               exposure.route ==  "Not Applicable"~"Not Applicable")))
+                                               exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))
 
 #### User Interface ####
 
 ui <- fluidPage(theme = shinytheme("flatly"),  
                 
                 # App title
-                titlePanel(h1("Microplastics Toxicity Database")),
+                titlePanel(h1("Microplastics Toxicity Database: Mammals")),
                 
                 # Title panel subtext
                 tags$div("This website is only intended for use by invited participants of the Microplastics Health Effects Workshop."),
@@ -276,11 +276,6 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                       additional-research-areas/trash-pollution/microplastics-health-effects-webinar-series/history-california-microplastics-legislation/", 'legislative mandates', 
                                                                                                       .noWS = "outside")," regarding the management of microplastics in drinking water and the aquatic environment."),
                                                
-                                               h3("Can I see the raw data?", align = "center"), #Section 3 
-                                               
-                                               p("Workshop participants also have access to the complete, raw database as an .xls file by directly contacting Dr. Leah Thornton Hampton (leahth@sccwrp.org), and are welcome to conduct their own analyses.
-                      Users may also download meta data associated with visualizations and analyses in the Exploration and Species Sensitivity Distribution tabs."),
-                                               
                                                h3("Contributors", align = "center"), #Section 4: Contributors list with links to twitter and github
                                                
                                                p(align = "center", a(href = "https://www.sccwrp.org/about/staff/leah-thornton-hampton/", 'Dr. Leah Thornton Hampton'),", Southern California Coastal Water Research Project ", 
@@ -319,7 +314,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
 
 #### Overview Human UI ####
                                       
-                                      tabPanel("2: Overview: Humans", 
+                                      tabPanel("2: Overview", 
                                                br(), 
                                                h3("Overview of Toxicological Effects in Human Systems", align = "center"),
                                                br(),
@@ -343,7 +338,7 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       
                                       
 #### Exploration Human UI ####
-                                      tabPanel("3: Exploration: Humans",
+                                      tabPanel("3: Exploration",
                                                
                                                shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
                                                id = "heili-tab", # adds ID for resetting Heili's tab's filters
@@ -562,14 +557,10 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                       #### Resources UI ####
                                       
                                       tabPanel("4: Resources", 
-                                               br(),
-                                               p("Use the links below to view resource files. For access to the complete database (.xls file), please contact Dr. Leah Thornton Hampton directly (leahth@sccwrp.org)"),
                                                br(),     
                                                h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
                                                br(),
-                                               h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ETy8vDCXe_pAq88Ky0Xob1gBmCdAXYCsEwDFqCfDTL-DNA?e=e7Ic21", 'Aquatic Organisms Study List')),
-                                               br(),
-                                               #h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES_FUiwiELtNpWgrPCS1Iw4Bkn3-aeiDjZxmtMLjg3uv3g?e=bmuNgG", 'Human Study List')),
+                                               h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES_FUiwiELtNpWgrPCS1Iw4Bkn3-aeiDjZxmtMLjg3uv3g?e=bmuNgG", 'Human Study List')),
                                                
                                                verbatimTextOutput(outputId = "Leah2")),
                                       
