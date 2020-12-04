@@ -803,6 +803,7 @@ server <- function(input, output) {
   # See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
   observeEvent(input$reset_input, {
     shinyjs::reset("lvl1_h_check")
+    shinyjs::reset("lvl2_h_check")
     shinyjs::reset("poly_h_check")
     shinyjs::reset("shape_h_check")
     shinyjs::reset("effect_h_check")
