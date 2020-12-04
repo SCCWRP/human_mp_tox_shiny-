@@ -179,7 +179,7 @@ human_setup <- human_v1 %>% # start with original dataset
                                      lvl2 == "inflammation" ~ "Inflammation",
                                      lvl2 == "intestinal.inflammation" ~ "Intestinal Inflammation",
                                      lvl2 == "intestinal.ion.transport" ~ "Intestinal Ion Transport",
-                                     lvl2 == "intestinal.muscus.secretion" ~ "Intestinal Mucus Secretion",
+                                     lvl2 == "intestinal.mucus.secretion" ~ "Intestinal Mucus Secretion",
                                      lvl2 == "intestinal.permeability" ~ "Intestinal Permeability",
                                      lvl2 == "intestinal.tight.junctions" ~ "Intestinal Tight Junctions",
                                      lvl2 == "kidney.histo"~"Kidney Histological abnormalities",
