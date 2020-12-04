@@ -220,7 +220,16 @@ human_setup <- human_v1 %>% # start with original dataset
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
                                                exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
-                                               exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))
+                                               exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))%>%
+  mutate(species_h_f = factor(case_when(species == "aries"~"Ovis aries",
+                                        species == "sapiens"~"Homo sapiens",
+                                        species == "musculus"~"Mus musculus",
+                                        species == "cuniculus"~"Oryctolagus cuniculus",
+                                        species == "domesticus" ~ "Sus domesticus",
+                                        species == "norvegicus"~"Rattus norvegicus")))
+
+
+
 
 #### User Interface ####
 
@@ -389,7 +398,17 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                                          choices = levels(human_setup$exposure_route_h_f),
                                                                          selected = levels(human_setup$exposure_route_h_f),
                                                                          options = list(`actions-box` = TRUE), 
+                                                                         multiple = TRUE)),
+                                                      
+                                                      column(width = 3,
+                                                             pickerInput(inputId = "species_h_check", # polymer checklist
+                                                                         label = "Species:", 
+                                                                         choices = levels(human_setup$species_h_f),
+                                                                         selected = levels(human_setup$species_h_f),
+                                                                         options = list(`actions-box` = TRUE), 
                                                                          multiple = TRUE))),
+                                                      
+                                                      
                                                
                                                #column(width = 3,
                                                #pickerInput(inputId = "organism_check", # organismal checklist
@@ -624,6 +643,7 @@ server <- function(input, output) {
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c"
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
+    species_h_c<-input$species_h_check
     #vivo_h_c <- input$vivo_h_check
     #range_n <- input$range # assign values to "range_n"
     
@@ -637,7 +657,8 @@ server <- function(input, output) {
       filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
       filter(shape_h_f %in% shape_h_c) %>% #filter by shape
       filter(size_h_f %in% size_h_c) %>% #filter by size class
-      filter(exposure_route_h_f %in% exposure_route_h_c) #filter by exposure route
+      filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
+      filter(species_h_f %in% species_h_c)
       #filter(vivo_h_f %in% vivo_h_c) #filter by invivo or invitro
        
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
