@@ -547,6 +547,13 @@ ui <- fluidPage(theme = shinytheme("flatly"),
                                                              plotOutput(outputId = "lvl2_h_plot_react"),
                                                              br())), 
                                                
+                                               
+                                               column(width = 12,
+                                                      
+                                                      column(width = 12,
+                                                             plotOutput(outputId = "exposure_route_h_plot_react"),
+                                                             br())),                                               
+                                               
                                                column(width = 12,
                                                       
                                                       column(width = 12,
@@ -781,7 +788,7 @@ server <- function(input, output) {
   
   #exposure route 
   
-  output$shape_h_plot_react <- renderPlot({
+  output$exposure_route_h_plot_react <- renderPlot({
     
     ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = exposure_route_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
