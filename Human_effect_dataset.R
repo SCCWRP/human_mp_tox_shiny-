@@ -142,31 +142,32 @@ vivofinal<- data.frame(cbind(vivof, study_v))%>%
 vivofinal
 
 
-routedf<-rowPerc(xtabs(~exposure.route +effect, aoc))
+routedf<-rowPerc(xtabs(~exposure.category +effect, aoc))
 routef<-as.data.frame(routedf)%>%
   filter(effect %in% c("Y","N"))%>%
-  rename(Type= "exposure.route")%>%
+  rename(Type= "exposure.category")%>%
   mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Exposure.route")%>%
-  mutate(Type = case_when(
-    Type == "dermal" ~ "Dermal",
-    Type == "food" ~ "Food",
-    Type == "gavage" ~ "Gavage",
-    Type == "gestation" ~ "Gestation",
-    Type == "gestation,lactation" ~ "Gestation & Lactation",
-    Type == "inhalation" ~ "Inhalation",
-    Type == "intratracheal.instillation" ~ "Intratracheal Instillation",
-    Type == "iv.injection" ~ "IV Injection",
-    Type == "drinking.water" ~ "Drinking Water",
-    Type ==  "Not Applicable"~"Not Applicable"))
-study_r<-xtabs(~exposure.route +effect,aoc)
+  mutate(plot="Exposure.category")
+  #mutate(Type = case_when(
+    #Type == "dermal" ~ "Dermal",
+    #Type == "food" ~ "Food",
+    #Type == "gavage" ~ "Gavage",
+    #Type == "gestation" ~ "Gestation",
+    #Type == "gestation,lactation" ~ "Gestation & Lactation",
+    #Type == "inhalation" ~ "Inhalation",
+    #Type == "intratracheal.instillation" ~ "Intratracheal Instillation",
+    #Type == "iv.injection" ~ "IV Injection",
+    #Type == "drinking.water" ~ "Drinking Water",
+    #Type ==  "Not Applicable"~"Not Applicable"))
+study_r<-xtabs(~exposure.category +effect,aoc)
 routefinal<- data.frame(cbind(routef, study_r))%>% 
   rename(Endpoints='Freq.1')%>%
-  rename(category='exposure.route')
+  rename(category='exposure.category')
 lifefinal
 routefinal
 polyfinal
 sizefinal
+routedf
 
 A<-rbind(polyfinal,sizefinal)
 B<-rbind(A,shapefinal)
