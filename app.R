@@ -758,6 +758,33 @@ server <- function(input, output) {
     
   })
   
+  #exposure route 
+  
+  output$shape_h_plot_react <- renderPlot({
+    
+    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = exposure_route_h_f)) +
+      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
+                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+      scale_color_manual(values = c("#C7EAE5","#35978F")) +
+      scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
+      theme_classic() +
+      theme(text = element_text(size=18), 
+            legend.position = "right") +
+      labs(x = "Concentration (mg/mL)",
+           y = "Exposure Route",
+           color = "Effect?",
+           fill = "Effect?")+
+      facet_wrap(~vivo_h_f)
+    
+  })
+  
+  
+  
+  
+  
+  
+  
   # Create downloadable csv of filtered dataset.
   # Removed columns created above so the dataset matches Leah's original dataset.
   output$downloadData <- downloadHandler(
