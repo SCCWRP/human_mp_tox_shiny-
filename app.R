@@ -215,15 +215,11 @@ human_setup <- human_v1 %>% # start with original dataset
                                      life.stage == "juvenile"~"Juvenile",
                                      life.stage == "adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
-  mutate(exposure_route_h_f = factor(case_when(exposure.route == "dermal" ~ "Dermal",
-                                               exposure.route == "drinking.water" ~ "Drinking Water",
+  mutate(exposure_route_h_f = factor(case_when(exposure.route == "drinking.water" ~ "Drinking Water",
                                                exposure.route == "food" ~ "Food",
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
                                                exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
-                                               exposure.route == "inhalation" ~ "Inhalation",
-                                               exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation",
-                                               exposure.route == "iv.injection" ~ "IV Injection",
                                                exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))
 
 #### User Interface ####
