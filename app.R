@@ -75,7 +75,7 @@ get_plot_output_list <- function(input_n) {
         ylab("Number of Endpoints Measured") +
         labs(fill="Effect") +
         guides(x = guide_axis(n.dodge = 2)) +
-        ggtitle(case_when(i=="Polymer"~"Polymer", i=="Organism"~"Organism", i=="Size"~"Particle Size",i=="Shape"~"Shape",i=="Endpoint Category"~"Endpoint Category",i=="Life Stage"~"Life Stage",i=="Exposure Category"~"Exposure Category",i=="In Vivo or In Vitro"~"In Vivo or In vitro"))+
+        ggtitle(case_when(i=="Exposure Category"~"Exposure Category",i=="Endpoint Category"~"Endpoint Category", i=="Polymer"~"Polymer", i=="Organism"~"Organism", i=="Size"~"Particle Size",i=="Shape"~"Shape",i=="Endpoint Category"~"Endpoint Category",i=="Life Stage"~"Life Stage",i=="Exposure Category"~"Exposure Category",i=="In Vivo or In Vitro"~"In Vivo or In vitro",i=="Polymer"~"Polymer"))+
         theme(plot.title = element_text(hjust = 0.5, face="bold"))+
         theme(legend.position = "right",
               axis.ticks= element_blank(),

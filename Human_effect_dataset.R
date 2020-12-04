@@ -147,13 +147,13 @@ routef<-as.data.frame(routedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "exposure.category")%>%
   mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Exposure.category")
-  #mutate(Type = case_when(
-    #Type == "dermal" ~ "Dermal",
-    #Type == "food" ~ "Food",
-    #Type == "gavage" ~ "Gavage",
-    #Type == "gestation" ~ "Gestation",
-    #Type == "gestation,lactation" ~ "Gestation & Lactation",
+  mutate(plot="Exposure.category")%>%
+  mutate(Type = case_when(
+    Type == "Dermal" ~ "Dermal",
+    Type == "Ingestion" ~ "Ingestion",
+    Type == "Inhalation" ~ "Inhalation",
+    Type == "IV Injection" ~ "IV Injection",
+    Type == "In Vitro" ~ "In Vitro"))
     #Type == "inhalation" ~ "Inhalation",
     #Type == "intratracheal.instillation" ~ "Intratracheal Instillation",
     #Type == "iv.injection" ~ "IV Injection",
