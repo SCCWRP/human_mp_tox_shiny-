@@ -157,6 +157,7 @@ routef<-as.data.frame(routedf)%>%
     Type == "inhalation" ~ "Inhalation",
     Type == "intratracheal.instillation" ~ "Intratracheal Instillation",
     Type == "iv.injection" ~ "IV Injection",
+    Type == "drinking.water" ~ "Drinking Water",
     Type ==  "Not Applicable"~"Not Applicable"))
 study_r<-xtabs(~exposure.route +effect,aoc)
 routefinal<- data.frame(cbind(routef, study_r))%>% 
