@@ -148,7 +148,9 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl2 == "apoptosis.cell.cycle"~"Apoptosis and Cell Cycle",
                                      lvl2 == "bacteroidetes"~ "Bacteriodetes",
                                      lvl2 == "bile.acid" ~ "Bile Acid",
+                                     lvl2 == "blood.gen" ~ "Blood",
                                      lvl2 == "body.condition"~"Body Condition",
+                                     lvl2 == "brain.histo" ~ "Brain Histological Abnormalities",
                                      lvl2 == "carb.metabolism"~"Carb Metabolism",
                                      lvl2 == "cell.aggregation"~"Cell Aggregation",
                                      lvl2 == "cell.membrane"~"Cell Membrane",
@@ -163,6 +165,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl2 == "energy.metabolism" ~ "Energy Metabolism",
                                      lvl2 == "exploration" ~ "Exploration",
                                      lvl2 == "firmicutes"~ "Firmicutes",
+                                     lvl2 == "gametes" ~ "Gametes",
                                      lvl2 == "gen.stress" ~ "General Stress",
                                      lvl2 == "hemolysis" ~ "Hemolysis",
                                      lvl2 == "immune.cells"~"Immune Cells",
@@ -189,6 +192,8 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl2 == "permeability" ~ "Permeability",
                                      lvl2 == "proliferation" ~ "Proliferation",
                                      lvl2 == "proteobacteria"~"Protebacteria",
+                                     lvl2 == "reproduction" ~ "Reproduction",
+                                     lvl2 == "reproductive.tissue" ~ "Reproductive Tissues",
                                      lvl2 == "respiration"~"Respiration",
                                      lvl2 == "spleen.histo" ~ "Spleen Histological Abnormalities",
                                      lvl2 == "tenericutes" ~ "Tenericutes",
@@ -531,8 +536,10 @@ tabPanel("4: Resources",
          br(),     
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
          br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES_FUiwiELtNpWgrPCS1Iw4Bkn3-aeiDjZxmtMLjg3uv3g?e=bmuNgG", 'Human Study List'))),
-       
+         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EdKsPlTjls9FtDrwqisZmAEBi7tZQYyywL3qml9y-fR25g?e=pHJkGY", 'Mammalian Study List')),
+         br(),
+         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXf0crCKDPVHo5xBEdw4PQwBxA8cnu0x4WY477CuEzZcPw?e=qs00V3", 'Dose Conversion Methods'))),
+         
 #### Contact UI ####
 
 tabPanel("5: Contact", 
@@ -630,7 +637,7 @@ server <- function(input, output) {
   
   output$size_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = size_h_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = size_h_f)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
@@ -643,7 +650,8 @@ server <- function(input, output) {
            y = "Size",
            color = "Effect?",
            fill = "Effect?")+
-      facet_wrap(~vivo_h_f)
+      facet_wrap(~vivo_h_f)%>%
+      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
     
   })
@@ -652,7 +660,7 @@ server <- function(input, output) {
   
   output$shape_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = shape_h_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = shape_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
@@ -665,7 +673,8 @@ server <- function(input, output) {
            y = "Shape",
            color = "Effect?",
            fill = "Effect?")+
-      facet_wrap(~vivo_h_f)
+      facet_wrap(~vivo_h_f)%>%
+      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
   })
   
@@ -673,7 +682,7 @@ server <- function(input, output) {
   
   output$poly_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = poly_h_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = poly_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
@@ -686,7 +695,8 @@ server <- function(input, output) {
            y = "Polymer",
            color = "Effect?",
            fill = "Effect?")+
-      facet_wrap(~vivo_h_f)
+      facet_wrap(~vivo_h_f)%>%
+      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
   })
   
@@ -694,7 +704,7 @@ server <- function(input, output) {
   
   output$lvl_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl1_h_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = lvl1_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
@@ -707,15 +717,15 @@ server <- function(input, output) {
            y = "Endpoint",
            color = "Effect?",
            fill = "Effect?")+
-      facet_wrap(~vivo_h_f)
-    
+      facet_wrap(~vivo_h_f)%>%
+      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
   })
   
   #Lvl2 Plot 
   
   output$lvl2_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = lvl2_h_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = lvl2_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
@@ -728,7 +738,8 @@ server <- function(input, output) {
            y = "Specific Endpoint",
            color = "Effect?",
            fill = "Effect?")+
-      facet_wrap(~vivo_h_f)
+      facet_wrap(~vivo_h_f)%>%
+      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
   })
   
@@ -736,7 +747,7 @@ server <- function(input, output) {
   
   output$exposure_route_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.nominal, y = exposure_route_h_f)) +
+    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = exposure_route_h_f)) +
       scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
                     labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
@@ -749,7 +760,8 @@ server <- function(input, output) {
            y = "Exposure Route",
            color = "Effect?",
            fill = "Effect?")+
-      facet_wrap(~vivo_h_f)
+      facet_wrap(~vivo_h_f)%>%
+      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
   })
   
@@ -761,7 +773,7 @@ server <- function(input, output) {
     },
     content = function(file) {
       write.csv(human_filter() %>%
-                  select(-c(effect_h_f, size_h_f, shape_h_f, poly_h_f, lvl1_h_f, lvl2_h_f, bio_h_f, vivo_h_f, life_h_f, exposure_route_h_f)), 
+                  select(-c(effect_h_f, size_h_f, shape_h_f, poly_h_f, lvl1_h_f, lvl2_h_f, bio_h_f, vivo_h_f, life_h_f, exposure_route_h_f, species_h_f)), 
                 file, row.names = FALSE)
     }
   )
