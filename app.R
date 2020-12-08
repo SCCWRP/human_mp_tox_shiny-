@@ -231,7 +231,9 @@ human_setup <- human_v1 %>% # start with original data set
 ui <- fluidPage(theme = shinytheme("flatly"),  
                 
 # App title
-titlePanel(h1("Microplastics Toxicity Database: Mammals")),
+titlePanel(tagList(span((h1("Microplastics Toxicity Database: Mammals"))),
+           span(actionButton("database_link", label="Go to Aquatic Organisms Database", class = "btn-primary", onclick ="window.open('https://sccwrp.shinyapps.io/aq_mp_tox_shiny/', '_blank')", style = "float:right")))
+           ),
                 
 # Title panel subtext
 tags$div("This website is only intended for use by invited participants of the Microplastics Health Effects Workshop."),
