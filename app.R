@@ -23,6 +23,7 @@ library(plotly) #Make plots interactive
 library(viridis) #Colors
 library(scales) #To use "percent" function
 library(shinyjs) #Exploration tab - reset button
+library(tigerstats) #row percent values 
 
 # Load finalized dataset.
 
@@ -34,66 +35,171 @@ human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 
 #### Overview Human Setup ####
 
-Final_effect_dataset <- read_csv("Final_effect_datasetH.csv")%>%
-  mutate(plot_f = case_when(
-    plot_f == "Polymer" ~ "Polymer",
-    plot_f == "Size" ~ "Size",
-    plot_f == "Shape" ~ "Shape",
-    plot_f == "Organism" ~ "Organism",
-    plot_f == "Lvl1" ~ "Endpoint Category",
-    plot_f == "Life.stage" ~ "Life Stage",
-    plot_f == "Invivo.invivo" ~ "In Vivo or In Vitro",
-    plot_f == "Exposure.category" ~ "Exposure Category"))%>%
-  mutate(plot_f = factor(plot_f))%>%
+#Final_effect_dataset <- read_csv("Final_effect_datasetH.csv")%>%
+  #mutate(plot_f = case_when(
+    #plot_f == "Polymer" ~ "Polymer",
+    #plot_f == "Size" ~ "Size",
+    #plot_f == "Shape" ~ "Shape",
+    #plot_f == "Organism" ~ "Organism",
+    #plot_f == "Lvl1" ~ "Endpoint Category",
+    #plot_f == "Life.stage" ~ "Life Stage",
+    #plot_f == "Invivo.invivo" ~ "In Vivo or In Vitro",
+    #plot_f == "Exposure.category" ~ "Exposure Category"))%>%
+ # mutate(plot_f = factor(plot_f))%>%
+  #mutate(logEndpoints = log(Endpoints))%>%
+  #rename(Percent = Freq)
+
+aoc <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
+replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
+polydf<-rowPerc(xtabs( ~polymer +effect, aoc)) #pulls polymers by effect 
+polyf<-as.data.frame(polydf)%>% #Makes data frame 
+  filter(effect %in% c("Y","N"))%>% #Sorts into Yes and No
+  rename(Type = "polymer")%>%#rename so future columns have same name 
+  mutate(Type = case_when(
+    Type == "PA" ~ "Polyamide",
+    Type == "PE" ~ "Polyethylene",
+    Type == "PMMA" ~ "Polymethylmethacrylate",
+    Type == "PP" ~ "Polypropylene",
+    Type == "PS" ~ "Polystyrene",
+    Type == "PUR" ~ "Polyurathane",
+    Type == "PVC" ~ "Polyvinylchloride",
+    Type == "TR" ~ "Tire Rubber"))%>%
+  mutate_if(is.numeric, round,0)%>% #rounds percents 
+  mutate(plot="Polymer") # change column name for check list
+Endpoints<-xtabs(~polymer +effect ,aoc) #Pulls all study obs. for polymer from dataset
+polyfinal<- data.frame(cbind(polyf, Endpoints))%>% #adds it as a column
+  rename(Endpoints='Freq.1')%>% #renames column
+  rename(category='polymer')%>%
   mutate(logEndpoints = log(Endpoints))%>%
-  rename(Percent = Freq)
+  rename(Percent = Freq)#renames column#renames column
 
-# Adding function for multiple graph output.
-# Code adapted from https://gist.github.com/wch/5436415/ and comment at https://gist.github.com/wch/5436415/#gistcomment-1608976 .
+sizedf<-rowPerc(xtabs(~size.category +effect, aoc))
+sizef<-as.data.frame(sizedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  mutate(size.category = case_when(
+    size.category == 1 ~ "1nm < 100nm",
+    size.category == 2 ~ "100nm < 1µm",
+    size.category == 3 ~ "1µm < 100µm",
+    size.category == 4 ~ "100µm < 1mm",
+    size.category == 0 ~ "Not Reported"))%>%
+  rename(Type = "size.category")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Size")
+study_s<-xtabs(~size.category +effect ,aoc)
+sizefinal<- data.frame(cbind(sizef, study_s))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='size.category')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
 
-# Creates function called "get_plot_output_list" where the input variable is "input_n".
-get_plot_output_list <- function(input_n) {
-  
-  # For every value in "input_n", insert it as "i" into the function below and then save the full output into "plot_output_list":
-  plot_output_list <- lapply(input_n, function(i) {
-    
-    # Render the individual plots      
-    renderPlotly({
-      
-      # use the original dataset
-      Final_effect_dataset %>%
-        
-        # filter by input
-        filter(plot_f==i) %>%
-        
-        # generate plot
-        ggplot(aes(fill=effect, y= logEndpoints, x=Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette(case_when(i=="Polymer"~"wetland", i=="Organism"~"sbchannel", i=="Size"~"seagrass",i=="Shape"~"gayophytum",i=="Endpoint Category"~"figmtn",i=="Life Stage"~"dudleya",i=="Exposure Category"~"halfdome",i=="In Vivo or In Vitro"~"kelp2")))+
-        theme_classic() +
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        guides(x = guide_axis(n.dodge = 2)) +
-        ggtitle(case_when(i=="Exposure Category"~"Exposure Category",i=="Endpoint Category"~"Endpoint Category", i=="Polymer"~"Polymer", i=="Organism"~"Organism", i=="Size"~"Particle Size",i=="Shape"~"Shape",i=="Endpoint Category"~"Endpoint Category",i=="Life Stage"~"Life Stage",i=="Exposure Category"~"Exposure Category",i=="In Vivo or In Vitro"~"In Vivo or In vitro",i=="Polymer"~"Polymer"))+
-        theme(plot.title = element_text(hjust = 0.5, face="bold"))+
-        theme(legend.position = "right",
-              axis.ticks= element_blank(),
-              axis.text.x = element_text(angle=45, size = 10),
-              axis.text.y = element_blank(),
-              axis.title.x = element_blank())
-      
-      ggplotly(tooltip = 'Percent')%>%
-        config(displayModeBar = FALSE)
-      
-    })
-    
-  })
-  
-  do.call(tagList, plot_output_list) # Need to call it as a list to display properly.
-  
-  return(plot_output_list) # Returns the full list of stored plots.
-}
+
+
+shapedf<-rowPerc(xtabs(~shape + effect, aoc))
+shapef<-as.data.frame(shapedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type="shape")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Shape")%>%
+  mutate(Type = case_when(
+    Type == "fragment" ~ "Fragment",
+    Type == "sphere" ~ "Sphere",
+    Type == "NA" ~ "Not Reported"))
+study_sh<-xtabs(~shape + effect,aoc)
+shapefinal<- data.frame(cbind(shapef, study_sh))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='shape')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+
+
+lvl1df<-rowPerc(xtabs(~lvl1 +effect, aoc))
+lvl1f<-as.data.frame(lvl1df)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "lvl1")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Lvl1")%>%
+  mutate(Type = case_when(
+    Type == "alimentary.excretory" ~ "Alimentary, Excretory",
+    Type == "behavior.sense.neuro" ~ "Behavioral, Sensory, Neurological",
+    Type == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
+    Type == "cell.morphology.structure" ~ "Cell Morphology and Structure",
+    Type == "circulatory" ~ "Circulatory",
+    Type == "cytotoxicity" ~ "Cytotoxicity",
+    Type == "endocrine.signaling" ~ "Endocrine Signaling",
+    Type == "fitness" ~ "Fitness",
+    Type == "immune" ~ "Immune",
+    Type == "metabolism" ~ "Metabolism",
+    Type == "microbiome" ~ "Microbiome",
+    Type == "respiratory" ~ "Respiratory",
+    Type == "stress" ~ "Stress"))
+study_l<-xtabs(~lvl1 +effect,aoc)
+lvl1final<- data.frame(cbind(lvl1f, study_l))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='lvl1')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+
+
+lifedf<-rowPerc(xtabs(~life.stage +effect, aoc))
+lifef<-as.data.frame(lifedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "life.stage")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Life.stage")%>%
+  mutate(Type = case_when(
+    Type == "early,f1"~"Early, F1 Generation",
+    Type == "early,f2"~"Early, F2 Generation",
+    Type == "juvenile"~"Juvenile",
+    Type == "adult"~"Adult",
+    Type == "Not Reported"~"Not Reported"))
+studyli<-xtabs(~life.stage +effect ,aoc)
+lifefinal<- data.frame(cbind(lifef, studyli))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='life.stage')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+vivodf<-rowPerc(xtabs(~invitro.invivo +effect, aoc))
+vivof<-as.data.frame(vivodf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro"))
+study_v<-xtabs(~invitro.invivo +effect,aoc)
+vivofinal<- data.frame(cbind(vivof, study_v))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='invitro.invivo')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+routedf<-rowPerc(xtabs(~exposure.category +effect, aoc))
+routef<-as.data.frame(routedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "exposure.category")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Exposure.category")%>%
+  mutate(Type = case_when(
+    Type == "Dermal" ~ "Dermal",
+    Type == "Ingestion" ~ "Ingestion",
+    Type == "Inhalation" ~ "Inhalation",
+    Type == "IV Injection" ~ "IV Injection",
+    Type == "In Vitro" ~ "In Vitro"))
+#Type == "inhalation" ~ "Inhalation",
+#Type == "intratracheal.instillation" ~ "Intratracheal Instillation",
+#Type == "iv.injection" ~ "IV Injection",
+#Type == "drinking.water" ~ "Drinking Water",
+#Type ==  "Not Applicable"~"Not Applicable"))
+study_r<-xtabs(~exposure.category +effect,aoc)
+routefinal<- data.frame(cbind(routef, study_r))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='exposure.category')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
 
 #### Exploration Human Setup ####
 
@@ -317,15 +423,41 @@ br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
                                                
-                                               pickerInput(inputId = "Emily_check", # endpoint checklist
-                                                           label = "Overview", 
-                                                           choices = levels(Final_effect_dataset$plot_f),
-                                                           selected = levels(Final_effect_dataset$plot_f), 
-                                                           options = list(`actions-box` = TRUE), # option to de/select all
-                                                           multiple = TRUE), # allows for multiple inputs
-                                               br(),
-                                               
-                                               uiOutput(outputId= "Emily_plot")),
+column(width = 12,
+       column(width = 12,
+              plotOutput(outputId = "exposure_plot"),
+              br())), 
+
+
+column(width = 12,
+       column(width = 6,
+              plotOutput(outputId = "vivo_plot"),
+              br()), 
+       
+       
+       column(width = 6,
+              plotOutput(outputId = "life_plot"),
+              br())), 
+
+column(width = 12,
+       
+       column(width = 4,
+              plotOutput(outputId = "polymer_plot"),
+              br()), 
+       
+       
+       
+       column(width = 4,
+              plotOutput(outputId = "shape_plot"),
+              br()), 
+
+   
+       
+       column(width = 4,
+              plotOutput(outputId = "size_plot"),
+              br()))),
+       
+       
                                       
                                       
 #### Exploration Human UI ####
@@ -569,12 +701,131 @@ server <- function(input, output) {
   # Effect plot code for check box 
   
   # Insert the right number of plot output objects into the page using the function from the setup section.
-  output$Emily_plot <- renderUI({ 
+  # Insert the right number of plot output objects into the page using the function from the setup section.
+  output$polymer_plot <- renderPlot({
     
-    # Using user-provided selections.
-    get_plot_output_list(input$Emily_check) 
-    
+    # generate plot
+    ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      scale_fill_manual(values = cal_palette("seagrass"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("Polymer Type")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20))+
+      theme(legend.position = "right",
+            
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
   })
+  
+  output$vivo_plot <- renderPlot({
+    
+    # generate plot
+    ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      scale_fill_manual(values = cal_palette("lupinus"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("In Vitro or In Vivo")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
+  })
+  
+  output$size_plot <- renderPlot({
+    
+    # generate plot
+    ggplot(sizefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      scale_fill_manual(values = cal_palette("bigsur2"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("Particle Size")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
+  })
+  
+  output$shape_plot <- renderPlot({
+    
+    # generate plot
+    ggplot(shapefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      scale_fill_manual(values = cal_palette("vermillion"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("Plastic Shapes")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
+  })
+  
+  output$life_plot <- renderPlot({
+    
+    # generate plot
+    ggplot(lifefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      scale_fill_manual(values = cal_palette("lake"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      ggtitle("Life Stage")+
+      labs(fill="Effect") +
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
+  })
+  
+  
+  output$exposure_plot <- renderPlot({
+    
+    # generate plot
+    ggplot(routefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      scale_fill_manual(values = cal_palette("wetland"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("Exposure Route")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
+  })
+  
+  
+  
   
   #### Exploration Human S ####
   
