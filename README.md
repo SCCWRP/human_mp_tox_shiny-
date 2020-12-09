@@ -24,8 +24,11 @@ https://wincowger.shinyapps.io/OpenSpecy/
 ## To-do List
 
 **Scott**
+Add bmdModelling tab
 
-
+https://www.rivm.nl/documenten/proast-manual-menu-version
+https://efsa.openanalytics.eu/app/bmd
+https://github.com/alfcrisci/bmdModeling
 
 **Leah**
 
