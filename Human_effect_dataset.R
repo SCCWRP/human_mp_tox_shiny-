@@ -105,6 +105,10 @@ lvl1final<- data.frame(cbind(lvl1f, study_l))%>%
 
 lvl1final
 
+
+
+
+
 lifedf<-rowPerc(xtabs(~life.stage +effect, aoc))
 lifef<-as.data.frame(lifedf)%>%
   filter(effect %in% c("Y","N"))%>%
