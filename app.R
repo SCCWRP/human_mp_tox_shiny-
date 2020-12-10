@@ -587,6 +587,18 @@ br(),
                                   #label = "Particle Size (µm):", #Labels widget
                                   #min = 0, max = 4000, value = 4000)),
 
+                                radioButtons(inputId = "dose_check", # dosing units
+                                             label = "Particles/L or mg/mL:",
+                                             choices = c("Particles/L", "mg/mL"),
+                                             selected = "mg/mL"),
+                                
+                                p("Concentrations may be reported in mass/volume or particle #/volume (or sometimes both). Using methods described in", a(href ="https://pubs.acs.org/doi/10.1021/acs.est.0c02982", "Koelmans et. al (2020)"), " units have been converted."),
+                                
+                                radioButtons(inputId = "Rep_Con_rad",
+                                             label = "Do you want to use just the reported, just the converted, or all exposure concentrations?",
+                                             choices = c("reported", "converted", "all"),
+                                             selected = "all"),
+
                            # New row of widgets
                            column(width=12,
                                   column(width = 3,
@@ -863,6 +875,37 @@ server <- function(input, output) {
     species_h_c<-input$species_h_check
     #vivo_h_c <- input$vivo_h_check
     #range_n <- input$range # assign values to "range_n"
+    dose_check <- input$dose_check #renames selection from radio button
+    Rep_Con_rad <- input$Rep_Con_rad #use nominal or calculated exposure concentrations. Options are TRUE (calculated) or FALSE (reported)
+    
+    #filter out reported, calcualted, or all based on checkbox and make new variable based on mg/L or particles/mL
+    if(Rep_Con_rad == "reported" & dose_check == "mg/mL"){
+      human_setup <- human_setup %>% 
+        filter(dose.mg.mL.master.reported.converted == "reported") %>% 
+        mutate(dose_new = dose.mg.mL.master)}
+    
+    if(Rep_Con_rad == "converted" & dose_check == "mg/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.mg.mL.master.reported.converted == "converted") %>% 
+        mutate(dose_new = dose.mg.mL.master)}
+    
+    if(Rep_Con_rad == "all" & dose_check == "mg/mL"){
+      human_setup <- human_setup %>%
+        mutate(dose_new = dose.mg.mL.master)}
+    
+    if(Rep_Con_rad == "reported" & dose_check == "Particles/L"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "reported") %>% 
+        mutate(dose_new = dose.particles.L.master)}
+    
+    if(Rep_Con_rad == "converted" & dose_check == "Particles/L"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "converted") %>% 
+        mutate(dose_new = dose.particles.L.master)} 
+    
+    if(Rep_Con_rad == "all" & dose_check == "Particles/L"){
+      human_setup <- human_setup %>%
+        mutate(dose_new = dose.particles.L.master)}
     
     human_setup %>% # take original dataset
       #filter(vivo_h_f %in% vivo_h_c) %>% #filter by invivo or invitro
@@ -890,16 +933,15 @@ server <- function(input, output) {
   
   output$size_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = size_h_f)) +
+    ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
-      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
-                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+      scale_x_log10() +
       scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
       scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
-      labs(x = "Concentration (mg/mL)",
+      labs(x = input$dose_check,
            y = "Size",
            color = "Effect?",
            fill = "Effect?")+
@@ -913,16 +955,15 @@ server <- function(input, output) {
   
   output$shape_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = shape_h_f)) +
-      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
-                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+    ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
+      scale_x_log10() +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
-      labs(x = "Concentration (mg/mL)",
+      labs(x = input$dose_check,
            y = "Shape",
            color = "Effect?",
            fill = "Effect?")+
@@ -935,16 +976,15 @@ server <- function(input, output) {
   
   output$poly_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = poly_h_f)) +
-      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
-                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+    ggplot(human_filter(), aes(x = dose_new, y = poly_h_f)) +
+      scale_x_log10() +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
-      labs(x = "Concentration (mg/mL)",
+      labs(x = input$dose_check,
            y = "Polymer",
            color = "Effect?",
            fill = "Effect?")+
@@ -957,16 +997,15 @@ server <- function(input, output) {
   
   output$lvl_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = lvl1_h_f)) +
-      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
-                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+    ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f)) +
+      scale_x_log10() +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
-      labs(x = "Concentration (mg/mL)",
+      labs(x = input$dose_check,
            y = "Endpoint",
            color = "Effect?",
            fill = "Effect?")+
@@ -978,16 +1017,15 @@ server <- function(input, output) {
   
   output$lvl2_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = lvl2_h_f)) +
-      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
-                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+    ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f)) +
+      scale_x_log10() +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
-      labs(x = "Concentration (mg/mL)",
+      labs(x = input$dose_check,
            y = "Specific Endpoint",
            color = "Effect?",
            fill = "Effect?")+
@@ -1000,16 +1038,15 @@ server <- function(input, output) {
   
   output$exposure_route_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose.mg.mL.master, y = exposure_route_h_f)) +
-      scale_x_log10(breaks = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100), 
-                    labels = c(0.00000001, 0.000001, 0.0001, 0.01, 1, 100)) +
+    ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f)) +
+      scale_x_log10() +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
-      labs(x = "Concentration (mg/mL)",
+      labs(x = input$dose_check,
            y = "Exposure Route",
            color = "Effect?",
            fill = "Effect?")+
