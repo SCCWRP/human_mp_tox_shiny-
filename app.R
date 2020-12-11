@@ -1050,7 +1050,6 @@ server <- function(input, output) {
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
-      scale_y_discrete(labels = wrap_format(8))+
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
