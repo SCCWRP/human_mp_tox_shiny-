@@ -416,10 +416,8 @@ tabPanel("2: Overview",
 br(), 
 h3("Overview of Toxicological Effects in Human Systems", align = "center"),
 br(),
-p("Check the boxes below to visualize figures. Each bar displays the total number of measured endpoints within the database. Measured endpoints where a statistically signifcant effect was detected as indicated by 'Y' or where a measurement was made but a significant effect was not detected 'N'."), 
+p("Each bar displays the total number of measured endpoints within the database. Measured endpoints where a statistically signifcant effect was detected as indicated by 'Y' or where a measurement was made but a significant effect was not detected 'N'."), 
 br(),
-p("Use the drop down menu at the top of the page to visualize different figures. Hover the cursor over each stacked bar to display the number of measured endpoints that are currently included in the database. Click on the legend to select data."),
-br(), 
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
                                                
@@ -468,10 +466,9 @@ id = "heili-tab", # adds ID for resetting Heili's tab's filters
                                                
 h3("Exploration of Toxicological Effects in Mammalian Systems", align = "center"),
 br(), 
-p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively. All doses are displayed in mass per volume. Doses 
-  were either reported in mass per volume or converted from doses originally presented as particle count per volume."),
+p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively."),
 br(),
-p("The data displayed in these figures are not filtered for quality and only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass per volume - other dosing units (e.g., particle mass/food mass) 
+p("The data displayed in these figures are not filtered for quality and only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass or counts per volume - other dosing units (e.g., particle mass/food mass) 
    are not displayed but are available in the complete database file."),
 br(), 
 p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
@@ -944,7 +941,8 @@ server <- function(input, output) {
       labs(x = input$dose_check,
            y = "Size",
            color = "Effect?",
-           fill = "Effect?")+
+           fill = "Effect?",
+           caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
@@ -966,7 +964,8 @@ server <- function(input, output) {
       labs(x = input$dose_check,
            y = "Shape",
            color = "Effect?",
-           fill = "Effect?")+
+           fill = "Effect?",
+           caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
@@ -987,7 +986,8 @@ server <- function(input, output) {
       labs(x = input$dose_check,
            y = "Polymer",
            color = "Effect?",
-           fill = "Effect?")+
+           fill = "Effect?",
+           caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
@@ -1008,7 +1008,8 @@ server <- function(input, output) {
       labs(x = input$dose_check,
            y = "Endpoint",
            color = "Effect?",
-           fill = "Effect?")+
+           fill = "Effect?",
+           caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
   })
@@ -1028,7 +1029,8 @@ server <- function(input, output) {
       labs(x = input$dose_check,
            y = "Specific Endpoint",
            color = "Effect?",
-           fill = "Effect?")+
+           fill = "Effect?",
+           caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
@@ -1049,7 +1051,8 @@ server <- function(input, output) {
       labs(x = input$dose_check,
            y = "Exposure Route",
            color = "Effect?",
-           fill = "Effect?")+
+           fill = "Effect?",
+           caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
