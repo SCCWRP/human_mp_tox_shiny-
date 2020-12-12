@@ -325,12 +325,12 @@ human_setup <- human_v1 %>% # start with original data set
                                                exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))%>% #Renames for widget - only categories included under 
                                                                                                                       #ingestion and in vitro are included (we don't want other 
                                                                                                                       #routes of exposure plotted in exploration because there is so little data)
-  mutate(species_h_f = factor(case_when(species == "aries"~"Ovis aries",
-                                        species == "sapiens"~"Homo sapiens",
-                                        species == "musculus"~"Mus musculus",
-                                        species == "cuniculus"~"Oryctolagus cuniculus",
-                                        species == "domesticus" ~ "Sus domesticus",
-                                        species == "norvegicus"~"Rattus norvegicus"))) #Renames for widget
+  mutate(species_h_f = factor(case_when(species == "aries"~"(Sheep) Ovis aries",
+                                        species == "sapiens"~"(Human) Homo sapiens",
+                                        species == "musculus"~"(Mouse) Mus musculus",
+                                        species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
+                                        species == "domesticus" ~ "(Pig) Sus domesticus",
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) #Renames for widget
 
 #### User Interface ####
 
@@ -935,7 +935,6 @@ server <- function(input, output) {
       scale_x_log10() +
       scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
       scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
-      scale_y_discrete(labels = wrap_format(8))+
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -957,7 +956,6 @@ server <- function(input, output) {
     ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
       scale_x_log10() +
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
-      scale_y_discrete(labels = wrap_format(8))+
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
@@ -982,7 +980,6 @@ server <- function(input, output) {
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
-      scale_y_discrete(labels = wrap_format(8))+
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1005,7 +1002,6 @@ server <- function(input, output) {
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
-      scale_y_discrete(labels = wrap_format(8))+
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1027,7 +1023,6 @@ server <- function(input, output) {
       geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
-      scale_y_discrete(labels = wrap_format(8))+
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1040,6 +1035,7 @@ server <- function(input, output) {
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
   })
+  
   
   #exposure route 
   
