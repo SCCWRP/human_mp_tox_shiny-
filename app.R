@@ -161,6 +161,7 @@ lifefinal<- data.frame(cbind(lifef, studyli))%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
+#in vitro/in vivo by measurement and type
 vivodf<-rowPerc(xtabs(~invitro.invivo +effect, aoc))
 vivof<-as.data.frame(vivodf)%>%
   filter(effect %in% c("Y","N"))%>%
@@ -176,6 +177,56 @@ vivofinal<- data.frame(cbind(vivof, study_v))%>%
   rename(category='invitro.invivo')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
+
+#in vitro/in vivo by study and type
+vivoFinal_type_study<-aoc %>% 
+  group_by(invitro.invivo, effect) %>% 
+  summarize(studyCount = n_distinct(doi)) %>% 
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+  as.data.frame()%>%
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro")) %>% 
+  rename(Studies='studyCount')%>%
+  mutate(logStudies = log(Studies))%>%
+  rename(Percent = freq)#renames column
+
+#in vitro/in vivo by year and measurement
+vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, aoc)) %>% 
+  as.data.frame()%>%
+  filter(year!="Total") %>% #supress Total column to be able to cbind later
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro"))
+study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, aoc))
+vivoFinal_year<- data.frame(cbind(vivodf_year, study_v_year))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='invitro.invivo')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#in vitro/in vivo by year and study
+vivoFinal_year_study<-aoc %>% 
+  group_by(invitro.invivo, year) %>% 
+  summarize(studyCount = n_distinct(doi)) %>% 
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+  as.data.frame()%>%
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro")) %>% 
+  rename(Studies='studyCount')%>%
+  mutate(logStudies = log(Studies))%>%
+  rename(Percent = freq)#renames column
+
 
 routedf<-rowPerc(xtabs(~exposure.category +effect, aoc))
 routef<-as.data.frame(routedf)%>%
@@ -200,6 +251,8 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
   rename(category='exposure.category')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
+
+
 
 # Set default theme for overview plots
 overviewTheme <- function(){
@@ -429,11 +482,9 @@ p("Each bar displays the total number of measured endpoints where a statisticall
 br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
-#comment out for now
-# selectInput(inputId = "overview.type", "Overview Type:", 
-#             list(measurements = "measurements", studies = "studies") #need to fix, just comment out for now
-# ),
-#                                                
+selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
+            list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
+
 column(width = 12,
        column(width = 12,
               plotOutput(outputId = "exposure_plot"),
@@ -512,7 +563,6 @@ br(),
                                                      selected = levels(human_setup$lvl1_h_f),
                                                      options = list(`actions-box` = TRUE), # option to de/select all
                                                      multiple = TRUE)), # allows for multiple inputs
-                                  
                                   column(width = 3,
                                          pickerInput(inputId = "poly_h_check", # polymer checklist
                                                      label = "Polymer:", 
@@ -762,24 +812,67 @@ if(input$overview.type == "studies"){
 print(p)    
   })
   
+  #in vitro/in vivo plot
   output$vivo_plot <- renderPlot({
+  
     
-    # generate plot
-    ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-      geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-      scale_fill_manual(values = cal_palette("lupinus"))+
-      theme_classic() +
-      ylab("Number of Endpoints Measured") +
-      labs(fill="Effect") +
-      ggtitle("In Vitro or In Vivo")+
-      guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
-      theme(legend.position = "right",
-            axis.ticks= element_blank(),
-            axis.text.x = element_text(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank())
+    #measurements and types
+    if(input$overview.type == "measurementsAndTypes"){
+      # generate plot
+      p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Effect") +
+        ggtitle("In Vitro or In Vivo")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+      }
+    #measurements and years 
+    if(input$overview.type == "measurementsAndYears" ){
+      # generate plot
+      p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Study Type") +
+        ggtitle("In Vitro or In Vivo Measurements by Year")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+      #currently displays years as a factor. can't decide if to switch to numeric or not
+      }
+    
+    #studies and types 
+    if(input$overview.type == "studiesAndTypes"){
+      p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Studies") +
+        labs(fill="Effect") +
+        ggtitle("In Vitro or In Vivo Studies by Type")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+    }
+    
+    #studies and years
+    if(input$overview.type == "studiesAndYears" ){
+      # generate plot
+      p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= year, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
+        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Studies") +
+        labs(fill="Study Type") +
+        ggtitle("In Vitro or In Vivo Studies by Year")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+    }
+    
+    print(p)
   })
   
   output$size_plot <- renderPlot({
