@@ -24,6 +24,7 @@ library(viridis) #Colors
 library(scales) #To use "percent" function
 library(shinyjs) #Exploration tab - reset button
 library(tigerstats) #row percent values 
+library(beeswarm) #plot all points nicely
 
 # Load finalized dataset.
 
@@ -595,6 +596,11 @@ br(),
                                              label = "Do you want to use just the reported, just the converted, or all exposure concentrations?",
                                              choices = c("reported", "converted", "all"),
                                              selected = "all"),
+                                selectInput(inputId = "plot.type", "Plot Type:", 
+                                            list(boxplot = "boxplot", violin = "violin") #, beeswarm = "beeswarm") #need to fix, just comment out for now
+                                            ),
+                                checkboxInput(inputId = "show.points", "show points", TRUE),
+
 
                            # New row of widgets
                            column(width=12,
@@ -922,40 +928,84 @@ server <- function(input, output) {
     
   })
   
+  output$caption<-renderText({ #rename plot types in UI
+    switch(input$plot.type,
+           "boxplot" 	= 	"Boxplot",
+           "violin" = "Violin Plot",
+           "beeswarm" = "Beeswarm",
+           "bar" 		=	"Bar graph")
+  })
   
   # Use newly created dataset from above to generate plots for size, shape, polymer, and endpoint plots on four different rows.
   
   
   # Size Plot
-  
   output$size_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) +
-      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
-      scale_x_log10() +
-      scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
-      scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
-      theme_classic() +
-      theme(text = element_text(size=18), 
-            legend.position = "right") +
-      labs(x = input$dose_check,
-           y = "Size",
-           color = "Effect?",
-           fill = "Effect?",
-           caption = (input$Rep_Con_rad))+
-      facet_wrap(~vivo_h_f)%>%
-      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+    #plot types
+    plot.type<-switch(input$plot.type,
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "violin" = geom_violin(),
+                      "bar" 		=	geom_bar(position="dodge"))
     
+    if(input$plot.type == "beeswarm") {
+      p <- beeswarm(data = human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
+        scale_x_log10() +
+        scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
+        scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+        theme_classic() +
+        theme(text = element_text(size=18), 
+              legend.position = "right") +
+        labs(x = input$dose_check,
+             y = "Size",
+             color = "Effect?",
+             fill = "Effect?",
+             caption = (input$Rep_Con_rad))+
+        facet_wrap(~vivo_h_f)%>%
+        req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+    }
     
+    else {
+      p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
+        plot.type + #adds user-defined geom()
+        scale_x_log10() +
+        scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
+        scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+        theme_classic() +
+        theme(text = element_text(size=18), 
+              legend.position = "right") +
+        labs(x = input$dose_check,
+             y = "Size",
+             color = "Effect?",
+             fill = "Effect?",
+             caption = (input$Rep_Con_rad))+
+        facet_wrap(~vivo_h_f)%>%
+        req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+    }
+      
+      if(input$show.points==TRUE){
+        p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+      }
+      
+    else {
+    p
+    }
+    print(p)
   })
   
   # Shape Plot
   
   output$shape_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
+    #plot types
+    plot.type<-switch(input$plot.type,
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "violin" = geom_violin(),
+                      "bar" 		=	geom_bar(position="dodge"))
+    #build plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
       scale_x_log10() +
-      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+      plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
@@ -969,15 +1019,31 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
+    if(input$show.points==TRUE){
+      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    }
+    
+    else {
+      p
+    }
+    print(p)
+    
   })
   
   # Polymer Plot
   
   output$poly_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose_new, y = poly_h_f)) +
+    #plot types
+    plot.type<-switch(input$plot.type,
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "violin" = geom_violin(),
+                      "bar" 		=	geom_bar(position="dodge"))
+    
+    #build plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f)) +
       scale_x_log10() +
-      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+      plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
       theme_classic() +
@@ -991,15 +1057,30 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
+    if(input$show.points==TRUE){
+      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    }
+    
+    else {
+      p
+    }
+    print(p)
   })
   
   # Endpoint Plot
   
   output$lvl_h_plot_react <- renderPlot({
     
-    ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f)) +
+    #plot types
+    plot.type<-switch(input$plot.type,
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "violin" = geom_violin(),
+                      "bar" 		=	geom_bar(position="dodge"))
+    #build plot 
+    
+    p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f)) +
       scale_x_log10() +
-      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+      plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       theme_classic() +
@@ -1012,15 +1093,31 @@ server <- function(input, output) {
            caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+    
+    if(input$show.points==TRUE){
+      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    }
+    
+    else {
+      p
+    }
+    print(p)
+    
   })
   
   #Lvl2 Plot 
   
   output$lvl2_h_plot_react <- renderPlot({
+    #plot types
+    plot.type<-switch(input$plot.type,
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "violin" = geom_violin(),
+                      "bar" 		=	geom_bar(position="dodge"))
     
-    ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f)) +
+    #build plot
+   p<-  ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f)) +
       scale_x_log10() +
-      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+      plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       theme_classic() +
@@ -1033,17 +1130,31 @@ server <- function(input, output) {
            caption = (input$Rep_Con_rad))+
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
-    
+   
+   if(input$show.points==TRUE){
+     p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+   }
+   
+   else {
+     p
+   }
+   print(p)
   })
   
   
   #exposure route 
   
   output$exposure_route_h_plot_react <- renderPlot({
+    #plot types
+    plot.type<-switch(input$plot.type,
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "violin" = geom_violin(),
+                      "bar" 		=	geom_bar(position="dodge"))
     
-    ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f)) +
+    #build plot
+    p<- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f)) +
       scale_x_log10() +
-      geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)) +
+      plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
@@ -1057,6 +1168,14 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
+    if(input$show.points==TRUE){
+      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    }
+    
+    else {
+      p
+    }
+    print(p)
   })
   
   # Create downloadable csv of filtered dataset.
