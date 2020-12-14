@@ -50,6 +50,7 @@ human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
   #mutate(logEndpoints = log(Endpoints))%>%
   #rename(Percent = Freq)
 
+#make polymer dataframe for measurements
 aoc <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
 polydf<-rowPerc(xtabs( ~polymer +effect, aoc)) #pulls polymers by effect 
@@ -141,8 +142,6 @@ lvl1final<- data.frame(cbind(lvl1f, study_l))%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-
-
 lifedf<-rowPerc(xtabs(~life.stage +effect, aoc))
 lifef<-as.data.frame(lifedf)%>%
   filter(effect %in% c("Y","N"))%>%
@@ -201,6 +200,15 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
   rename(category='exposure.category')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
+
+# Set default theme for overview plots
+overviewTheme <- function(){
+  theme_classic() %+replace%
+    theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20),legend.position = "right",
+          axis.ticks= element_blank(),
+          axis.text.x = element_text(),
+          axis.text.y = element_blank(),
+          axis.title.x = element_blank() ) }
 
 #### Exploration Human Setup ####
 
@@ -421,7 +429,11 @@ p("Each bar displays the total number of measured endpoints where a statisticall
 br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
-                                               
+#comment out for now
+# selectInput(inputId = "overview.type", "Overview Type:", 
+#             list(measurements = "measurements", studies = "studies") #need to fix, just comment out for now
+# ),
+#                                                
 column(width = 12,
        column(width = 12,
               plotOutput(outputId = "exposure_plot"),
@@ -715,27 +727,39 @@ server <- function(input, output) {
   
   # Effect plot code for check box 
   
+  
   # Insert the right number of plot output objects into the page using the function from the setup section.
   # Insert the right number of plot output objects into the page using the function from the setup section.
   output$polymer_plot <- renderPlot({
+#make distinct plots for measurements or studies
+
+#make plot for studies
+if(input$overview.type == "studies"){
+  p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+    geom_bar(position="stack", stat="identity") +
+    geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+    scale_fill_manual(values = cal_palette("seagrass"))+
+    ylab("Number of Studies") +
+    labs(fill="Effect") +
+    ggtitle("Polymer Type") +
+    guides(x = guide_axis(angle = 45))+
+    overviewTheme() 
+} 
     
-    # generate plot
-    ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-      geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-      scale_fill_manual(values = cal_palette("seagrass"))+
-      theme_classic() +
-      ylab("Number of Endpoints Measured") +
-      labs(fill="Effect") +
-      ggtitle("Polymer Type")+
-      guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20))+
-      theme(legend.position = "right",
-            
-            axis.ticks= element_blank(),
-            axis.text.x = element_text(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank())
+    else{
+      # generate plot
+      p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("seagrass"))+
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Effect") +
+        ggtitle("Polymer Type") +
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme() 
+    }
+    
+print(p)    
   })
   
   output$vivo_plot <- renderPlot({
@@ -967,7 +991,7 @@ server <- function(input, output) {
         req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
       
       if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
-        p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
+        p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.8, position = 'jitter')
       }
       
     else {
