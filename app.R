@@ -24,7 +24,7 @@ library(viridis) #Colors
 library(scales) #To use "percent" function
 library(shinyjs) #Exploration tab - reset button
 library(tigerstats) #row percent values 
-library(beeswarm) #plot all points nicely
+library(ggbeeswarm) #plot all points nicely
 
 # Load finalized dataset.
 
@@ -597,9 +597,9 @@ br(),
                                              choices = c("reported", "converted", "all"),
                                              selected = "all"),
                                 selectInput(inputId = "plot.type", "Plot Type:", 
-                                            list(boxplot = "boxplot", violin = "violin") #, beeswarm = "beeswarm") #need to fix, just comment out for now
+                                            list(boxplot = "boxplot", violin = "violin", beeswarm = "beeswarm") #need to fix, just comment out for now
                                             ),
-                                checkboxInput(inputId = "show.points", "show points", TRUE),
+                                checkboxInput(inputId = "show.points", "Show All Points", FALSE),
 
 
                            # New row of widgets
@@ -945,27 +945,11 @@ server <- function(input, output) {
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(),
-                      "bar" 		=	geom_bar(position="dodge"))
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
+                        )
     
-    if(input$plot.type == "beeswarm") {
-      p <- beeswarm(data = human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
-        scale_x_log10() +
-        scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
-        scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
-        theme_classic() +
-        theme(text = element_text(size=18), 
-              legend.position = "right") +
-        labs(x = input$dose_check,
-             y = "Size",
-             color = "Effect?",
-             fill = "Effect?",
-             caption = (input$Rep_Con_rad))+
-        facet_wrap(~vivo_h_f)%>%
-        req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
-    }
-    
-    else {
+
       p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
         plot.type + #adds user-defined geom()
         scale_x_log10() +
@@ -981,10 +965,9 @@ server <- function(input, output) {
              caption = (input$Rep_Con_rad))+
         facet_wrap(~vivo_h_f)%>%
         req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
-    }
       
-      if(input$show.points==TRUE){
-        p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+      if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+        p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
       }
       
     else {
@@ -1000,8 +983,8 @@ server <- function(input, output) {
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(),
-                      "bar" 		=	geom_bar(position="dodge"))
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     #build plot
     p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
       scale_x_log10() +
@@ -1019,8 +1002,8 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE){
-      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
@@ -1037,8 +1020,8 @@ server <- function(input, output) {
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(),
-                      "bar" 		=	geom_bar(position="dodge"))
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     #build plot
     p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f)) +
@@ -1057,8 +1040,8 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE){
-      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
@@ -1074,8 +1057,8 @@ server <- function(input, output) {
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(),
-                      "bar" 		=	geom_bar(position="dodge"))
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     #build plot 
     
     p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f)) +
@@ -1094,8 +1077,8 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE){
-      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
@@ -1111,8 +1094,8 @@ server <- function(input, output) {
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(),
-                      "bar" 		=	geom_bar(position="dodge"))
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     #build plot
    p<-  ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f)) +
@@ -1131,8 +1114,8 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
    
-   if(input$show.points==TRUE){
-     p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+   if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+     p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
    }
    
    else {
@@ -1148,8 +1131,8 @@ server <- function(input, output) {
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(),
-                      "bar" 		=	geom_bar(position="dodge"))
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     #build plot
     p<- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f)) +
@@ -1168,8 +1151,8 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE){
-      p<-p+geom_point(color='black',alpha=0.5, position = 'jitter')
+    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
