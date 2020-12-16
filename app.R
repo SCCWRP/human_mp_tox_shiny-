@@ -254,6 +254,92 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
 
 #Tables with endpoints and measurements 
 
+#lvl1 tables 
+
+table_studies_li<-aoc %>% 
+  group_by(lvl1, year) %>% 
+  summarize(studyCount = n_distinct(doi)) %>% 
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+  as.data.frame()%>%
+  rename(studies = studyCount)%>%
+  select(lvl1, studies)%>%
+  group_by(lvl1)%>%
+  summarise(studies = sum(studies))
+
+
+# number of measurements 
+table_endpoints_li<-study_l%>%
+  as.data.frame()%>%
+  rename( Effect = 'effect')%>%
+  rename( Categories = 'lvl1')%>%
+  rename( Endpoints = 'Freq')
+
+
+
+#life tables 
+
+# number of studies 
+table_studies_li<-aoc %>% 
+  group_by(life.stage, year) %>% 
+  summarize(studyCount = n_distinct(doi)) %>% 
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+  as.data.frame()%>%
+  rename(studies = studyCount)%>%
+  select(life.stage, studies)%>%
+  group_by(life.stage)%>%
+  summarise(studies = sum(studies))
+
+
+# number of measurements 
+table_endpoints_li<-studyli%>%
+  as.data.frame()%>%
+  rename( Effect = 'effect')%>%
+  rename( Lifestage = 'life.stage')%>%
+  rename( Endpoints = 'Freq')
+
+
+#size tables 
+
+# number of studies 
+table_studies_si<-aoc %>% 
+  group_by(size.category, year) %>% 
+  summarize(studyCount = n_distinct(doi)) %>% 
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+  as.data.frame()%>%
+  rename(studies = studyCount)%>%
+  select(size.category, studies)%>%
+  group_by(size.category)%>%
+  summarise(studies = sum(studies))
+
+
+# number of measurements 
+table_endpoints_si<-study_s%>%
+  as.data.frame()%>%
+  rename( Effect = 'effect')%>%
+  rename( Size = 'size.category')%>%
+  rename( Endpoints = 'Freq')
+
+# shape 
+# number of studies 
+table_studies_sh<-aoc %>% 
+  group_by(shape, year) %>% 
+  summarize(studyCount = n_distinct(doi)) %>% 
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+  as.data.frame()%>%
+  rename(studies = studyCount)%>%
+  select(shape, studies)%>%
+  group_by(shape)%>%
+  summarise(studies = sum(studies))
+
+
+# number of measurements 
+table_endpoints_sh<-study_sh%>%
+  as.data.frame()%>%
+  rename( Effect = 'effect')%>%
+  rename( Shape  = 'shape')%>%
+  rename( Endpoints = 'Freq')
+
+
 #vivo/vitro studies
 table_studies_v<-vivoFinal_year_study%>%
   select(Type, Studies)%>%
