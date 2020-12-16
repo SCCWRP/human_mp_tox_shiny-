@@ -205,7 +205,7 @@ vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, aoc)) %>%
     Type=="invivo"~"In Vivo",
     Type=="invitro"~"In Vitro"))
 study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, aoc))
-vivoFinal_year<- data.frame(cbind(vivodf_year, study_v_year))%>% 
+vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='invitro.invivo')%>%
   mutate(logEndpoints = log(Endpoints))%>%
@@ -252,6 +252,20 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
+#Tables with endpoints and measurements 
+
+#vivo/vitro studies
+table_studies_v<-vivoFinal_year_study%>%
+  select(Type, Studies)%>%
+  group_by(Type)%>%
+  summarise(Studies = sum(Studies))
+  
+
+table_endpoints_v<-study_v%>%
+  as.data.frame()%>%
+  rename( Effect = 'effect')%>%
+  rename( Invitro  = 'invitro.invivo')%>%
+  rename( Endpoints = 'Freq')
 
 
 # Set default theme for overview plots
@@ -262,6 +276,9 @@ overviewTheme <- function(){
           axis.text.x = element_text(),
           axis.text.y = element_blank(),
           axis.title.x = element_blank() ) }
+
+
+
 
 #### Exploration Human Setup ####
 
@@ -490,6 +507,15 @@ column(width = 12,
               plotOutput(outputId = "exposure_plot"),
               br())), 
 
+
+column(width = 12,
+       column(width = 2,
+              tableOutput('studies'),
+              br()), 
+
+       column(width = 2,
+              tableOutput('measurements'),
+              br())),
 
 column(width = 12,
        column(width = 6,
@@ -775,7 +801,13 @@ server <- function(input, output) {
   
   #### Overview Human S ####
   
-  # Effect plot code for check box 
+  # in vivo/in vitro measurement table
+  
+  output$studies <- renderTable(table_studies_v)
+  
+  #in vivo/in vitro endpoint table 
+  
+  output$measurements <- renderTable(table_endpoints_v)
   
   
   # Insert the right number of plot output objects into the page using the function from the setup section.
