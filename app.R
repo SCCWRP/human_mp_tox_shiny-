@@ -1308,6 +1308,7 @@ print(p)
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
+      geom_text(aes(label= paste0(exposure_route_h_f)), position = position_stack(vjust = 0.5),colour="black") +
       theme(text = element_text(size=18), 
             legend.position = "right") +
       labs(x = input$dose_check,
