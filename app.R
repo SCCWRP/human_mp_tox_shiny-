@@ -674,20 +674,20 @@ br(),
                            
                            column(width = 12,
                                   
-                                  column(width = 6,
+                                  column(width = 12,
                                          plotOutput(outputId = "lvl_h_plot_react"),
                                          br())), 
                                 
                                 
                            column(width = 12,
                                   
-                                  column(width = 8,
+                                  column(width = 12,
                                          plotOutput(outputId = "lvl2_h_plot_react"),
                                          br())), 
                                   
                            column(width = 12,
                                   
-                                  column(width = 8,
+                                  column(width = 12,
                                          plotOutput(outputId = "exposure_route_h_plot_react"),
                                          br())), 
                              
@@ -696,11 +696,6 @@ br(),
                                   column(width = 12,
                                          plotOutput(outputId = "size_h_plot_react"),
                                          br())), 
-                                  
-                                  column(width = 12,
-                                         tableOutput('studies_li'),
-                                         br()), 
-                                 
                                  
                            column(width = 12,
                                   
@@ -708,8 +703,6 @@ br(),
                                          plotOutput(outputId = "shape_h_plot_react"),
                                          br())), 
 
-                              
-                           
                            column(width = 12,
                                   
                                   column(width = 12,
@@ -1080,14 +1073,15 @@ server <- function(input, output) {
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
                         )
-    
+    #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
       drop_na(dose_new) %>%
       group_by(size_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
-    
+      
+    #Render reactive plot
       p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
         plot.type + #adds user-defined geom()
         scale_x_log10() +
@@ -1095,9 +1089,9 @@ server <- function(input, output) {
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
         geom_text_repel(data = human_size1, 
                         aes(label = paste("(",measurements,",",studies,")")),
-                        nudge_x = -1,
-                        nudge_y = -0.25,
-                        segment.colour = NA) +
+                        nudge_x = -1, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                        nudge_y = -0.25, #I would also make the text as big as the axis labels
+                        segment.colour = NA) + #Creates labels for each level for the number of studies and measurements being plotted
         theme_classic() +
         theme(text = element_text(size=18), 
               legend.position = "right") +
@@ -1284,7 +1278,6 @@ server <- function(input, output) {
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       theme_classic() +
-      geom_text(aes(label= paste0(exposure_route_h_f)), position = position_stack(vjust = 0.5),colour="black") +
       theme(text = element_text(size=18), 
             legend.position = "right") +
       labs(x = input$dose_check,
