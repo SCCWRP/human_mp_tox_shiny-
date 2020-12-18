@@ -194,6 +194,8 @@ vivoFinal_type_study<-aoc %>%
   mutate(logStudies = log(Studies))%>%
   rename(Percent = freq)#renames column
 
+view(vivoFinal_type_study)
+
 #in vitro/in vivo by year and measurement
 vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, aoc)) %>% 
   as.data.frame()%>%
@@ -398,193 +400,7 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "norvegicus"~"(Rat) Rattus norvegicus"))) #Renames for widget
 
 
-#lvl1 tables 
 
-table_studies_lv<- human_setup %>% 
-  group_by(lvl1_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(lvl1_h_f, studies)%>%
-  group_by(lvl1_h_f)%>%
-  summarise(studies = sum(studies))
-
-
-# number of measurements 
-table_endpoints_lv<-human_setup%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename( Categories = 'lvl1')
-
-
-
-#life tables 
-
-# number of studies 
-table_studies_li<-human_setup %>% 
-  group_by(life_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(life_h_f, studies)%>%
-  group_by(life_h_f)%>%
-  summarise(studies = sum(studies))
-
-
-# number of measurements 
-table_endpoints_li<-studyli%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename( Lifestage = 'life.stage')%>%
-  rename( Endpoints = 'Freq')
-
-
-#size tables 
-
-# number of studies 
-table_studies_si<-human_setup %>% 
-  group_by(size_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(size_h_f, studies)%>%
-  group_by(size_h_f)%>%
-  summarise(studies = sum(studies))
-
-
-# number of measurements 
-table_endpoints_si<-study_s%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename( Size = 'size.category')
-
-
-
-
-# shape 
-# number of studies 
-table_studies_sh<-human_setup %>% 
-  group_by(shape_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(shape_h_f, studies)%>%
-  group_by(shape_h_f)%>%
-  summarise(studies = sum(studies))
-
-
-# number of measurements 
-table_endpoints_sh<-study_sh%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename( Shape  = 'shape')%>%
-  rename( Endpoints = 'Freq')
-
-
-#vivo/vitro studies
-table_studies_v<-vivoFinal_year_study%>%
-  select(Type, Studies)%>%
-  group_by(Type)%>%
-  summarise(Studies = sum(Studies))
-
-
-table_endpoints_v<-study_v%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename( Invitro  = 'invitro.invivo')%>%
-  rename( Endpoints = 'Freq')
-
-#exposure route studies
-
-table_studies_r<-human_setup %>% 
-  group_by(exposure_route_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(exposure_route_h_f, studies)%>%
-  group_by(exposure_route_h_f)%>%
-  summarise(studies = sum(studies))
-
-
-
-# number of measurements 
-table_endpoints_r<-study_r%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename(Exposure_category = 'exposure.category')%>%
-  rename( Endpoints = 'Freq')
-
-#polymer
-
-table_studies_p<-human_setup %>% 
-  group_by(poly_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(poly_h_f, studies)%>%
-  group_by(poly_h_f)%>%
-  summarise(studies = sum(studies))
-
-
-
-# number of measurements 
-table_endpoints_p<-Endpoints%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename(Polymer = 'polymer')%>%
-  rename( Endpoints = 'Freq')
-
-
-#lvl2
-
-lvl2df<-rowPerc(xtabs(~lvl2 +effect, aoc))
-lvl2f<-as.data.frame(lvl2df)%>%
-  filter(effect %in% c("Y","N"))%>%
-  rename(Type= "lvl2")%>%
-  mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Lvl2")%>%
-  mutate(Type = case_when(
-    Type == "alimentary.excretory" ~ "Alimentary, Excretory",
-    Type == "behavior.sense.neuro" ~ "Behavioral, Sensory, Neurological",
-    Type == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
-    Type == "cell.morphology.structure" ~ "Cell Morphology and Structure",
-    Type == "circulatory" ~ "Circulatory",
-    Type == "cytotoxicity" ~ "Cytotoxicity",
-    Type == "endocrine.signaling" ~ "Endocrine Signaling",
-    Type == "fitness" ~ "Fitness",
-    Type == "immune" ~ "Immune",
-    Type == "metabolism" ~ "Metabolism",
-    Type == "microbiome" ~ "Microbiome",
-    Type == "respiratory" ~ "Respiratory",
-    Type == "stress" ~ "Stress"))
-study_l2<-xtabs(~lvl2 +effect,aoc)
-lvl1final<- data.frame(cbind(lvl2f, study_l2))%>% 
-  rename(Endpoints='Freq.1')%>%
-  rename(category='lvl2')%>%
-  mutate(logEndpoints = log(Endpoints))%>%
-  rename(Percent = Freq)#renames column
-
-table_studies_2<-human_setup %>% 
-  group_by(lvl2_h_f, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(studies = studyCount)%>%
-  select(lvl2_h_f, studies)%>%
-  group_by(lvl2_h_f)%>%
-  summarise(studies = sum(studies))
-
-table_endpoints_2<-Endpoints%>%
-  as.data.frame()%>%
-  rename( Effect = 'effect')%>%
-  rename(Polymer = 'polymer')%>%
-  rename( Endpoints = 'Freq')
 
 #### User Interface ####
 
@@ -908,15 +724,9 @@ br(),
                                   
                                   column(width = 6,
                                          plotOutput(outputId = "lvl_h_plot_react"),
-                                         br()), 
+                                         br())), 
                                   
-                                  column(width = 3,
-                                         tableOutput('studies_lv'),
-                                         br()), 
-                                  
-                                  column(width = 3,
-                                         tableOutput('endpoints_lv'),
-                                         br())),
+                                
                                   
 
                            
@@ -924,74 +734,43 @@ br(),
                                   
                                   column(width = 8,
                                          plotOutput(outputId = "lvl2_h_plot_react"),
-                                         br()), 
+                                         br())), 
                                   
-                                  column(width = 2,
-                                         tableOutput('studies_2'),
-                                         br()), 
                                   
-                                  column(width = 2,
-                                         tableOutput('endpoints_2'),
-                                         br())),
                            
                            column(width = 12,
                                   
                                   column(width = 8,
                                          plotOutput(outputId = "exposure_route_h_plot_react"),
-                                         br()), 
-                                  
-                                  column(width = 2,
-                                         tableOutput('studies_r'),
-                                         br()), 
-                                  
-                                  column(width = 2,
-                                         tableOutput('endpoints_r'),
-                                         br())),
-
-
+                                         br())), 
+                                 
                            
                            column(width = 12,
                                   
-                                  column(width = 8,
+                                  column(width = 12,
                                          plotOutput(outputId = "size_h_plot_react"),
-                                         br()), 
+                                         br())), 
                                   
-                                  column(width = 2,
+                                  column(width = 12,
                                          tableOutput('studies_li'),
                                          br()), 
                                   
-                                  column(width = 2,
-                                         tableOutput('endpoints_li'),
-                                         br())),
-                           
+                                 
                            column(width = 12,
                                   
-                                  column(width = 8,
+                                  column(width = 12,
                                          plotOutput(outputId = "shape_h_plot_react"),
-                                         br()), 
+                                         br())), 
 
-                              column(width = 2,
-                                    tableOutput('studies_sh'),
-                                      br()), 
-
-                              column(width = 2,
-                                  tableOutput('endpoints_sh'),
-                                          br())),
+                              
                            
                            column(width = 12,
                                   
-                                  column(width = 8,
+                                  column(width = 12,
                                          plotOutput(outputId = "poly_h_plot_react"),
-                                         br()),
-                                  
-                                  column(width = 2,
-                                         tableOutput('studies_p'),
-                                         br()), 
-                                  
-                                  column(width = 2,
-                                         tableOutput('endpoints_p'),
                                          br()))),
-                  
+                                  
+                                  
                   
 #### Resources UI ####
 
@@ -1219,143 +998,6 @@ print(p)
   
   #### Exploration Human S ####
   
-  output$studies_lv <- renderTable(table_studies_lv)
-  output$endpoints_lv <- renderTable(table_endpoints_lv)
-  output$studies_li <- renderTable(table_studies_li)
-  output$endpoints_li <- renderTable(table_endpoints_li)
-  output$studies_si <- renderTable(table_studies_si)
-  output$endpoints_si <- renderTable(table_endpoints_si)
-  output$studies_sh <- renderTable(table_studies_sh)
-  output$endpoints_sh <- renderTable(table_endpoints_sh)
-  output$studies_r <- renderTable(table_studies_r)
-  output$endpoints_r <- renderTable(table_endpoints_r)
-  output$studies_v <- renderTable(table_studies_v)
-  output$endpoints_v <- renderTable(table_endpoints_v)
-  output$studies_p <- renderTable(table_studies_p)
-  output$endpoints_p <- renderTable(table_endpoints_p)
-  output$studies_2 <- renderTable(table_studies_2)
-  output$endpoints_2 <- renderTable(table_endpoints_2)
-  
-  
-  #lvl1 tables 
-  
-  table_studies_lv<-aoc %>% 
-    group_by(lvl1, year) %>% 
-    summarize(studyCount = n_distinct(doi)) %>% 
-    mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-    as.data.frame()%>%
-    rename(studies = studyCount)%>%
-    select(lvl1, studies)%>%
-    group_by(lvl1)%>%
-    summarise(studies = sum(studies))
-  
-  
-  # number of measurements 
-  table_endpoints_lv<-study_l%>%
-    as.data.frame()%>%
-    rename( Effect = 'effect')%>%
-    rename( Categories = 'lvl1')%>%
-    rename( Endpoints = 'Freq')
-  
-  
-  
-  #life tables 
-  
-  # number of studies 
-  table_studies_li<-aoc %>% 
-    group_by(life.stage, year) %>% 
-    summarize(studyCount = n_distinct(doi)) %>% 
-    mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-    as.data.frame()%>%
-    rename(studies = studyCount)%>%
-    select(life.stage, studies)%>%
-    group_by(life.stage)%>%
-    summarise(studies = sum(studies))
-  
-  
-  # number of measurements 
-  table_endpoints_li<-studyli%>%
-    as.data.frame()%>%
-    rename( Effect = 'effect')%>%
-    rename( Lifestage = 'life.stage')%>%
-    rename( Endpoints = 'Freq')
-  
-  
-  #size tables 
-  
-  # number of studies 
-  table_studies_si<-aoc %>% 
-    group_by(size.category, year) %>% 
-    summarize(studyCount = n_distinct(doi)) %>% 
-    mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-    as.data.frame()%>%
-    rename(studies = studyCount)%>%
-    select(size.category, studies)%>%
-    group_by(size.category)%>%
-    summarise(studies = sum(studies))
-  
-  
-  # number of measurements 
-  table_endpoints_si<-study_s%>%
-    as.data.frame()%>%
-    rename( Effect = 'effect')%>%
-    rename( Size = 'size.category')%>%
-    rename( Endpoints = 'Freq')
-  
-  # shape 
-  # number of studies 
-  table_studies_sh<-aoc %>% 
-    group_by(shape, year) %>% 
-    summarize(studyCount = n_distinct(doi)) %>% 
-    mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-    as.data.frame()%>%
-    rename(studies = studyCount)%>%
-    select(shape, studies)%>%
-    group_by(shape)%>%
-    summarise(studies = sum(studies))
-  
-  
-  # number of measurements 
-  table_endpoints_sh<-study_sh%>%
-    as.data.frame()%>%
-    rename( Effect = 'effect')%>%
-    rename( Shape  = 'shape')%>%
-    rename( Endpoints = 'Freq')
-  
-  
-  #vivo/vitro studies
-  table_studies_v<-vivoFinal_year_study%>%
-    select(Type, Studies)%>%
-    group_by(Type)%>%
-    summarise(Studies = sum(Studies))
-  
-  
-  table_endpoints_v<-study_v%>%
-    as.data.frame()%>%
-    rename( Effect = 'effect')%>%
-    rename( Invitro  = 'invitro.invivo')%>%
-    rename( Endpoints = 'Freq')
-  
-  #exposure route studies
-  
-  table_studies_r<-aoc %>% 
-    group_by(exposure.route, year) %>% 
-    summarize(studyCount = n_distinct(doi)) %>% 
-    mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-    as.data.frame()%>%
-    rename(studies = studyCount)%>%
-    select(exposure.route, studies)%>%
-    group_by(exposure.route)%>%
-    summarise(studies = sum(studies))
-  
-  
-  
-  # number of measurements 
-  table_endpoints_r<-study_r%>%
-    as.data.frame()%>%
-    rename( Effect = 'effect')%>%
-    rename(Exposure_category = 'exposure.category')%>%
-    rename( Endpoints = 'Freq')
   
  #Create dependent dropdown checklists: select lvl2 by lvl1.
   output$secondSelection <- renderUI({
@@ -1462,12 +1104,25 @@ print(p)
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
                         )
     
+    human_size1 <- human_filter() %>%
+      drop_na(dose_new) %>%
+      group_by(size_h_f) %>% 
+      summarize(dose.mg.L = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
+    
+    
 
       p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
         plot.type + #adds user-defined geom()
         scale_x_log10() +
         scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+        geom_text_repel(data = human_size1, 
+                        aes(label = paste("(",measurements,",",studies,")")),
+                        nudge_x = -1,
+                        nudge_y = -0.25,
+                        segment.colour = NA) +
         theme_classic() +
         theme(text = element_text(size=18), 
               legend.position = "right") +
