@@ -1076,7 +1076,7 @@ server <- function(input, output) {
     #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
       drop_na(dose_new) %>%
-      group_by(size_h_f) %>% 
+      group_by(size_h_f, vivo_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
