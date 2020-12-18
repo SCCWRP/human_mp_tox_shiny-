@@ -51,9 +51,9 @@ human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
   #rename(Percent = Freq)
 
 #make polymer dataframe for measurements
-aoc <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
+
 replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
-polydf<-rowPerc(xtabs( ~polymer +effect, aoc)) #pulls polymers by effect 
+polydf<-rowPerc(xtabs( ~polymer +effect, human)) #pulls polymers by effect 
 polyf<-as.data.frame(polydf)%>% #Makes data frame 
   filter(effect %in% c("Y","N"))%>% #Sorts into Yes and No
   rename(Type = "polymer")%>%#rename so future columns have same name 
@@ -68,14 +68,14 @@ polyf<-as.data.frame(polydf)%>% #Makes data frame
     Type == "TR" ~ "Tire Rubber"))%>%
   mutate_if(is.numeric, round,0)%>% #rounds percents 
   mutate(plot="Polymer") # change column name for check list
-Endpoints<-xtabs(~polymer +effect ,aoc) #Pulls all study obs. for polymer from dataset
+Endpoints<-xtabs(~polymer +effect ,human) #Pulls all study obs. for polymer from dataset
 polyfinal<- data.frame(cbind(polyf, Endpoints))%>% #adds it as a column
   rename(Endpoints='Freq.1')%>% #renames column
   rename(category='polymer')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column#renames column
 
-sizedf<-rowPerc(xtabs(~size.category +effect, aoc))
+sizedf<-rowPerc(xtabs(~size.category +effect, human))
 sizef<-as.data.frame(sizedf)%>%
   filter(effect %in% c("Y","N"))%>%
   mutate(size.category = case_when(
@@ -87,7 +87,7 @@ sizef<-as.data.frame(sizedf)%>%
   rename(Type = "size.category")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Size")
-study_s<-xtabs(~size.category +effect ,aoc)
+study_s<-xtabs(~size.category +effect ,human)
 sizefinal<- data.frame(cbind(sizef, study_s))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='size.category')%>%
@@ -96,7 +96,7 @@ sizefinal<- data.frame(cbind(sizef, study_s))%>%
 
 
 
-shapedf<-rowPerc(xtabs(~shape + effect, aoc))
+shapedf<-rowPerc(xtabs(~shape + effect, human))
 shapef<-as.data.frame(shapedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type="shape")%>%
@@ -106,7 +106,7 @@ shapef<-as.data.frame(shapedf)%>%
     Type == "fragment" ~ "Fragment",
     Type == "sphere" ~ "Sphere",
     Type == "NA" ~ "Not Reported"))
-study_sh<-xtabs(~shape + effect,aoc)
+study_sh<-xtabs(~shape + effect,human)
 shapefinal<- data.frame(cbind(shapef, study_sh))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='shape')%>%
@@ -115,7 +115,7 @@ shapefinal<- data.frame(cbind(shapef, study_sh))%>%
 
 
 
-lvl1df<-rowPerc(xtabs(~lvl1 +effect, aoc))
+lvl1df<-rowPerc(xtabs(~lvl1 +effect, human))
 lvl1f<-as.data.frame(lvl1df)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "lvl1")%>%
@@ -135,14 +135,14 @@ lvl1f<-as.data.frame(lvl1df)%>%
     Type == "microbiome" ~ "Microbiome",
     Type == "respiratory" ~ "Respiratory",
     Type == "stress" ~ "Stress"))
-study_l<-xtabs(~lvl1 +effect,aoc)
+study_l<-xtabs(~lvl1 +effect, human)
 lvl1final<- data.frame(cbind(lvl1f, study_l))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='lvl1')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-lifedf<-rowPerc(xtabs(~life.stage +effect, aoc))
+lifedf<-rowPerc(xtabs(~life.stage +effect, human))
 lifef<-as.data.frame(lifedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "life.stage")%>%
@@ -154,7 +154,7 @@ lifef<-as.data.frame(lifedf)%>%
     Type == "juvenile"~"Juvenile",
     Type == "adult"~"Adult",
     Type == "Not Reported"~"Not Reported"))
-studyli<-xtabs(~life.stage +effect ,aoc)
+studyli<-xtabs(~life.stage +effect ,human)
 lifefinal<- data.frame(cbind(lifef, studyli))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='life.stage')%>%
@@ -162,7 +162,7 @@ lifefinal<- data.frame(cbind(lifef, studyli))%>%
   rename(Percent = Freq)#renames column
 
 #in vitro/in vivo by measurement and type
-vivodf<-rowPerc(xtabs(~invitro.invivo +effect, aoc))
+vivodf<-rowPerc(xtabs(~invitro.invivo +effect, human))
 vivof<-as.data.frame(vivodf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "invitro.invivo")%>%
@@ -171,7 +171,7 @@ vivof<-as.data.frame(vivodf)%>%
   mutate(Type = case_when(
     Type=="invivo"~"In Vivo",
     Type=="invitro"~"In Vitro"))
-study_v<-xtabs(~invitro.invivo +effect,aoc)
+study_v<-xtabs(~invitro.invivo +effect, human)
 vivofinal<- data.frame(cbind(vivof, study_v))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='invitro.invivo')%>%
@@ -179,7 +179,7 @@ vivofinal<- data.frame(cbind(vivof, study_v))%>%
   rename(Percent = Freq)#renames column
 
 #in vitro/in vivo by study and type
-vivoFinal_type_study<-aoc %>% 
+vivoFinal_type_study<-human %>% 
   group_by(invitro.invivo, effect) %>% 
   summarize(studyCount = n_distinct(doi)) %>% 
   mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
@@ -194,10 +194,9 @@ vivoFinal_type_study<-aoc %>%
   mutate(logStudies = log(Studies))%>%
   rename(Percent = freq)#renames column
 
-view(vivoFinal_type_study)
 
 #in vitro/in vivo by year and measurement
-vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, aoc)) %>% 
+vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, human)) %>% 
   as.data.frame()%>%
   filter(year!="Total") %>% #supress Total column to be able to cbind later
   rename(Type= "invitro.invivo")%>%
@@ -206,7 +205,7 @@ vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, aoc)) %>%
   mutate(Type = case_when(
     Type=="invivo"~"In Vivo",
     Type=="invitro"~"In Vitro"))
-study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, aoc))
+study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, human))
 vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='invitro.invivo')%>%
@@ -214,7 +213,7 @@ vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>%
   rename(Percent = Freq)#renames column
 
 #in vitro/in vivo by year and study
-vivoFinal_year_study<-aoc %>% 
+vivoFinal_year_study<-human %>% 
   group_by(invitro.invivo, year) %>% 
   summarize(studyCount = n_distinct(doi)) %>% 
   mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
@@ -230,7 +229,7 @@ vivoFinal_year_study<-aoc %>%
   rename(Percent = freq)#renames column
 
 
-routedf<-rowPerc(xtabs(~exposure.category +effect, aoc))
+routedf<-rowPerc(xtabs(~exposure.category +effect, human))
 routef<-as.data.frame(routedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "exposure.category")%>%
@@ -247,7 +246,7 @@ routef<-as.data.frame(routedf)%>%
 #Type == "iv.injection" ~ "IV Injection",
 #Type == "drinking.water" ~ "Drinking Water",
 #Type ==  "Not Applicable"~"Not Applicable"))
-study_r<-xtabs(~exposure.category +effect,aoc)
+study_r<-xtabs(~exposure.category +effect,human)
 routefinal<- data.frame(cbind(routef, study_r))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='exposure.category')%>%
