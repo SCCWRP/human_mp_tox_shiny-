@@ -1089,8 +1089,8 @@ server <- function(input, output) {
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
         geom_text_repel(data = human_size1, 
                         aes(label = paste("(",measurements,",",studies,")")),
-                        nudge_x = -1, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                        nudge_y = -0.25, #I would also make the text as big as the axis labels
+                        nudge_x = 15, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                        nudge_y = 0, #I would also make the text as big as the axis labels
                         segment.colour = NA) + #Creates labels for each level for the number of studies and measurements being plotted
         theme_classic() +
         theme(text = element_text(size=18), 
