@@ -1079,7 +1079,7 @@ server <- function(input, output) {
     #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
       drop_na(dose_new) %>%
-      group_by(size_h_f, vivo_h_f) %>% 
+      group_by(size_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
@@ -1092,7 +1092,7 @@ server <- function(input, output) {
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
         geom_text_repel(data = human_size1, 
                         aes(label = paste("(",measurements,",",studies,")")),
-                        nudge_x = 15, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                        nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                         nudge_y = 0, #I would also make the text as big as the axis labels
                         segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
         theme_classic() +
@@ -1128,7 +1128,7 @@ server <- function(input, output) {
     
     human_shape1 <- human_filter() %>%
       drop_na(dose_new) %>%
-      group_by(shape_h_f, vivo_h_f) %>% 
+      group_by(shape_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
@@ -1140,7 +1140,7 @@ server <- function(input, output) {
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_text_repel(data = human_shape1, 
                       aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 15, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
                       segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
@@ -1176,7 +1176,7 @@ server <- function(input, output) {
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     human_poly1 <- human_filter() %>%
       drop_na(dose_new) %>%
-      group_by(poly_h_f, vivo_h_f) %>% 
+      group_by(poly_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
@@ -1188,7 +1188,7 @@ server <- function(input, output) {
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
       geom_text_repel(data = human_poly1, 
                       aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 15, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
                       segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
@@ -1224,7 +1224,7 @@ server <- function(input, output) {
     #build plot 
     human_lvl1 <- human_filter() %>%
     drop_na(dose_new) %>%
-      group_by(lvl1_h_f, vivo_h_f) %>% 
+      group_by(lvl1_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
@@ -1236,7 +1236,7 @@ server <- function(input, output) {
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       geom_text_repel(data = human_lvl1, 
                       aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 15, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
                       segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
@@ -1272,7 +1272,7 @@ server <- function(input, output) {
     
     human_lvl21 <- human_filter() %>%
       drop_na(dose_new) %>%
-      group_by(lvl2_h_f, vivo_h_f) %>% 
+      group_by(lvl2_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
@@ -1286,7 +1286,7 @@ server <- function(input, output) {
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
      geom_text_repel(data = human_lvl21, 
                      aes(label = paste("(",measurements,",",studies,")")),
-                     nudge_x = 15, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                     nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                      nudge_y = 0, #I would also make the text as big as the axis labels
                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
@@ -1322,7 +1322,7 @@ server <- function(input, output) {
     
     human_exposure1 <- human_filter() %>%
       drop_na(dose_new) %>%
-      group_by(exposure_route_h_f, vivo_h_f) %>% 
+      group_by(exposure_route_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
@@ -1335,7 +1335,7 @@ server <- function(input, output) {
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_text_repel(data = human_exposure1, 
                       aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 18, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
                       segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
