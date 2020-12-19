@@ -499,12 +499,15 @@ id = "heili-tab", # adds ID for resetting Heili's tab's filters
                                                
 h3("Exploration of Toxicological Effects in Mammalian Systems", align = "center"),
 br(), 
-p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively."),
+p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively.
+  The values in the parentheses represent the number of measurements and studies, respectively, of each metric along the y-axis."),
 br(),
 p("The data displayed in these figures are not filtered for quality and only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass or counts per volume - other dosing units (e.g., particle mass/food mass) 
    are not displayed but are available in the complete database file."),
 br(), 
 p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
+br(), 
+p("Change the plot type: The data may be visualized as a boxplot, violin plot or beeswarm plot using the drop-down menu below. Users may also visualize all individual data points by using the checkbox."),
 br(), 
 p("Download the data: Click the 'Download Data' button to retrieve the selected dataset as a '.csv' file."),
 br(),
@@ -1103,7 +1106,7 @@ server <- function(input, output) {
         facet_wrap(~vivo_h_f)%>%
         req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
       
-      if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+      if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
         p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.8, position = 'jitter')
       }
       
@@ -1151,7 +1154,7 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
@@ -1199,7 +1202,7 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
@@ -1247,7 +1250,7 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
@@ -1297,7 +1300,7 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
    
-   if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+   if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
    }
    
@@ -1346,7 +1349,7 @@ server <- function(input, output) {
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
