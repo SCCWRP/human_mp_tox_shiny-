@@ -36,24 +36,9 @@ human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 
 #### Overview Human Setup ####
 
-#Final_effect_dataset <- read_csv("Final_effect_datasetH.csv")%>%
-  #mutate(plot_f = case_when(
-    #plot_f == "Polymer" ~ "Polymer",
-    #plot_f == "Size" ~ "Size",
-    #plot_f == "Shape" ~ "Shape",
-    #plot_f == "Organism" ~ "Organism",
-    #plot_f == "Lvl1" ~ "Endpoint Category",
-    #plot_f == "Life.stage" ~ "Life Stage",
-    #plot_f == "Invivo.invivo" ~ "In Vivo or In Vitro",
-    #plot_f == "Exposure.category" ~ "Exposure Category"))%>%
- # mutate(plot_f = factor(plot_f))%>%
-  #mutate(logEndpoints = log(Endpoints))%>%
-  #rename(Percent = Freq)
-
-#make polymer dataframe for measurements
-aoc <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
+#Set up for polymer overview plot
 replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
-polydf<-rowPerc(xtabs( ~polymer +effect, aoc)) #pulls polymers by effect 
+polydf<-rowPerc(xtabs( ~polymer +effect, human)) #pulls polymers by effect 
 polyf<-as.data.frame(polydf)%>% #Makes data frame 
   filter(effect %in% c("Y","N"))%>% #Sorts into Yes and No
   rename(Type = "polymer")%>%#rename so future columns have same name 
@@ -68,14 +53,15 @@ polyf<-as.data.frame(polydf)%>% #Makes data frame
     Type == "TR" ~ "Tire Rubber"))%>%
   mutate_if(is.numeric, round,0)%>% #rounds percents 
   mutate(plot="Polymer") # change column name for check list
-Endpoints<-xtabs(~polymer +effect ,aoc) #Pulls all study obs. for polymer from dataset
+Endpoints<-xtabs(~polymer +effect ,human) #Pulls all study obs. for polymer from dataset
 polyfinal<- data.frame(cbind(polyf, Endpoints))%>% #adds it as a column
   rename(Endpoints='Freq.1')%>% #renames column
   rename(category='polymer')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column#renames column
 
-sizedf<-rowPerc(xtabs(~size.category +effect, aoc))
+#Set up for size overview plot
+sizedf<-rowPerc(xtabs(~size.category +effect, human))
 sizef<-as.data.frame(sizedf)%>%
   filter(effect %in% c("Y","N"))%>%
   mutate(size.category = case_when(
@@ -87,16 +73,15 @@ sizef<-as.data.frame(sizedf)%>%
   rename(Type = "size.category")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Size")
-study_s<-xtabs(~size.category +effect ,aoc)
+study_s<-xtabs(~size.category +effect ,human)
 sizefinal<- data.frame(cbind(sizef, study_s))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='size.category')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-
-
-shapedf<-rowPerc(xtabs(~shape + effect, aoc))
+#Set up for shape overview plot
+shapedf<-rowPerc(xtabs(~shape + effect, human))
 shapef<-as.data.frame(shapedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type="shape")%>%
@@ -106,16 +91,15 @@ shapef<-as.data.frame(shapedf)%>%
     Type == "fragment" ~ "Fragment",
     Type == "sphere" ~ "Sphere",
     Type == "NA" ~ "Not Reported"))
-study_sh<-xtabs(~shape + effect,aoc)
+study_sh<-xtabs(~shape + effect,human)
 shapefinal<- data.frame(cbind(shapef, study_sh))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='shape')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-
-
-lvl1df<-rowPerc(xtabs(~lvl1 +effect, aoc))
+#Set up for lvl1 overview plot
+lvl1df<-rowPerc(xtabs(~lvl1 +effect, human))
 lvl1f<-as.data.frame(lvl1df)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "lvl1")%>%
@@ -135,14 +119,15 @@ lvl1f<-as.data.frame(lvl1df)%>%
     Type == "microbiome" ~ "Microbiome",
     Type == "respiratory" ~ "Respiratory",
     Type == "stress" ~ "Stress"))
-study_l<-xtabs(~lvl1 +effect,aoc)
+study_l<-xtabs(~lvl1 +effect, human)
 lvl1final<- data.frame(cbind(lvl1f, study_l))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='lvl1')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-lifedf<-rowPerc(xtabs(~life.stage +effect, aoc))
+#Set up for life stage overview plot
+lifedf<-rowPerc(xtabs(~life.stage +effect, human))
 lifef<-as.data.frame(lifedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "life.stage")%>%
@@ -154,15 +139,15 @@ lifef<-as.data.frame(lifedf)%>%
     Type == "juvenile"~"Juvenile",
     Type == "adult"~"Adult",
     Type == "Not Reported"~"Not Reported"))
-studyli<-xtabs(~life.stage +effect ,aoc)
+studyli<-xtabs(~life.stage +effect ,human)
 lifefinal<- data.frame(cbind(lifef, studyli))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='life.stage')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-#in vitro/in vivo by measurement and type
-vivodf<-rowPerc(xtabs(~invitro.invivo +effect, aoc))
+#Set up for in vitro in vivo overview plot
+vivodf<-rowPerc(xtabs(~invitro.invivo +effect, human))
 vivof<-as.data.frame(vivodf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "invitro.invivo")%>%
@@ -171,64 +156,50 @@ vivof<-as.data.frame(vivodf)%>%
   mutate(Type = case_when(
     Type=="invivo"~"In Vivo",
     Type=="invitro"~"In Vitro"))
-study_v<-xtabs(~invitro.invivo +effect,aoc)
+study_v<-xtabs(~invitro.invivo +effect, human)
 vivofinal<- data.frame(cbind(vivof, study_v))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='invitro.invivo')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-#in vitro/in vivo by study and type
-vivoFinal_type_study<-aoc %>% 
-  group_by(invitro.invivo, effect) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(Type= "invitro.invivo")%>%
-  mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Invivo.invivo")%>%
-  mutate(Type = case_when(
-    Type=="invivo"~"In Vivo",
-    Type=="invitro"~"In Vitro")) %>% 
-  rename(Studies='studyCount')%>%
-  mutate(logStudies = log(Studies))%>%
-  rename(Percent = freq)#renames column
+#Test Set up for plot type widget
 
-#in vitro/in vivo by year and measurement
-vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, aoc)) %>% 
-  as.data.frame()%>%
-  filter(year!="Total") %>% #supress Total column to be able to cbind later
-  rename(Type= "invitro.invivo")%>%
-  mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Invivo.invivo")%>%
-  mutate(Type = case_when(
-    Type=="invivo"~"In Vivo",
-    Type=="invitro"~"In Vitro"))
-study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, aoc))
-vivoFinal_year<- data.frame(cbind(vivodf_year, study_v_year))%>% 
-  rename(Endpoints='Freq.1')%>%
-  rename(category='invitro.invivo')%>%
-  mutate(logEndpoints = log(Endpoints))%>%
-  rename(Percent = Freq)#renames column
+# #in vitro/in vivo by year and measurement
+# vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, human)) %>% 
+#   as.data.frame()%>%
+#   filter(year!="Total") %>% #supress Total column to be able to cbind later
+#   rename(Type= "invitro.invivo")%>%
+#   mutate_if(is.numeric, round,0)%>%
+#   mutate(plot="Invivo.invivo")%>%
+#   mutate(Type = case_when(
+#     Type=="invivo"~"In Vivo",
+#     Type=="invitro"~"In Vitro"))
+# study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, human))
+# vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>% 
+#   rename(Endpoints='Freq.1')%>%
+#   rename(category='invitro.invivo')%>%
+#   mutate(logEndpoints = log(Endpoints))%>%
+#   rename(Percent = Freq)#renames column
+# 
+# #in vitro/in vivo by year and study
+# vivoFinal_year_study<-human %>% 
+#   group_by(invitro.invivo, year) %>% 
+#   summarize(studyCount = n_distinct(doi)) %>% 
+#   mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
+#   as.data.frame()%>%
+#   rename(Type= "invitro.invivo")%>%
+#   mutate_if(is.numeric, round,0)%>%
+#   mutate(plot="Invivo.invivo")%>%
+#   mutate(Type = case_when(
+#     Type=="invivo"~"In Vivo",
+#     Type=="invitro"~"In Vitro")) %>% 
+#   rename(Studies='studyCount')%>%
+#   mutate(logStudies = log(Studies))%>%
+#   rename(Percent = freq)#renames column
 
-#in vitro/in vivo by year and study
-vivoFinal_year_study<-aoc %>% 
-  group_by(invitro.invivo, year) %>% 
-  summarize(studyCount = n_distinct(doi)) %>% 
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>% 
-  as.data.frame()%>%
-  rename(Type= "invitro.invivo")%>%
-  mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Invivo.invivo")%>%
-  mutate(Type = case_when(
-    Type=="invivo"~"In Vivo",
-    Type=="invitro"~"In Vitro")) %>% 
-  rename(Studies='studyCount')%>%
-  mutate(logStudies = log(Studies))%>%
-  rename(Percent = freq)#renames column
-
-
-routedf<-rowPerc(xtabs(~exposure.category +effect, aoc))
+#Set up for exposure route overview plot
+routedf<-rowPerc(xtabs(~exposure.category +effect, human))
 routef<-as.data.frame(routedf)%>%
   filter(effect %in% c("Y","N"))%>%
   rename(Type= "exposure.category")%>%
@@ -240,19 +211,12 @@ routef<-as.data.frame(routedf)%>%
     Type == "Inhalation" ~ "Inhalation",
     Type == "IV Injection" ~ "IV Injection",
     Type == "In Vitro" ~ "In Vitro"))
-#Type == "inhalation" ~ "Inhalation",
-#Type == "intratracheal.instillation" ~ "Intratracheal Instillation",
-#Type == "iv.injection" ~ "IV Injection",
-#Type == "drinking.water" ~ "Drinking Water",
-#Type ==  "Not Applicable"~"Not Applicable"))
-study_r<-xtabs(~exposure.category +effect,aoc)
+study_r<-xtabs(~exposure.category +effect,human)
 routefinal<- data.frame(cbind(routef, study_r))%>% 
   rename(Endpoints='Freq.1')%>%
   rename(category='exposure.category')%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
-
-
 
 # Set default theme for overview plots
 overviewTheme <- function(){
@@ -394,6 +358,9 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
                                         species == "norvegicus"~"(Rat) Rattus norvegicus"))) #Renames for widget
 
+
+
+
 #### User Interface ####
 
 ui <- fluidPage(theme = shinytheme("flatly"),  
@@ -482,20 +449,28 @@ p("Each bar displays the total number of measured endpoints where a statisticall
 br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
-selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
-            list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
+#Plot type widget
+# selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
+#             list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
 
 column(width = 12,
        column(width = 12,
               plotOutput(outputId = "exposure_plot"),
               br())), 
 
+# column(width = 12,
+#        column(width = 2,
+#               tableOutput('studies'),
+#               br()), 
+# 
+#        column(width = 2,
+#               tableOutput('measurements'),
+#               br())),
 
 column(width = 12,
        column(width = 6,
               plotOutput(outputId = "vivo_plot"),
               br()), 
-       
        
        column(width = 6,
               plotOutput(outputId = "life_plot"),
@@ -507,22 +482,16 @@ column(width = 12,
               plotOutput(outputId = "polymer_plot"),
               br()), 
        
-       
-       
        column(width = 4,
               plotOutput(outputId = "shape_plot"),
               br()), 
 
-   
-       
        column(width = 4,
               plotOutput(outputId = "size_plot"),
               br()))),
        
-       
-                                      
-                                      
 #### Exploration Human UI ####
+
 tabPanel("3: Exploration",
                                                
 shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
@@ -530,12 +499,15 @@ id = "heili-tab", # adds ID for resetting Heili's tab's filters
                                                
 h3("Exploration of Toxicological Effects in Mammalian Systems", align = "center"),
 br(), 
-p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively."),
+p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively.
+  The values in the parentheses represent the number of measurements and studies, respectively, of each metric along the y-axis."),
 br(),
 p("The data displayed in these figures are not filtered for quality and only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass or counts per volume - other dosing units (e.g., particle mass/food mass) 
    are not displayed but are available in the complete database file."),
 br(), 
 p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
+br(), 
+p("Change the plot type: The data may be visualized as a boxplot, violin plot or beeswarm plot using the drop-down menu below. Users may also visualize all individual data points by using the checkbox."),
 br(), 
 p("Download the data: Click the 'Download Data' button to retrieve the selected dataset as a '.csv' file."),
 br(),
@@ -708,38 +680,39 @@ br(),
                                   column(width = 12,
                                          plotOutput(outputId = "lvl_h_plot_react"),
                                          br())), 
-                           
+                                
+                                
                            column(width = 12,
                                   
                                   column(width = 12,
                                          plotOutput(outputId = "lvl2_h_plot_react"),
                                          br())), 
-                           
-                           
+                                  
                            column(width = 12,
                                   
                                   column(width = 12,
                                          plotOutput(outputId = "exposure_route_h_plot_react"),
-                                         br())),                                               
-                           
+                                         br())), 
+                             
                            column(width = 12,
                                   
                                   column(width = 12,
                                          plotOutput(outputId = "size_h_plot_react"),
                                          br())), 
-                           
+                                 
                            column(width = 12,
                                   
                                   column(width = 12,
                                          plotOutput(outputId = "shape_h_plot_react"),
                                          br())), 
-                           
+
                            column(width = 12,
                                   
                                   column(width = 12,
                                          plotOutput(outputId = "poly_h_plot_react"),
-                                         br()))), 
-                  
+                                         br()))),
+                                  
+                                  
                   
 #### Resources UI ####
 
@@ -774,113 +747,153 @@ server <- function(input, output) {
   
   
   #### Overview Human S ####
-  
-  # Effect plot code for check box 
-  
-  
-  # Insert the right number of plot output objects into the page using the function from the setup section.
-  # Insert the right number of plot output objects into the page using the function from the setup section.
-  output$polymer_plot <- renderPlot({
-#make distinct plots for measurements or studies
 
-#make plot for studies
-if(input$overview.type == "studies"){
-  p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-    geom_bar(position="stack", stat="identity") +
-    geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-    scale_fill_manual(values = cal_palette("seagrass"))+
-    ylab("Number of Studies") +
-    labs(fill="Effect") +
-    ggtitle("Polymer Type") +
-    guides(x = guide_axis(angle = 45))+
-    overviewTheme() 
-} 
+#Test code for reactive plots based on measurements or study types  
+  
+#   output$polymer_plot <- renderPlot({
+# #make distinct plots for measurements or studies
+# 
+# #make plot for studies
+# if(input$overview.type == "studies"){
+#   p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#     geom_bar(position="stack", stat="identity") +
+#     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#     scale_fill_manual(values = cal_palette("seagrass"))+
+#     ylab("Number of Studies") +
+#     labs(fill="Effect") +
+#     ggtitle("Polymer Type") +
+#     guides(x = guide_axis(angle = 45))+
+#     overviewTheme() 
+# } 
+#     
+#     else{
+#       # generate plot
+#       p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("seagrass"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Effect") +
+#         ggtitle("Polymer Type") +
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme() 
+#     }
+#     
+# print(p)    
+#   })
+#   
+#   #in vitro/in vivo plot
+#   output$vivo_plot <- renderPlot({
+#   
+#     
+#     #measurements and types
+#     if(input$overview.type == "measurementsAndTypes"){
+#       # generate plot
+#       p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Effect") +
+#         ggtitle("In Vitro or In Vivo")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#       }
+#     #measurements and years 
+#     if(input$overview.type == "measurementsAndYears" ){
+#       # generate plot
+#       p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Study Type") +
+#         ggtitle("In Vitro or In Vivo Measurements by Year")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#       #currently displays years as a factor. can't decide if to switch to numeric or not
+#       }
+#     
+#     #studies and types 
+#     if(input$overview.type == "studiesAndTypes"){
+#       p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Studies") +
+#         labs(fill="Effect") +
+#         ggtitle("In Vitro or In Vivo Studies by Type")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+#     
+#     #studies and years
+#     if(input$overview.type == "studiesAndYears" ){
+#       # generate plot
+#       p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= year, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
+#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Studies") +
+#         labs(fill="Study Type") +
+#         ggtitle("In Vitro or In Vivo Studies by Year")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+#     
+#     print(p)
+#   })
+  
+  #Polymer category plot
+  output$polymer_plot <- renderPlot({
     
-    else{
-      # generate plot
-      p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("seagrass"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        ggtitle("Polymer Type") +
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme() 
-    }
-    
-print(p)    
+    # generate plot
+    ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+      scale_fill_manual(values = cal_palette("seagrass"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("Polymer Type")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
   })
   
-  #in vitro/in vivo plot
+  #In vivo in vitro plot
   output$vivo_plot <- renderPlot({
-  
     
-    #measurements and types
-    if(input$overview.type == "measurementsAndTypes"){
-      # generate plot
-      p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        ggtitle("In Vitro or In Vivo")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-      }
-    #measurements and years 
-    if(input$overview.type == "measurementsAndYears" ){
-      # generate plot
-      p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Study Type") +
-        ggtitle("In Vitro or In Vivo Measurements by Year")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-      #currently displays years as a factor. can't decide if to switch to numeric or not
-      }
-    
-    #studies and types 
-    if(input$overview.type == "studiesAndTypes"){
-      p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Studies") +
-        labs(fill="Effect") +
-        ggtitle("In Vitro or In Vivo Studies by Type")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-    
-    #studies and years
-    if(input$overview.type == "studiesAndYears" ){
-      # generate plot
-      p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= year, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
-        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Studies") +
-        labs(fill="Study Type") +
-        ggtitle("In Vitro or In Vivo Studies by Year")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-    
-    print(p)
+    # generate plot
+    ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+      scale_fill_manual(values = cal_palette("lupinus"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("In Vivo/In Vitro")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
   })
   
+  #Size category plot
   output$size_plot <- renderPlot({
     
     # generate plot
     ggplot(sizefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
       geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
       scale_fill_manual(values = cal_palette("bigsur2"))+
       theme_classic() +
       ylab("Number of Endpoints Measured") +
@@ -895,12 +908,13 @@ print(p)
             axis.title.x = element_blank())
   })
   
+  #Shape plot
   output$shape_plot <- renderPlot({
     
     # generate plot
     ggplot(shapefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
       geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
       scale_fill_manual(values = cal_palette("vermillion"))+
       theme_classic() +
       ylab("Number of Endpoints Measured") +
@@ -915,12 +929,13 @@ print(p)
             axis.title.x = element_blank())
   })
   
+  #Life stage plot
   output$life_plot <- renderPlot({
     
     # generate plot
     ggplot(lifefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
       geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
       scale_fill_manual(values = cal_palette("lake"))+
       theme_classic() +
       ylab("Number of Endpoints Measured") +
@@ -935,13 +950,13 @@ print(p)
             axis.title.x = element_blank())
   })
   
-  
+  #Exposure category plot
   output$exposure_plot <- renderPlot({
     
     # generate plot
     ggplot(routefinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
       geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
       scale_fill_manual(values = cal_palette("wetland"))+
       theme_classic() +
       ylab("Number of Endpoints Measured") +
@@ -956,12 +971,9 @@ print(p)
             axis.title.x = element_blank())
   })
   
-  
-  
-  
   #### Exploration Human S ####
   
-  #Create dependent dropdown checklists: select lvl2 by lvl1.
+ #Create dependent dropdown checklists: select lvl2 by lvl1.
   output$secondSelection <- renderUI({
     
     lvl1_h_c <- input$lvl1_h_check # assign level values to "lvl1_c"
@@ -993,7 +1005,6 @@ print(p)
     size_h_c <- input$size_h_check # assign values to "size_c"
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
     species_h_c<-input$species_h_check
-    #vivo_h_c <- input$vivo_h_check
     #range_n <- input$range # assign values to "range_n"
     dose_check <- input$dose_check #renames selection from radio button
     Rep_Con_rad <- input$Rep_Con_rad #use nominal or calculated exposure concentrations. Options are TRUE (calculated) or FALSE (reported)
@@ -1065,13 +1076,25 @@ print(p)
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
                         )
-    
-
+    #Create new dataset to gather number of studies and measurements by size
+    human_size1 <- human_filter() %>%
+      drop_na(dose_new) %>%
+      group_by(size_h_f, vivo_h_f, effect_h_f) %>% 
+      summarize(dose_new = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
+      
+    #Render reactive plot
       p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
         plot.type + #adds user-defined geom()
         scale_x_log10() +
         scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
+        geom_text_repel(data = human_size1, 
+                        aes(label = paste("(",measurements,",",studies,")")),
+                        nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                        nudge_y = 0, #I would also make the text as big as the axis labels
+                        segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
         theme_classic() +
         theme(text = element_text(size=18), 
               legend.position = "right") +
@@ -1083,7 +1106,7 @@ print(p)
         facet_wrap(~vivo_h_f)%>%
         req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
       
-      if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+      if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
         p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.8, position = 'jitter')
       }
       
@@ -1101,13 +1124,25 @@ print(p)
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                     "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+    
+    human_shape1 <- human_filter() %>%
+      drop_na(dose_new) %>%
+      group_by(shape_h_f, vivo_h_f, effect_h_f) %>% 
+      summarize(dose_new = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
     #build plot
     p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
+      geom_text_repel(data = human_shape1, 
+                      aes(label = paste("(",measurements,",",studies,")")),
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_y = 0, #I would also make the text as big as the axis labels
+                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -1119,7 +1154,7 @@ print(p)
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
@@ -1139,13 +1174,23 @@ print(p)
                       "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
-    
+    human_poly1 <- human_filter() %>%
+      drop_na(dose_new) %>%
+      group_by(poly_h_f, vivo_h_f, effect_h_f) %>% 
+      summarize(dose_new = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
     #build plot
     p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
+      geom_text_repel(data = human_poly1, 
+                      aes(label = paste("(",measurements,",",studies,")")),
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_y = 0, #I would also make the text as big as the axis labels
+                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1157,7 +1202,7 @@ print(p)
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
@@ -1177,12 +1222,23 @@ print(p)
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     #build plot 
+    human_lvl1 <- human_filter() %>%
+    drop_na(dose_new) %>%
+      group_by(lvl1_h_f, vivo_h_f, effect_h_f) %>% 
+      summarize(dose_new = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
     
     p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
+      geom_text_repel(data = human_lvl1, 
+                      aes(label = paste("(",measurements,",",studies,")")),
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_y = 0, #I would also make the text as big as the axis labels
+                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1194,7 +1250,7 @@ print(p)
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
@@ -1214,12 +1270,25 @@ print(p)
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
+    human_lvl21 <- human_filter() %>%
+      drop_na(dose_new) %>%
+      group_by(lvl2_h_f, vivo_h_f, effect_h_f) %>% 
+      summarize(dose_new = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
+    
+    
     #build plot
    p<-  ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
+     geom_text_repel(data = human_lvl21, 
+                     aes(label = paste("(",measurements,",",studies,")")),
+                     nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                     nudge_y = 0, #I would also make the text as big as the axis labels
+                     segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1231,7 +1300,7 @@ print(p)
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
    
-   if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+   if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
    }
    
@@ -1251,12 +1320,24 @@ print(p)
                       "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
                       "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
+    human_exposure1 <- human_filter() %>%
+      drop_na(dose_new) %>%
+      group_by(exposure_route_h_f, vivo_h_f, effect_h_f) %>% 
+      summarize(dose_new = quantile(dose_new, .1),
+                measurements = n(),
+                studies = n_distinct(article))
+    
     #build plot
     p<- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
+      geom_text_repel(data = human_exposure1, 
+                      aes(label = paste("(",measurements,",",studies,")")),
+                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
+                      nudge_y = 0, #I would also make the text as big as the axis labels
+                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -1268,7 +1349,7 @@ print(p)
       facet_wrap(~vivo_h_f)%>%
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
-    if(input$show.points==TRUE & input$plot.type == "boxplot" || input$plot.type == "violin"){
+    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
       p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
