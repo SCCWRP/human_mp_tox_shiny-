@@ -1074,9 +1074,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
                         )
     #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
@@ -1087,12 +1087,12 @@ print(p)
                 studies = n_distinct(article))
       
     #Render reactive plot
-      p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f)) + #define base ggplot
+      p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f, fill = effect_h_f)) + #define base ggplot
         plot.type + #adds user-defined geom()
         scale_x_log10() +
         scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
-        geom_text_repel(data = human_size1, 
+        geom_label_repel(data = human_size1, 
                         aes(label = paste("(",measurements,",",studies,")")),
                         nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                         nudge_y = 0, #I would also make the text as big as the axis labels
@@ -1109,7 +1109,7 @@ print(p)
         req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
       
       if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-        p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.8, position = 'jitter')
+        p<-p+geom_point(aes(color = effect_h_f), alpha=0.8, position = 'jitter')
       }
       
     else {
@@ -1124,9 +1124,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                     "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
+                     "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_shape1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1135,12 +1135,12 @@ print(p)
                 measurements = n(),
                 studies = n_distinct(article))
     #build plot
-    p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f)) +
+    p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f, fill = effect_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
-      geom_text_repel(data = human_shape1, 
+      geom_label_repel(data = human_shape1, 
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
@@ -1157,7 +1157,7 @@ print(p)
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
     if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
+      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
@@ -1173,9 +1173,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     human_poly1 <- human_filter() %>%
       drop_na(dose_new) %>%
       group_by(poly_h_f, vivo_h_f, effect_h_f) %>% 
@@ -1183,12 +1183,12 @@ print(p)
                 measurements = n(),
                 studies = n_distinct(article))
     #build plot
-    p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f)) +
+    p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f, fill = effect_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
-      geom_text_repel(data = human_poly1, 
+      geom_label_repel(data = human_poly1, 
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
@@ -1205,7 +1205,7 @@ print(p)
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
     if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
+      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
@@ -1220,9 +1220,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     #build plot 
     human_lvl1 <- human_filter() %>%
     drop_na(dose_new) %>%
@@ -1231,12 +1231,12 @@ print(p)
                 measurements = n(),
                 studies = n_distinct(article))
     
-    p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f)) +
+    p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f, fill = effect_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
-      geom_text_repel(data = human_lvl1, 
+      geom_label_repel(data = human_lvl1, 
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
@@ -1253,7 +1253,7 @@ print(p)
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
     if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
+      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
@@ -1268,9 +1268,9 @@ print(p)
   output$lvl2_h_plot_react <- renderPlot({
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_lvl21 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1281,12 +1281,12 @@ print(p)
     
     
     #build plot
-   p<-  ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f)) +
+   p<-  ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f, fill = effect_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
-     geom_text_repel(data = human_lvl21, 
+     geom_label_repel(data = human_lvl21, 
                      aes(label = paste("(",measurements,",",studies,")")),
                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                      nudge_y = 0, #I would also make the text as big as the axis labels
@@ -1303,7 +1303,7 @@ print(p)
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
    
    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-     p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
+     p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
    }
    
    else {
@@ -1318,9 +1318,9 @@ print(p)
   output$exposure_route_h_plot_react <- renderPlot({
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f, fill = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_exposure1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1330,12 +1330,12 @@ print(p)
                 studies = n_distinct(article))
     
     #build plot
-    p<- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f)) +
+    p<- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f, fill = effect_h_f)) +
       scale_x_log10() +
       plot.type + #adds user-defined geom()
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
-      geom_text_repel(data = human_exposure1, 
+      geom_label_repel(data = human_exposure1, 
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
@@ -1352,7 +1352,7 @@ print(p)
       req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
     
     if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f, fill = effect_h_f), alpha=0.5, position = 'jitter')
+      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
     }
     
     else {
