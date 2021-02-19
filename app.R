@@ -356,7 +356,9 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) #Renames for widget
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>%  #Renames for widget
+  mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Y" ~ "Red Criteria Failed",
+                                               particle.tier.zero == "N" ~ "Red Criteria Passed")))
 
 
 
@@ -523,8 +525,11 @@ br(),
                                          h4("Particle Characteristics")),
                                   
                                   column(width = 3,
-                                         h4("Biological Factors"))),
-                           
+                                         h4("Biological Factors")),
+                                  
+                                  column(width = 3,
+                                         h4("Quality Criteria"))),
+                                 
                            # widgets
                            column(width = 12,
                                   
@@ -552,13 +557,13 @@ br(),
                                                      multiple = TRUE)),
                                   
                                   column(width = 3,
-                                         pickerInput(inputId = "species_h_check", # polymer checklist
-                                                     label = "Species:", 
-                                                     choices = levels(human_setup$species_h_f),
-                                                     selected = levels(human_setup$species_h_f),
+                                         pickerInput(inputId = "particle_tier_zero_h_check", # polymer checklist
+                                                     label = "Particle Characterization:", 
+                                                     choices = levels(human_setup$tier_zero_particle_f),
+                                                     selected = levels(human_setup$tier_zero_particle_f),
                                                      options = list(`actions-box` = TRUE), 
                                                      multiple = TRUE))),
-                        
+
                            # New row of widgets
                            column(width = 12,
                                   
@@ -605,6 +610,16 @@ br(),
                                                      label = "Life Stages:", 
                                                      choices = levels(human_setup$life_h_f),
                                                      selected = levels(human_setup$life_h_f),
+                                                     options = list(`actions-box` = TRUE), 
+                                                     multiple = TRUE))),
+
+                            column(width = 12,
+       
+                                  column(width = 3, offset = 6, 
+                                         pickerInput(inputId = "species_h_check", # polymer checklist
+                                                     label = "Species:", 
+                                                     choices = levels(human_setup$species_h_f),
+                                                     selected = levels(human_setup$species_h_f),
                                                      options = list(`actions-box` = TRUE), 
                                                      multiple = TRUE))),
                            
@@ -1006,8 +1021,8 @@ print(p)
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c"
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
-    species_h_c<-input$species_h_check
-    #range_n <- input$range # assign values to "range_n"
+    species_h_c<-input$species_h_check #assign values to "species_h_c"
+    particle_tier_zero_h<-input$particle_tier_zero_h_check #assign values to "particle_tier_zero_h"
     dose_check <- input$dose_check #renames selection from radio button
     Rep_Con_rad <- input$Rep_Con_rad #use nominal or calculated exposure concentrations. Options are TRUE (calculated) or FALSE (reported)
     
@@ -1051,9 +1066,9 @@ print(p)
       filter(shape_h_f %in% shape_h_c) %>% #filter by shape
       filter(size_h_f %in% size_h_c) %>% #filter by size class
       filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
-      filter(species_h_f %in% species_h_c)
-      #filter(vivo_h_f %in% vivo_h_c) #filter by invivo or invitro
-       
+      filter(species_h_f %in% species_h_c) %>% #filter by species
+      filter(tier_zero_particle_f %in% particle_tier_zero_h) #filter by particle red quality criteria
+    
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
   })
@@ -1388,6 +1403,9 @@ print(p)
     shinyjs::reset("bio_h_check")
     shinyjs::reset("vivo_h_check")
     shinyjs::reset("exposure_route_h_check")
+    shinyjs::reset("species_h_check")
+    shinyjs::reset("particle_tier_zero_h_check")
+    
   }) #If we add more widgets, make sure they get added here.   
   
 } #Server end
