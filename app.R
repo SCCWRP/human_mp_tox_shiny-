@@ -358,10 +358,11 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
                                         species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>%  #Renames for widget
   mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Y" ~ "Red Criteria Failed",
-                                               particle.tier.zero == "N" ~ "Red Criteria Passed")))
-
-
-
+                                                 particle.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Y" ~ "Red Criteria Failed",
+                                                 design.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Y" ~ "Red Criteria Failed",
+                                                 risk.tier.zero == "N" ~ "Red Criteria Passed"))) 
 
 #### User Interface ####
 
@@ -584,6 +585,14 @@ br(),
                                                     choices = levels(human_setup$bio_h_f),
                                                     selected = levels(human_setup$bio_h_f),
                                                     options = list(`actions-box` = TRUE),
+                                                    multiple = TRUE)),
+                                 
+                                 column(width = 3,
+                                        pickerInput(inputId = "design_tier_zero_h_check", # polymer checklist
+                                                    label = "Experimental Design:", 
+                                                    choices = levels(human_setup$tier_zero_design_f),
+                                                    selected = levels(human_setup$tier_zero_design_f),
+                                                    options = list(`actions-box` = TRUE), 
                                                     multiple = TRUE))),
 
                            # New row of widgets
@@ -610,6 +619,13 @@ br(),
                                                      label = "Life Stages:", 
                                                      choices = levels(human_setup$life_h_f),
                                                      selected = levels(human_setup$life_h_f),
+                                                     options = list(`actions-box` = TRUE), 
+                                                     multiple = TRUE)),
+                                  column(width = 3,
+                                         pickerInput(inputId = "risk_tier_zero_h_check", # polymer checklist
+                                                     label = "Applicability for Risk Assessment:", 
+                                                     choices = levels(human_setup$tier_zero_risk_f),
+                                                     selected = levels(human_setup$tier_zero_risk_f),
                                                      options = list(`actions-box` = TRUE), 
                                                      multiple = TRUE))),
 
@@ -1023,6 +1039,8 @@ print(p)
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
     species_h_c<-input$species_h_check #assign values to "species_h_c"
     particle_tier_zero_h<-input$particle_tier_zero_h_check #assign values to "particle_tier_zero_h"
+    design_tier_zero_h<-input$design_tier_zero_h_check #assign values to "design_tier_zero_h"
+    risk_tier_zero_h<-input$risk_tier_zero_h_check #assign values to "risk_tier_zero_h"
     dose_check <- input$dose_check #renames selection from radio button
     Rep_Con_rad <- input$Rep_Con_rad #use nominal or calculated exposure concentrations. Options are TRUE (calculated) or FALSE (reported)
     
@@ -1067,7 +1085,9 @@ print(p)
       filter(size_h_f %in% size_h_c) %>% #filter by size class
       filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
       filter(species_h_f %in% species_h_c) %>% #filter by species
-      filter(tier_zero_particle_f %in% particle_tier_zero_h) #filter by particle red quality criteria
+      filter(tier_zero_particle_f %in% particle_tier_zero_h) %>% #filter by particle red quality criteria
+      filter(tier_zero_design_f %in% design_tier_zero_h) %>% #filter by experimental design red quality criteria
+      filter(tier_zero_risk_f %in% risk_tier_zero_h) #filter by risk assessment red quality criteria
     
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
@@ -1405,6 +1425,8 @@ print(p)
     shinyjs::reset("exposure_route_h_check")
     shinyjs::reset("species_h_check")
     shinyjs::reset("particle_tier_zero_h_check")
+    shinyjs::reset("design_tier_zero_h_check")
+    shinyjs::reset("risk_tier_zero_h_check")
     
   }) #If we add more widgets, make sure they get added here.   
   
