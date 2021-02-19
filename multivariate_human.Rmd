@@ -1,0 +1,1686 @@
+---
+title: "Multivariate Human Analysis"
+author: "Scott Coffin"
+date: "1/19/2021"
+output: html_document
+---
+# Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# Load packages
+library(tidyverse) #General everything
+library(RColorBrewer)
+library(ggplot2) #General plotting
+library(ggrepel) #For adding text labels that repel away from data points
+library(calecopal) #Color palette
+library(shiny) #Runs shiny
+library(shinythemes) #Shiny theme for the page
+library(shinyWidgets) #Widgets
+library(scales) #SSD - Use the percent format
+library(reshape2) #Overview tab - melts bars together
+library(ssdtools) #SSD package
+library(DT) #Build HTML data tables
+#library(plotly) #Make plots interactive
+library(viridis) #Colors
+library(scales) #To use "percent" function
+library(shinyjs) #Exploration tab - reset button
+library(tigerstats) #turns things into percents
+library(ggbeeswarm) #plot all points
+library(fitdistrplus) #alt SSD 
+library(RColorBrewer) #colors
+library(pheatmap) #pretty heat maps
+library(rpart)  #for trees
+library(skimr)
+#library(rattle)    # Fancy tree plot This is a difficult library to install (https://gist.github.com/zhiyzuo/a489ffdcc5da87f28f8589a55aa206dd) 
+library(rpart.plot)             # Enhanced tree plots
+library(RColorBrewer)       # Color selection for fancy tree plot
+library(party)                  # Alternative decision tree algorithm
+# library(partykit)               # Convert rpart object to BinaryTree
+library(pROC)   #for ROC curves
+library(uwot) #umap
+library(ISLR)  #for the Carseat Data
+```
+## Data import
+```{r data import}
+# Load finalized dataset.
+
+human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
+
+#### Introduction Setup ####
+
+# All text inputs below.
+
+#### Overview Human Setup ####
+
+#Set up for polymer overview plot
+replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
+polydf<-rowPerc(xtabs( ~polymer +effect, human)) #pulls polymers by effect 
+polyf<-as.data.frame(polydf)%>% #Makes data frame 
+  filter(effect %in% c("Y","N"))%>% #Sorts into Yes and No
+  rename(Type = "polymer")%>%#rename so future columns have same name 
+  mutate(Type = case_when(
+    Type == "PA" ~ "Polyamide",
+    Type == "PE" ~ "Polyethylene",
+    Type == "PMMA" ~ "Polymethylmethacrylate",
+    Type == "PP" ~ "Polypropylene",
+    Type == "PS" ~ "Polystyrene",
+    Type == "PUR" ~ "Polyurathane",
+    Type == "PVC" ~ "Polyvinylchloride",
+    Type == "TR" ~ "Tire Rubber"))%>%
+  mutate_if(is.numeric, round,0)%>% #rounds percents 
+  mutate(plot="Polymer") # change column name for check list
+Endpoints<-xtabs(~polymer +effect ,human) #Pulls all study obs. for polymer from dataset
+polyfinal<- data.frame(cbind(polyf, Endpoints))%>% #adds it as a column
+  rename(Endpoints='Freq.1')%>% #renames column
+  rename(category='polymer')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column#renames column
+
+#Set up for size overview plot
+sizedf<-rowPerc(xtabs(~size.category +effect, human))
+sizef<-as.data.frame(sizedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  mutate(size.category = case_when(
+    size.category == 1 ~ "1nm < 100nm",
+    size.category == 2 ~ "100nm < 1µm",
+    size.category == 3 ~ "1µm < 100µm",
+    size.category == 4 ~ "100µm < 1mm",
+    size.category == 0 ~ "Not Reported"))%>%
+  rename(Type = "size.category")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Size")
+study_s<-xtabs(~size.category +effect ,human)
+sizefinal<- data.frame(cbind(sizef, study_s))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='size.category')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#Set up for shape overview plot
+shapedf<-rowPerc(xtabs(~shape + effect, human))
+shapef<-as.data.frame(shapedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type="shape")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Shape")%>%
+  mutate(Type = case_when(
+    Type == "fragment" ~ "Fragment",
+    Type == "sphere" ~ "Sphere",
+    Type == "NA" ~ "Not Reported"))
+study_sh<-xtabs(~shape + effect,human)
+shapefinal<- data.frame(cbind(shapef, study_sh))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='shape')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#Set up for lvl1 overview plot
+lvl1df<-rowPerc(xtabs(~lvl1 +effect, human))
+lvl1f<-as.data.frame(lvl1df)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "lvl1")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Lvl1")%>%
+  mutate(Type = case_when(
+    Type == "alimentary.excretory" ~ "Alimentary, Excretory",
+    Type == "behavior.sense.neuro" ~ "Behavioral, Sensory, Neurological",
+    Type == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
+    Type == "cell.morphology.structure" ~ "Cell Morphology and Structure",
+    Type == "circulatory" ~ "Circulatory",
+    Type == "cytotoxicity" ~ "Cytotoxicity",
+    Type == "endocrine.signaling" ~ "Endocrine Signaling",
+    Type == "fitness" ~ "Fitness",
+    Type == "immune" ~ "Immune",
+    Type == "metabolism" ~ "Metabolism",
+    Type == "microbiome" ~ "Microbiome",
+    Type == "respiratory" ~ "Respiratory",
+    Type == "stress" ~ "Stress"))
+study_l<-xtabs(~lvl1 +effect, human)
+lvl1final<- data.frame(cbind(lvl1f, study_l))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='lvl1')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#Set up for life stage overview plot
+lifedf<-rowPerc(xtabs(~life.stage +effect, human))
+lifef<-as.data.frame(lifedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "life.stage")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Life.stage")%>%
+  mutate(Type = case_when(
+    Type == "early,f1"~"Early, F1 Generation",
+    Type == "early,f2"~"Early, F2 Generation",
+    Type == "juvenile"~"Juvenile",
+    Type == "adult"~"Adult",
+    Type == "Not Reported"~"Not Reported"))
+studyli<-xtabs(~life.stage +effect ,human)
+lifefinal<- data.frame(cbind(lifef, studyli))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='life.stage')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#Set up for in vitro in vivo overview plot
+vivodf<-rowPerc(xtabs(~invitro.invivo +effect, human))
+vivof<-as.data.frame(vivodf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro"))
+study_v<-xtabs(~invitro.invivo +effect, human)
+vivofinal<- data.frame(cbind(vivof, study_v))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='invitro.invivo')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#Test Set up for plot type widget
+
+#in vitro/in vivo by year and measurement
+vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, human)) %>%
+  as.data.frame()%>%
+  filter(year!="Total") %>% #supress Total column to be able to cbind later
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro"))
+study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, human))
+vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>%
+  rename(Endpoints='Freq.1')%>%
+  rename(category='invitro.invivo')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+#in vitro/in vivo by year and study
+vivoFinal_year_study<-human %>%
+  group_by(invitro.invivo, year) %>%
+  summarize(studyCount = n_distinct(doi)) %>%
+  mutate(freq = 100 * studyCount / sum(studyCount)) %>%
+  as.data.frame()%>%
+  rename(Type= "invitro.invivo")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Invivo.invivo")%>%
+  mutate(Type = case_when(
+    Type=="invivo"~"In Vivo",
+    Type=="invitro"~"In Vitro")) %>%
+  rename(Studies='studyCount')%>%
+  mutate(logStudies = log(Studies))%>%
+  rename(Percent = freq)#renames column
+
+#Set up for exposure route overview plot
+routedf<-rowPerc(xtabs(~exposure.category +effect, human))
+routef<-as.data.frame(routedf)%>%
+  filter(effect %in% c("Y","N"))%>%
+  rename(Type= "exposure.category")%>%
+  mutate_if(is.numeric, round,0)%>%
+  mutate(plot="Exposure.category")%>%
+  mutate(Type = case_when(
+    Type == "Dermal" ~ "Dermal",
+    Type == "Ingestion" ~ "Ingestion",
+    Type == "Inhalation" ~ "Inhalation",
+    Type == "IV Injection" ~ "IV Injection",
+    Type == "In Vitro" ~ "In Vitro"))
+study_r<-xtabs(~exposure.category +effect,human)
+routefinal<- data.frame(cbind(routef, study_r))%>% 
+  rename(Endpoints='Freq.1')%>%
+  rename(category='exposure.category')%>%
+  mutate(logEndpoints = log(Endpoints))%>%
+  rename(Percent = Freq)#renames column
+
+# Set default theme for overview plots
+overviewTheme <- function(){
+  theme_classic() %+replace%
+    theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20),legend.position = "right",
+          axis.ticks= element_blank(),
+          axis.text.x = element_text(),
+          axis.text.y = element_blank(),
+          axis.title.x = element_blank() ) }
+
+#### Exploration Human Setup ####
+
+human_v1 <- human %>% # start with original data set
+  #full dataset filters.
+  mutate(effect_f = factor(case_when(effect == "Y" ~ "Yes",
+                                       effect == "N" ~ "No"),
+                             levels = c("No", "Yes"))) %>% #Note: this drops effect metric data which is designated as 'NA' for effect
+  
+  # removing NAs to make data set nicer
+  replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported")) 
+
+human_setup <- human_v1 %>% # start with original data set
+  mutate(size_f = factor(case_when(
+    size.category == 1 ~ "1nm < 100nm",
+    size.category == 2 ~ "100nm < 1µm",
+    size.category == 3 ~ "1µm < 100µm",
+    size.category == 4 ~ "100µm < 1mm",
+    size.category == 0 ~ "Not Reported"), 
+    levels = c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm", "Not Reported"))) %>% #Renames for widget
+  mutate(shape_f = factor(case_when(
+    shape == "fragment" ~ "Fragment",
+    shape == "sphere" ~ "Sphere",
+    shape == "Not Reported" ~ "Not Reported"),
+    levels = c("Fragment", "Sphere", "Not Reported"))) %>% #Renames for widget
+  mutate(poly_f = factor(case_when(
+    polymer == "PA" ~ "Polyamide",
+    polymer == "PE" ~ "Polyethylene",
+    polymer == "PMMA" ~ "Polymethylmethacrylate",
+    polymer == "PP" ~ "Polypropylene",
+    polymer == "PS" ~ "Polystyrene",
+    polymer == "PUR" ~ "Polyurathane",
+    polymer == "PVC" ~ "Polyvinylchloride",
+    polymer == "TR" ~ "Tire Rubber",
+    polymer == "Not Reported" ~ "Not Reported"))) %>% #Renames for widget
+  mutate(lvl1_f = factor(case_when(lvl1 == "alimentary.excretory" ~ "Alimentary, Excretory",
+                                     lvl1 == "behavior.sense.neuro" ~ "Behavioral, Sensory, Neurological",
+                                     lvl1 == "cell.growth.proliferation" ~ "Cell Growth and Proliferation",
+                                     lvl1 == "cell.morphology.structure" ~ "Cell Morphology and Structure",
+                                     lvl1 == "circulatory" ~ "Circulatory",
+                                     lvl1 == "cytotoxicity" ~ "Cytotoxicity",
+                                     lvl1 == "endocrine.signaling" ~ "Endocrine Signaling",
+                                     lvl1 == "fitness" ~ "Fitness",
+                                     lvl1 == "immune" ~ "Immune",
+                                     lvl1 == "metabolism" ~ "Metabolism",
+                                     lvl1 == "microbiome" ~ "Microbiome",
+                                     lvl1 == "respiratory" ~ "Respiratory",
+                                     lvl1 == "stress" ~ "Stress"))) %>% #Renames for widget
+  # Level 2 Data tidying
+  mutate(lvl2_f = factor(case_when(lvl2 == "actinobacteria" ~ "Actinobacteria",
+                                     lvl2 == "amino.acid.metabolism" ~ "Amino Acid Metabolism",
+                                     lvl2 == "apoptosis.cell.cycle"~"Apoptosis and Cell Cycle",
+                                     lvl2 == "bacteroidetes"~ "Bacteriodetes",
+                                     lvl2 == "bile.acid" ~ "Bile Acid",
+                                     lvl2 == "blood.gen" ~ "Blood",
+                                     lvl2 == "body.condition"~"Body Condition",
+                                     lvl2 == "brain.histo" ~ "Brain Histological Abnormalities",
+                                     lvl2 == "carb.metabolism"~"Carb Metabolism",
+                                     lvl2 == "cell.aggregation"~"Cell Aggregation",
+                                     lvl2 == "cell.membrane"~"Cell Membrane",
+                                     lvl2 == "circulatory"~"Circulatory",
+                                     lvl2 == "complement"~"Complement",
+                                     lvl2 == "coordination"~"Coordination",
+                                     lvl2 == "cytotoxicity"~"Cytotoxicity",
+                                     lvl2 == "development" ~ "Development",
+                                     lvl2 == "digestive.tract.histo"~"Digestive Tract Histological Abnormalities",
+                                     lvl2 == "diversity"~ "Diversity",
+                                     lvl2 == "dna.damage" ~ "DNA Damage",
+                                     lvl2 == "energy.metabolism" ~ "Energy Metabolism",
+                                     lvl2 == "exploration" ~ "Exploration",
+                                     lvl2 == "firmicutes"~ "Firmicutes",
+                                     lvl2 == "gametes" ~ "Gametes",
+                                     lvl2 == "gen.stress" ~ "General Stress",
+                                     lvl2 == "hemolysis" ~ "Hemolysis",
+                                     lvl2 == "immune.cells"~"Immune Cells",
+                                     lvl2 == "immune.other"~"Immune Other ",
+                                     lvl2 == "inflammation" ~ "Inflammation",
+                                     lvl2 == "intestinal.inflammation" ~ "Intestinal Inflammation",
+                                     lvl2 == "intestinal.ion.transport" ~ "Intestinal Ion Transport",
+                                     lvl2 == "intestinal.mucus.secretion" ~ "Intestinal Mucus Secretion",
+                                     lvl2 == "intestinal.permeability" ~ "Intestinal Permeability",
+                                     lvl2 == "intestinal.tight.junctions" ~ "Intestinal Tight Junctions",
+                                     lvl2 == "kidney.histo"~"Kidney Histological abnormalities",
+                                     lvl2 == "lipid.metabolism"~"Lipid Metabolism",
+                                     lvl2 == "liver.histo"~"Liver Histological Abnormalities",
+                                     lvl2 == "locomotion"~"Locomotion",
+                                     lvl2 == "lungs.histo" ~ "Lung Histological Abnormalities",
+                                     lvl2 == "lysosome" ~ "Lyosome",
+                                     lvl2 == "melainabacteria" ~ "Melainabacteria",
+                                     lvl2 == "morphology.gen" ~ "General Morphology",
+                                     lvl2 == "mortality"~"Mortality",
+                                     lvl2 == "nervous.system"~"Nervous System",
+                                     lvl2 == "nucleus" ~ "Nucleus",
+                                     lvl2 == "oxidative.stress"~"Oxidative Stress",
+                                     lvl2 == "patescibacteria" ~ "Patescibacteria",
+                                     lvl2 == "permeability" ~ "Permeability",
+                                     lvl2 == "proliferation" ~ "Proliferation",
+                                     lvl2 == "proteobacteria"~"Protebacteria",
+                                     lvl2 == "reproduction" ~ "Reproduction",
+                                     lvl2 == "reproductive.tissue" ~ "Reproductive Tissues",
+                                     lvl2 == "respiration"~"Respiration",
+                                     lvl2 == "spleen.histo" ~ "Spleen Histological Abnormalities",
+                                     lvl2 == "tenericutes" ~ "Tenericutes",
+                                     lvl2 == "thyroid" ~ "Thyroid",
+                                     lvl2 == "verrucomicrobiae" ~ "Verrucomicrobiae",
+                                     lvl2 == "vision" ~ "Vision"))) %>% #Renames for widget
+  mutate(bio_f = factor(case_when(bio.org == "cell"~"Cell", #Renames for widget
+                                    bio.org == "organism"~"Organism",
+                                    bio.org == "subcell"~"Subcell",
+                                    bio.org == "tissue" ~ "Tissue")))%>%
+  mutate(vivo_f = factor(case_when(invitro.invivo == "invivo"~"In Vivo",
+                                     invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
+  mutate(life_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
+                                     life.stage == "early,f2"~"Early, F2 Generation",
+                                     life.stage == "juvenile"~"Juvenile",
+                                     life.stage == "adult"~"Adult",
+                                     life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
+  mutate(exposure_route_f = factor(case_when(exposure.route == "drinking.water" ~ "Drinking Water",
+                                               exposure.route == "food" ~ "Food",
+                                               exposure.route == "gavage" ~ "Gavage",
+                                               exposure.route == "gestation" ~ "Gestation",
+                                               exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
+                                               exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))%>% #Renames for widget - only categories included under 
+                                                                                                                      #ingestion and in vitro are included (we don't want other 
+                                                                                                                      #routes of exposure plotted in exploration because there is so little data)
+  mutate(species_f = factor(case_when(species == "aries"~"(Sheep) Ovis aries",
+                                        species == "sapiens"~"(Human) Homo sapiens",
+                                        species == "musculus"~"(Mouse) Mus musculus",
+                                        species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
+                                        species == "domesticus" ~ "(Pig) Sus domesticus",
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) #Renames 
+```
+# Variable Selection
+```{r}
+# subset data to selected variables
+require(tidyverse)
+multiVar <- human_setup %>% dplyr::select(#doi, size.category, 
+                                    size_f,
+                                    size.length.um.used.for.conversion, 
+                                    shape, 
+                                    polymer, 
+                                    particle.volume.um, 
+                                    density.mg.um3, 
+                                    bio.org, #biological level of organization
+                                    #af.time, #assessment factor based on exposure time
+                                    effect, #yes no
+                                    exposure.duration.d, 
+                                    exposure.route, #Factor
+                                    media.temp, #numeric
+                                    lvl1_f, #endpoints
+                                    lvl2_f, #endpoints
+                                   # lvl3, 
+                                     dose.mg.mL.master, 
+                                    sex, #factor
+                                    #media.ph, #numeric
+                                    dose.particles.L.master,
+                                   dose.mg.kg.day.bw.nominal,
+                                  # dose.particles.kg.bw.nominal,
+                                   #effect.metric, #NOEC LOEC
+                                    functional.group, #factor
+                                    charge, #positive or negatibe
+                                    zetapotential,# numeric 
+                                   invitro.invivo) %>%    
+                                   #max.size.ingest.mm,#max ingestible size
+                                   #acute.chronic_f,
+                                  # dose.mg.L.master.AF.noec,
+                                   #dose.particles.mL.master.AF.noec,
+                                   #effect.score) %>%  #1 = minor, 2 = photosynthesis, feeding, 3 = growth, chlorophyll content, 4 = reproduction, 5  = population growth, 6 = survival
+  filter(!size_f == "Not Reported") %>%   #take out not reported 
+  mutate_if(is.character, as.factor) %>% 
+  mutate(effect_10 = case_when(
+     effect == "Yes" ~ 1,
+     effect == "No" ~ 0)) %>% 
+  filter(!size_f == "Not Reported")  #take out not reported 
+#recode variables
+multiVar <- multiVar %>% mutate(effect_10 = case_when(
+    effect == "Y" ~ 1,
+    effect == "N" ~ 0
+  ))# %>% 
+  #mutate_all(is.character, ~as.factor())
+#inspect
+skim(multiVar)
+```
+
+
+# Analysis
+## Data Exploration
+### Completeness vby Size
+```{r completeness heatmap}
+CompletenessSummary_size <- multiVar %>%
+  group_by(size_f) %>% 
+     summarise_all((name = ~sum(is.na(.))/length(.))) %>% 
+  mutate(across(is.numeric,~round(., 2))) %>% 
+  mutate(across(is.numeric, ~100 *(1 -.)))
+CompletenessSummary_size
+```
+
+```{r}
+require()
+#convert to matrix and transpose
+transposed_size <- as.data.frame(t(as.matrix(CompletenessSummary_size[2:25]))) %>% #1 is category, 2-6 are variables
+  arrange('1nm < 100nm')
+#reassign column names
+colnames(transposed_size) <- c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm")
+#transposedTag
+#format as matrix
+MissingMatrix_size <- data.matrix(transposed_size)
+#build heatmap
+pheatmap(MissingMatrix_size,
+                           main = "Data Completeness by Size Bin", #title
+                           fontsize = 12,
+                           cluster_rows = FALSE, cluster_cols = FALSE,#disable dendrograms
+                           display_numbers = TRUE,
+                           treeheight_row = 0, treeheight_col = 0, #keeps clustering after dropping dendrograms
+                           col = rev(brewer.pal(n = 9, name = "PuBu"))) #blue color scheme with 9 colors)
+
+```
+### Completeness by Environment
+```{r completeness heatmap}
+CompletenessSummary_invitro.invivo <- multiVar %>%
+  group_by(invitro.invivo) %>% 
+     summarise_all((name = ~sum(is.na(.))/length(.))) %>% 
+  mutate(across(is.numeric,~round(., 2))) %>% 
+  mutate(across(is.numeric, ~100 *(1 -.)))
+CompletenessSummary_invitro.invivo
+```
+
+```{r}
+require()
+#convert to matrix and transpose
+transposed_invitro.invivo <- as.data.frame(t(as.matrix(CompletenessSummary_invitro.invivo[2:25])))
+#reassign column names
+colnames(transposed_invitro.invivo) <- c("in Vitro", "In Vivo")
+#transposedTag
+#format as matrix
+MissingMatrix_invitro.invivo <- data.matrix(transposed_invitro.invivo)
+#build heatmap
+pheatmap(MissingMatrix_invitro.invivo,
+                           main = "Data Completeness by invitro/invivo", #title
+                           fontsize = 12,
+                           cluster_rows = FALSE, cluster_cols = FALSE,#disable dendrograms
+                           display_numbers = TRUE,
+                           treeheight_row = 0, treeheight_col = 0, #keeps clustering after dropping dendrograms
+                           col = rev(brewer.pal(n = 9, name = "PuBu"))) #blue color scheme with 9 colors)
+
+```
+
+## Stepwise Regression
+
+```{r}
+## Estimate an OLS Regression
+fitols <- lm(effect_10 ~ size.length.um.used.for.conversion + dose.particles.L.master + dose.mg.mL.master  + exposure.duration.d  + bio.org + particle.volume.um + shape + polymer + exposure.route + lvl1_f + invitro.invivo + density.mg.um3, 
+             na.action = na.omit, 
+             data = multiVar)
+summary(fitols)
+```
+## Stepwise model
+```{r}
+step.model <- stepAIC(fitols, direction = "both", trace = FALSE)
+summary(step.model)
+```
+
+
+```{r}
+require(reshape2)
+multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, particle.volume.um, exposure.duration.d, density.mg.um3, dose.particles.L.master, dose.mg.mL.master) %>% 
+  melt() %>%  #convert wide to long
+   mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  ggplot(aes(x = value)) + 
+  stat_density() + 
+  facet_wrap(~variable, scales = "free")
+```
+
+
+<!-- # ```{r} -->
+<!-- # # cdplot(as.factor(effect) ~ particle.volume.um3, data = multiVar, -->
+<!-- #        main = "Conditional Density Plot of ", xlab = "Dose", ylab = "Effect") -->
+<!-- # ``` -->
+
+
+## PCA
+
+# UMAP
+
+```{r}
+require(uwot)
+require(Rtsne)
+require(vizier) #devtools::install_github("jlmelville/vizier")
+
+
+
+# For some functions we need to strip out non-numeric columns and convert data to matrix
+x2m <- function(X) {
+  if (!methods::is(X, "matrix")) {
+    m <- as.matrix(X[, which(vapply(X, is.numeric, logical(1)))])
+  }
+  else {m <- X} 
+  m}
+
+
+#choose values with most completeness
+multiVar2 <- multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, particle.volume.um, exposure.duration.d, density.mg.um3, dose.particles.L.master, dose.mg.mL.master) %>% 
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na() #drop missing
+
+#convert discrete variables to numeric
+multiVar2[] <- data.matrix(multiVar2)
+
+# build umap for small dataset (<10,000 points)
+multiVar_map  <- umap(multiVar2, pca = 5)
+
+# Remove duplicates for t-SNE
+#multiVar2_noNa_dup <- multiVar2_noNa[-which(duplicated(x2m(multiVar2_noNa))), ]
+ 
+#build t-SNE
+#multiVar_tsne <- Rtsne::Rtsne(multiVar2_noNa_dup, perplexity = 15, initial_dims = 100, partical_pca = TRUE, exaggeration_factor = 4)
+
+# Non-numeric columns are ignored, so in a lot of cases you can pass a data
+# frame directly to umap
+#iris_umap <- umap(iris, n_neighbors = 50, learning_rate = 0.5, init = "random")
+
+#visualize umap
+embed_img <- function(X, Y, k = 15, ...) {
+  args <- list(...)
+  args$coords <- Y
+  args$x <- X
+
+  do.call(vizier::embed_plot, args)
+}
+
+#plot
+embed_img(multiVar2, multiVar_map, pc_axes = TRUE, equal_axes = TRUE, alpha_scale = 0.5, title = "Human Tox UMAP", cex = 1)
+```
+
+```{r}
+#choose values with most completeness
+multiVar2 <- multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, particle.volume.um, exposure.duration.d, density.mg.um3, dose.particles.L.master, dose.mg.mL.master, polymer, invitro.invivo) %>% 
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na() #drop missing
+
+#PCA
+pca <- stats::prcomp(multiVar2[,1:6], retx = TRUE, rank. = 2)
+#build color pallete
+my_colors = colorRampPalette(c("red", "yellow", "green"))(nrow(multiVar2))
+#plot
+embed_plot(pca$x, multiVar2$invitro.invivo, color_scheme = palette.colors(palette = "Okabe-Ito"), #turbo, #rainbow, #my_colors, 
+           title = "Polymer PCA", alpha_scale = 0.2, equal_axes = FALSE)
+```
+
+```{r}
+require(plotly)
+embed_plotly(pca$x, multiVar2$invitro.invivo, #color_scheme = palette.colors(palette = "Okabe-Ito"), 
+           title = "in Vitro/ in Vivo PCA", alpha_scale = 0.1, equal_axes = FALSE,
+           tooltip = paste("Study Type:", multiVar2$invitro.invivo))
+```
+
+
+## Random Forest
+### Recursive Partitioning And Regression Trees
+
+The rpart algorithm works by splitting the dataset recursively, which means that the subsets that arise from a split are further split until a predetermined termination criterion is reached.  At each step, the split is made based on the independent variable that results in the largest possible reduction in heterogeneity of the dependent (predicted) variable.
+
+It is important to note that the algorithm works by making the best possible choice at each particular stage, without any consideration of whether those choices remain optimal in future stages. That is, the algorithm makes a locally optimal decision at each stage. It is thus quite possible that such a choice at one stage turns out to be sub-optimal in the overall scheme of things.  In other words,  the algorithm does not find a globally optimal tree.
+```{r}
+#trim data so effect is always known
+multiVar_sub <- multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, particle.volume.um, exposure.duration.d, density.mg.um3, dose.particles.L.master, dose.mg.mL.master, polymer, invitro.invivo, effect) %>% # effect_10, effect) %>% 
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na()
+
+# Split data into training and test sets
+set.seed(42)
+multiVar_sub[,"train"] <- ifelse(runif(nrow(multiVar_sub)) < 0.8, 1, 0)
+# Separate trainig and test sets
+trainSet <- multiVar_sub[multiVar_sub$train==1,]
+testSet <- multiVar_sub[multiVar_sub$train==0,]
+#get column index of train flag
+trainColNum <- grep("train", names(trainSet))
+# Remove train flag column from train and test sets
+trainSet <- trainSet[, -trainColNum]
+testSet <- testSet[, -trainColNum]
+```
+Make a classification tree.
+
+```{r, echo = FALSE}
+#get column index of predicted variable in dataset
+typeColNum <- grep("effect",names(multiVar_sub))
+
+#build tree
+require(rpart)
+set.seed(15097)
+
+t1 <- rpart(effect ~ size.length.um.used.for.conversion, dose.particles.L.master, dose.mg.mL.master, particle.volume.um, exposure.duration.d, density.mg.um3, polymer, invitro.invivo,
+            method = "class", #classification because response is discrete
+            control = rpart.control(minbucket = 10, cp=0.008), #requires that there be at least 19 cases (responded + nonrespondents) in the final grouping of variable values of the terminal node of the tre..
+            data = trainSet)
+print(t1, digits=4)
+```
+
+
+Plot an interpretable tree.
+```{r, echo = FALSE}
+require(rpart.plot)
+cols <- ifelse(t1$frame$yval == 1, "gray50", "black")
+prp(t1, main="Tree for Effect",
+    extra=106, # display prob of survival and percent of obs
+    nn=TRUE, # display node numbers
+    fallen.leaves=TRUE, # put leaves on the bottom of page
+    branch=.5, # change angle of branch lines
+    faclen=0, # do not abbreviate factor levels
+    trace=1, # print automatically calculated cex
+    shadow.col="gray", # shadows under the leaves
+    branch.lty=1, # draw branches using solid lines
+    branch.type=5, # branch lines width = weight(frame$wt), no. of cases here
+    split.cex=1.2, # make split text larger than node text
+    split.prefix="is ", # put "is " before split text
+    split.suffix="?", # put "?" after split text
+    col=cols, border.col=cols, # cols[2] if survived
+    split.box.col="lightgray", # lightgray split boxes (default is white)
+    split.border.col="darkgray", # darkgray border on split boxes
+    split.round=0.5) # round the split box corners a tad
+```
+Next we see how good the model is by seeing how it fares against the test data.
+```{r}
+t1_predict <- predict(t1, newdata = testSet[,-typeColNum],
+                      type="class")
+mean(t1_predict==testSet$effect)
+# [1] 0.7094088
+#confusion matrix
+table(pred=t1_predict,true=testSet$effect)
+```
+```{r}
+par(mfrow=c(1,2)) # two plots on one page
+#plot approximate R-squared and relative error for different splits (2 plots). labels are only appropriate for the "anova" method.
+rsq.rpart(t1)
+```
+
+
+Next, we prune the tree using the cost complexity criterion. Basically, the intent is to see if a shallower subtree can give us comparable results. If so, we’d be better of choosing the shallower tree because it reduces the likelihood of overfitting.
+
+As described earlier, we choose the appropriate pruning parameter (aka cost-complexity parameter) \alpha by picking the value that results in the lowest prediction error. Note that all relevant computations have already been carried out by R when we built the original tree (the call to rpart in the code above). All that remains now is to pick the value of \alpha:
+
+#### Pruning
+
+```{r}
+#cost-complexity pruning
+printcp(t1)
+```
+It is clear from the above, that the lowest cross-validation error (xerror in the table) occurs for \alpha =0.008 (this is CP in the table above).   One can find CP programatically like so:
+```{r}
+# get index of CP with lowest xerror
+opt <- which.min(t1$cptable[,"xerror"])
+#get its value
+cp <- t1$cptable[opt, "CP"]
+```
+Next, we prune the tree based on this value of CP:
+
+```{r}
+# prune the tree
+pt1 <- prune(t1,cp)
+#pt1<- prune(t1, cp= t1$cptable[which.min(t1$cptable[,"xerror"]),"CP"])
+
+# plot the pruned tree
+plot(pt1, uniform=TRUE,
+   main="Pruned Classification Tree");text(pt1, use.n=TRUE, all=TRUE, cex=.8)
+
+#post(pfit, file = "c:/ptree.ps",
+ #  title = "Pruned Classification Tree for Kyphosis")
+```
+```{r}
+#find proportion of correct predictions using test set
+t1_pruned_predict <- predict(pt1, testSet, type="class")
+mean(t1_pruned_predict == testSet$effect)
+#
+```
+This is not an improvement over an unprunend tree.. We need to check that this holds up for different training and test sets. This is easily done by creating multiple random partitions of the dataset and checking the efficacy of pruning for each. To do this efficiently, I’ll create a function that takes the training fraction, number of runs (partitions) and the name of the dataset as inputs and outputs the proportion of correct predictions for each run. It also optionally prunes the tree. 
+
+```{r}
+#function to do multiple runs
+multiple_runs_classification <- function(train_fraction,n,dataset,prune_tree=FALSE){
+fraction_correct <- rep(NA,n)
+set.seed(42)
+for (i in 1:n){
+  dataset[,"train"] <- ifelse(runif(nrow(dataset))<0.8,1,0)
+  trainColNum <- grep("train",names(dataset))
+  typeColNum <- grep("effect",names(dataset))
+  trainSet <- dataset[dataset$train==1,-trainColNum]
+  testSet <- dataset[dataset$train==0,-trainColNum]
+  rpart_model <- rpart(effect~ size.length.um.used.for.conversions + particle.volume.um3 + exposure.duration.d + media.temp + dose.particles.mL.master,data = trainSet, method="class")
+if(prune_tree==FALSE) {
+  rpart_test_predict <- predict(rpart_model,testSet[,-typeColNum],type="class")
+  fraction_correct[i] <- mean(rpart_test_predict==testSet$effect)
+  }else{
+    opt <- which.min(rpart_model$cptable[,"xerror"])
+    cp <- rpart_model$cptable[opt, "CP"]
+    pruned_model <- prune(rpart_model,cp)
+    rpart_pruned_predict <- predict(pruned_model,testSet[,-typeColNum],type="class")
+    fraction_correct[i] <- mean(rpart_pruned_predict == testSet$effect)
+  }
+  }
+return(fraction_correct)
+}
+```
+
+Note that in the above,  I have set the default value of the prune_tree to FALSE, so the function will execute the first branch of the if statement unless the default is overridden.
+
+OK, so let’s do 50 runs with and without pruning, and check the mean and variance of the results for both sets of runs.
+```{r}
+#50 runs, no pruning
+unpruned_set <- multiple_runs_classification(0.8,50,multiVar_sub)
+mean(unpruned_set)
+#[1] 0.7261882
+sd(unpruned_set)
+#[1] 0.01554347
+#50 runs, with pruning
+pruned_set <- multiple_runs_classification(0.8,50,multiVar_sub,prune_tree=TRUE)
+mean(pruned_set)
+#[1] 0.7261875
+sd(pruned_set)
+#[1] 0.01552285
+```
+
+
+### CForest
+```{r run model}
+require(party)
+crf <- cforest(effect ~ size.length.um.used.for.conversion + dose.particles.L.master+ dose.mg.mL.master+ particle.volume.um+ exposure.duration.d+ density.mg.um3+ polymer+ invitro.invivo,
+               controls = cforest_control(ntree = 500,
+                                          mincriterion = qnorm(0.8), 
+                                          trace = TRUE), # adds project bar because it's very slow
+               data = trainSet)
+
+crf
+```
+
+```{r fit results}
+fitted <- as.numeric(predict(crf, testSet, OOB = TRUE, type ="response"))
+#rpart.prob <- predict(t1, newdata=imputedSmalls.requested.voluntary,type="prob")
+
+misClasificError <- mean(fitted != as.numeric(testSet$effect))
+print(paste('Training Accuracy', 1 - misClasificError))
+```
+
+```{r}
+print(crf)
+```
+
+```{r}
+#Obtaining predicted probabilites for Test data
+tree.probs=predict(crf,
+                 newdata = test,
+                 type="prob")
+
+#Calculate ROC curve
+rocCurve.tree <- roc(train3$effect_10,tree.probs[,'1'])
+#plot the ROC curve
+plot(rocCurve.tree,col=c(4))
+```
+
+
+Alternative ROC Curve
+```{r}
+require(pROC)
+predicted <- predict(crf, train2, OOB=TRUE, type= "response")
+auc(as.numeric(train3$effect_10), as.numeric(predicted))
+#Calculate ROC curve
+rocCurve.tree <- roc(train3$effect_10,as.numeric(predicted))
+#plot the ROC curve
+plot(rocCurve.tree,col=c(4))
+```
+```{r}
+#plot reciever operating curve
+perf <- performance(preds,"tpr","fpr")
+```
+
+```{r}
+# compute in-sample results
+caret::confusionMatrix(fitted,as.factor(train3$effect_10))
+```
+
+```{r}
+#plot feature importance
+cforestImpPlot <- function(x) {
+  cforest_importance <<- v <- varimp(x)
+  dotchart(v[order(v)])
+}
+
+importancePlot <- cforestImpPlot(crf)
+importancePlot
+```
+
+
+```{r}
+crf.prob <- matrix(unlist(crfsrvy.prob), ncol=2, byrow=TRUE)
+apply(crf.prob,2,mean)
+#[1] 0.2524514 0.7475486
+tab <- round(cbind(by(rpart.prob[,2], INDICES=t1$where, mean), by(crf.prob[,2], INDICES=t1$where, mean)), 4)
+colnames(tab) <- c("rpart", "cforest")
+kable(tab)
+```
+<<<<<<< HEAD
+# Random Forest Package
+
+## Preparation
+```{r}
+library(quantregForest)
+library(caret)
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(sf)
+library(ggspatial)
+library(nhdplusTools)
+library(patchwork)
+library(Metrics)
+library(gt)
+```
+
+```{r}
+require(tidyverse)
+# multiVar <- multiVar %>% 
+#   mutate_if(is.character, as.factor) %>% 
+#   mutate(effect_10 = case_when( #convert ordinal to numeric
+#      effect_f == "Yes" ~ 1,
+#      effect_f == "No" ~ 0))
+  
+#choose relevant predictors and log-transform
+multiVar_small_log <- multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, dose.particles.L.master, dose.mg.mL.master, particle.volume.um, exposure.duration.d, density.mg.um3, polymer, invitro.invivo, effect) %>% 
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na() %>%  #drop missing
+ mutate(effect_10 = case_when( #convert ordinal to numeric
+     effect == "Y" ~ 1,
+     effect == "N" ~ 0
+   ))# %>% 
+ #  select(-effect_f)
+
+#no log transform for comparison
+multiVar_small <- multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, dose.particles.L.master, dose.mg.mL.master, particle.volume.um, exposure.duration.d, density.mg.um3, polymer, invitro.invivo, effect) %>% 
+  drop_na() #%>%  #drop missing
+# mutate(effect_10 = case_when( #convert ordinal to numeric
+#     effect == "Y" ~ 1,
+#     effect == "N" ~ 0
+#   )) %>% 
+  # select(-effect)
+
+#ensure completeness
+skim(multiVar_small)
+```
+## Training Data
+
+```{r}
+# Create calibration and validation splits with tidymodels initial_split() function.
+set.seed(4)
+multiVar_small_split <- multiVar_small %>%
+  initial_split(prop = 0.75, strata = invitro.invivo) # splits data into training and testing set.
+# default is 3/4ths split (but 75% training, 25% testing).
+# Stratification (strata) = grouping training/testing sets by region, state, etc.
+# Using the "strata" call ensures the number of data points in the training data is equivalent to the proportions in the original data set. (Strata below 10% of the total are pooled together.)
+
+# Create a training data set with the training() function
+# Pulls from training and testing sets created by initial_split()
+multiVar_small_train <- training(multiVar_small_split)
+multiVar_small_test <- testing(multiVar_small_split)
+# Examine the environment to be sure # of observations looks like the 75/25 split. 3199:1066.
+
+# # Create a separate dataset of available IDs that were not used in the training dataset.
+# notTrain <- aoc %>% # all COMIDS from StreamCat data, sampled or not
+#   filter(!ID %in% aoc$ID) # Removing sites used to train the model. n = 140,097
+```
+## Kitchen Sink Model
+
+```{r}
+# Step Three - Kitchen Sink model -----------------------------------------
+
+# Create finalized training dataset and include all possible variables. 
+rf_dat <- multiVar_small_train #%>%
+  # select(-ID)
+
+# Random forest -- 
+# a decision tree model, using predictors to answer dichotomous questions to create nested splits.
+# no pruning happens - rather, multiple trees are built (the forest) and then you are looking for consensus across trees
+# training data goes down the tree and ends up in a terminal node.
+# if testing data goes down the same route, then this upholds our conclusions. Or, if it goes awry, this allows us to look for patterns in how it goes awry.
+
+set.seed(2) # assures the data pulled is random, but sets it for the run below (makes outcome stable)
+myrf <- randomForest(y = rf_dat$effect, # dependent variable
+  x = rf_dat %>%
+    dplyr::select(-effect), # selecting all predictor variables
+  importance = T, # how useful is a predictor in predicting values (nothing causal)
+  proximity = T, 
+  ntrees = 100) # 500 trees default. 
+
+myrf # examine the results.
+```
+~32% error rate. Let's compare this with the same model with log-transformed values.
+```{r}
+# Create calibration and validation splits with tidymodels initial_split() function.
+set.seed(4)
+multiVar_small_log_split <- multiVar_small_log %>%
+  initial_split(prop = 0.75, strata = invitro.invivo) # splits data into training and testing set.
+
+# Create a training data set with the training() function
+# Pulls from training and testing sets created by initial_split()
+multiVar_small_log_train <- training(multiVar_small_log_split)
+multiVar_small_log_test <- testing(multiVar_small_log_split)
+
+# Create finalized training dataset and include all possible variables. 
+rf_dat_log <- multiVar_small_log_train
+
+set.seed(2) # assures the data pulled is random, but sets it for the run below (makes outcome stable)
+myrf_log <- randomForest(y = rf_dat_log$effect, # dependent variable
+  x = rf_dat_log %>%
+    dplyr::select(-effect, -effect_10), # selecting all predictor variables
+  importance = T, # how useful is a predictor in predicting values (nothing causal)
+  proximity = T, 
+  ntrees = 100) # 500 trees default. 
+
+myrf_log # examine the results.
+```
+No performance enhancement with log-transformed values.
+
+## Continuous Predictors
+Repeat with continous variables whenever possible, and max of 8 predictors.
+```{r}
+skim(multiVar)
+```
+### In vitro
+```{r}
+invitro <- multiVar %>% 
+  filter(invitro.invivo == "invitro") %>% 
+  # filter(!environment == "Terrestrial") %>% 
+  # filter(bio.org == "organism") %>% 
+  # filter(lvl1_f == "Fitness") %>% 
+  # filter(!exposure.route == "food") %>% 
+  dplyr::select(size.length.um.used.for.conversion, dose.particles.L.master, dose.mg.mL.master, particle.volume.um, exposure.duration.d, polymer, effect) %>%
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na()
+skim(invitro)
+```
+With a complete dataset for just acute studies in aquatic organisms with aqueous route of exposure, we are left with 453 complete cases with 6 predictor variables, 1 response variable (effect y/n), and an ID. Let's determine if we have enough data for ML. 
+```{r}
+exp(1)^6
+```
+$e^6$ is less than n (453), so we may proceed.
+
+```{r}
+# Create calibration and validation splits with tidymodels initial_split() function.
+set.seed(4)
+invitro_split <- invitro %>%
+  initial_split(prop = 0.75) # splits data into training and testing set.
+# default is 3/4ths split (but 75% training, 25% testing).
+# Stratification (strata) = grouping training/testing sets by region, state, etc.
+# Using the "strata" call ensures the number of data points in the training data is equivalent to the proportions in the original data set. (Strata below 10% of the total are pooled together.)
+
+# Create a training data set with the training() function
+# Pulls from training and testing sets created by initial_split()
+invitro_train <- training(invitro_split)
+invitro_test <- testing(invitro_split)
+# Examine the environment to be sure # of observations looks like the 75/25 split. 3199:1066.
+
+# Random forest -- 
+set.seed(2) # assures the data pulled is random, but sets it for the run below (makes outcome stable)
+invitrorf <- randomForest(y = invitro_train$effect, # dependent variable
+  x = invitro_train %>%
+    dplyr::select(-effect), # selecting all predictor variables
+  importance = T, # how useful is a predictor in predicting values (nothing causal)
+  proximity = T, 
+  ntrees = 100) # 500 trees default. 
+
+invitrorf # examine the results.
+```
+
+```{r}
+plot(invitrorf)
+# model performance appears to improve most at ~75 trees
+```
+
+```{r}
+varImpPlot(invitrorf)
+# displays which variables are most important
+# helps to winnow down list of predictors
+# recommended to weigh left pane more
+# right pane also shows how evenly things split based on the list of predictors
+# values close to 0 can be dropped, but don't have to be
+```
+Dose, organism group, exposure duration are important.
+
+```{r}
+importance <- invitrorf$importance
+View(importance)
+# displays the data plotted in the plot above
+```
+
+####Validation
+
+
+```{r fit results}
+fitted <- predict(invitrorf, invitro_test[,-7], OOB = TRUE, type ="response")
+misClasificError <- mean(fitted != invitro_test$effect)
+print(paste('Training Accuracy', 1 - misClasificError))
+```
+
+Alternative ROC Curve
+```{r}
+require(pROC)
+predicted <- predict(invitrorf, invitro_test %>%  dplyr::select(-effect),
+                       OOB=TRUE, type= "response")
+#Calculate ROC curve
+rocCurve.tree <- roc(as.numeric(invitro_test$effect),as.numeric(predicted))
+
+##gplot
+# rocks <- roc()
+
+#plot the ROC curve
+plot(rocCurve.tree,col=c(4))
+```
+### In vivo
+```{r}
+invivo <- multiVar %>% 
+  filter(invitro.invivo == "invivo") %>% 
+  # filter(!environment == "Terrestrial") %>% 
+  # filter(bio.org == "organism") %>% 
+  # filter(lvl1_f == "Fitness") %>% 
+  # filter(!exposure.route == "food") %>% 
+  dplyr::select(size.length.um.used.for.conversion, dose.particles.L.master, dose.mg.mL.master, particle.volume.um, exposure.duration.d, polymer, effect) %>%
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na()
+skim(invivo)
+```
+With a complete dataset for just acute studies in aquatic organisms with aqueous route of exposure, we are left with 453 complete cases with 6 predictor variables, 1 response variable (effect y/n), and an ID. Let's determine if we have enough data for ML. 
+```{r}
+exp(1)^6
+```
+$e^6$ is less than n (453), so we may proceed.
+
+```{r}
+# Create calibration and validation splits with tidymodels initial_split() function.
+set.seed(4)
+invivo_split <- invivo %>%
+  initial_split(prop = 0.75) # splits data into training and testing set.
+# default is 3/4ths split (but 75% training, 25% testing).
+# Stratification (strata) = grouping training/testing sets by region, state, etc.
+# Using the "strata" call ensures the number of data points in the training data is equivalent to the proportions in the original data set. (Strata below 10% of the total are pooled together.)
+
+# Create a training data set with the training() function
+# Pulls from training and testing sets created by initial_split()
+invivo_train <- training(invivo_split)
+invivo_test <- testing(invivo_split)
+# Examine the environment to be sure # of observations looks like the 75/25 split. 3199:1066.
+
+# Random forest -- 
+set.seed(2) # assures the data pulled is random, but sets it for the run below (makes outcome stable)
+invivorf <- randomForest(y = invivo_train$effect, # dependent variable
+  x = invivo_train %>%
+    dplyr::select(-effect), # selecting all predictor variables
+  importance = T, # how useful is a predictor in predicting values (nothing causal)
+  proximity = T, 
+  ntrees = 100) # 500 trees default. 
+
+invivorf # examine the results.
+```
+
+```{r}
+plot(invivorf)
+# model performance appears to improve most at ~75 trees
+```
+
+```{r}
+varImpPlot(invivorf)
+# displays which variables are most important
+# helps to winnow down list of predictors
+# recommended to weigh left pane more
+# right pane also shows how evenly things split based on the list of predictors
+# values close to 0 can be dropped, but don't have to be
+```
+Dose, organism group, exposure duration are important.
+
+```{r}
+importance <- invivorf$importance
+View(importance)
+# displays the data plotted in the plot above
+```
+
+####Validation
+
+
+```{r fit results}
+fitted <- predict(invivorf, invivo_test[,-7], OOB = TRUE, type ="response")
+misClasificError <- mean(fitted != invivo_test$effect)
+print(paste('Training Accuracy', 1 - misClasificError))
+```
+
+### All Data
+```{r}
+all <- multiVar %>% 
+  dplyr::select(size.length.um.used.for.conversion, dose.particles.L.master, dose.mg.mL.master, particle.volume.um, exposure.duration.d, polymer, effect, invitro.invivo) %>%
+  mutate_if(~is.numeric(.) && (.) > 0, log10) %>% 
+  drop_na()
+skim(all)
+```
+With a complete dataset for just acute studies in aquatic organisms with aqueous route of exposure, we are left with 453 complete cases with 6 predictor variables, 1 response variable (effect y/n), and an ID. Let's determine if we have enough data for ML. 
+```{r}
+exp(1)^6
+```
+$e^6$ is less than n (453), so we may proceed.
+
+```{r}
+# Create calibration and validation splits with tidymodels initial_split() function.
+set.seed(4)
+all_split <- all %>%
+  initial_split(prop = 0.75, strata = invitro.invivo) # splits data into training and testing set.
+# default is 3/4ths split (but 75% training, 25% testing).
+# Stratification (strata) = grouping training/testing sets by region, state, etc.
+# Using the "strata" call ensures the number of data points in the training data is equivalent to the proportions in the original data set. (Strata below 10% of the total are pooled together.)
+
+# Create a training data set with the training() function
+# Pulls from training and testing sets created by initial_split()
+all_train <- training(all_split)
+all_test <- testing(all_split)
+# Examine the environment to be sure # of observations looks like the 75/25 split. 3199:1066.
+
+# Random forest -- 
+set.seed(2) # assures the data pulled is random, but sets it for the run below (makes outcome stable)
+allrf <- randomForest(y = all_train$effect, # dependent variable
+  x = all_train %>%
+    dplyr::select(-effect), # selecting all predictor variables
+  importance = T, # how useful is a predictor in predicting values (nothing causal)
+  proximity = T, 
+  ntrees = 100) # 500 trees default. 
+
+allrf # examine the results.
+```
+
+```{r}
+plot(allrf)
+# model performance appears to improve most at ~75 trees
+```
+
+```{r}
+varImpPlot(allrf)
+# displays which variables are most important
+# helps to winnow down list of predictors
+# recommended to weigh left pane more
+# right pane also shows how evenly things split based on the list of predictors
+# values close to 0 can be dropped, but don't have to be
+```
+Dose, organism group, exposure duration are important.
+
+```{r}
+importance <- allrf$importance
+View(importance)
+# displays the data plotted in the plot above
+```
+
+```{r fit results}
+fitted <- predict(allrf, all_test[,-7], OOB = TRUE, type ="response")
+misClasificError <- mean(fitted != all_test$effect)
+print(paste('Training Accuracy', 1 - misClasificError))
+```
+
+
+#### ROC Curve
+
+```{r}
+###invitro
+invitropredictions <- as.data.frame(predict(invitrorf, invitro_test[,-7], type = "prob"))
+# predict class and then attach test class
+invitropredictions$predict <- names(invitropredictions)[1:2][apply(invitropredictions[,1:2], 1, which.max)]
+invitropredictions$observed <- invitro_test$effect
+head(invitropredictions)
+
+####invivo
+invivopredictions <- as.data.frame(predict(invivorf, invivo_test[,-7], type = "prob"))
+# predict class and then attach test class
+invivopredictions$predict <- names(invivopredictions)[1:2][apply(invivopredictions[,1:2], 1, which.max)]
+invivopredictions$observed <- invivo_test$effect
+head(invivopredictions)
+
+#### all
+allpredictions <- as.data.frame(predict(allrf, all_test[,-7], type = "prob"))
+# predict class and then attach test class
+allpredictions$predict <- names(allpredictions)[1:2][apply(allpredictions[,1:2], 1, which.max)]
+allpredictions$observed <- all_test$effect
+head(allpredictions)
+```
+
+```{r}
+require(ggdark)
+# 1 ROC curve, yes vs no for invitro
+roc.invitro <- roc(ifelse(invitropredictions$observed=="Y", "Y", "N"), as.numeric(invitropredictions$Y))
+
+#invivo
+roc.invivo <- roc(ifelse(invivopredictions$observed=="Y", "Y", "N"), as.numeric(invivopredictions$Y))
+
+#all
+roc.all <- roc(ifelse(allpredictions$observed=="Y", "Y", "N"), as.numeric(allpredictions$Y))
+
+
+all <- ggroc(roc.all) + labs(title = "invivo and invitro",
+                             subtitle = "Accuracy = 70.8%, n = 1989") + dark_theme_bw()
+
+invitro <- ggroc(roc.invitro, col = "red") + labs(title = "invitro",
+                                              subtitle = "Accuracy = 79.7%, n = 754") + dark_theme_bw()
+
+invivo <- ggroc(roc.invivo, col = "blue") + labs(title = "invivo",
+                                                   subtitle = "Accuracy = 66.7%, n = 452") + dark_theme_bw()
+
+require(gridExtra)
+grid.arrange(all, invitro, invivo,
+             ncol = 3)
+```
+
+```{r}
+require(ggsci)
+ggroc(list(all = roc.all, invitro = roc.invitro, invivo = roc.invivo), aes = c("linetype", "color")) +
+  labs(title = "ROC Curves for Mammlian Toxicity RF",
+       subtitle = "n = 1989",
+       color = "Dataset",
+       linetype = "Dataset") +
+  scale_color_tron()+
+  dark_theme_bw(base_size = 20)# +
+  #theme(plot.title.position = element_text(hjust = 0.5),
+   #     plot.subtitle.position = element_text(hjust = 0.5))
+```
+
+
+Make a classification tree.
+
+```{r, echo = FALSE}
+#get column index of predicted variable in dataset
+typeColNum <- grep("effect",names(all))
+
+#build tree
+require(rpart)
+set.seed(15097)
+t1 <- rpart(effect_f ~ size.length.um.used.for.conversions + shape + polymer + organism.group + particle.volume.um3 + dose.mg.L.master + effect.score,
+            method = "class", #classification because response is discrete
+            control = rpart.control(minbucket = 20, cp=0.008), #requires that there be at least 19 cases (responded + nonrespondents) in the final grouping of variable values of the terminal node of the tre..
+            data = all_train)
+print(t1, digits=4)
+```
+
+
+Plot an interpretable tree.
+```{r, echo = FALSE}
+require(rpart.plot)
+cols <- ifelse(t1$frame$yval == 1, "gray50", "black")
+prp(t1, main="Tree for Effect",
+    extra=106, # display prob of survival and percent of obs
+    nn=TRUE, # display node numbers
+    fallen.leaves=TRUE, # put leaves on the bottom of page
+    branch=.5, # change angle of branch lines
+    faclen=0, # do not abbreviate factor levels
+    trace=1, # print automatically calculated cex
+    shadow.col="gray", # shadows under the leaves
+    branch.lty=1, # draw branches using solid lines
+    branch.type=5, # branch lines width = weight(frame$wt), no. of cases here
+    split.cex=1.2, # make split text larger than node text
+    split.prefix="is ", # put "is " before split text
+    split.suffix="?", # put "?" after split text
+    col=cols, border.col=cols, # cols[2] if survived
+    split.box.col="lightgray", # lightgray split boxes (default is white)
+    split.border.col="darkgray", # darkgray border on split boxes
+    split.round=0.5) # round the split box corners a tad
+```
+
+```{r}
+#plot reciever operating curve
+perf <- performance(preds,"tpr","fpr")
+```
+
+```{r}
+# compute in-sample results
+caret::confusionMatrix(fitted,as.factor(acute_test$effect_f))
+```
+
+```{r}
+# Validation set assessment #1: looking at confusion matrix
+prediction_for_table <- predict(acuterf, acute_test[,-6])
+table(observed = acute_test[,6], predicted = prediction_for_table)
+```
+
+
+```{r}
+# Validation set assessment #2: ROC curves and AUC
+# Needs to import ROCR package for ROC curve plotting:
+library(ROCR)
+# Calculate the probability of new observations belonging to each class
+# prediction_for_roc_curve will be a matrix with dimensions data_set_size x number_of_classes
+prediction_for_roc_curve <- predict(acuterf ,acute_test[,-6],type="response")
+# Use pretty colours:
+pretty_colours <- c("#F8766D","#00BA38","#619CFF")
+# Specify the different classes 
+classes <- levels(acute_test$organism.group)
+# For each class
+for (i in 1:13)
+{
+ # Define which observations belong to class[i]
+ true_values <- ifelse(acute_test[,6]==classes[i],"Yes","No")
+ # Assess the performance of classifier for class[i]
+ pred <- prediction(prediction_for_roc_curve[,i],true_values)
+ perf <- performance(pred, "tpr", "fpr")
+ if (i==1)
+ {
+     plot(perf,main="ROC Curve",col=pretty_colours[i]) 
+ }
+ else
+ {
+     plot(perf,main="ROC Curve",col=pretty_colours[i],add=TRUE) 
+ }
+ # Calculate the AUC and print it to screen
+ auc.perf <- performance(pred, measure = "auc")
+ print(auc.perf@y.values)
+}
+```
+
+
+```{r}
+# predict()
+# returns out of bag predictions for training data
+# in the bag: every time a tree is built, it uses ~80% of the original 75% we set aside from the original dataset used to create a tree to assure random data selection
+# out of bag: looking at the remaining 20% of the training data to predict, when you want to know what your model does at the training location sites
+
+# # Predict CRAM scores state-wide for all COMIDs.
+# notTrain_prediction <- notTrain %>% # taking all available IDs, that haven't been used in training
+#   na.omit() %>% # remove NAs
+#   mutate(effect_predicted = predict(myrf, newdata = notTrain %>% na.omit())) # using developed model (myrf), inputting predictor variables (notTrain - which contains IDs and associated  data) to predict output/dependent variable (effect_predicted a.k.a. effect).
+
+# rePredict CRAM scores for training data.
+multiVar_small_train$effect_predicted <- predict(myrf) # Add column of predicted CRAM values to training dataset.
+
+# Creates new dataset of bound rows for both ...
+# effect_predictions <- bind_rows(nottrain_prediction %>%
+#                             mutate(Set = "Non-training"), # statewide COMIDs (not used for training)
+#                             multiVar_smal_train %>%
+#                             mutate(Set = "Training")) # COMIDS from training dataset
+# This creates the dataset that will be plotted to create a state-wide plot of predicted CRAM scores.
+
+# Plot the data.
+multiVar_small_train %>% 
+  mutate(effect_10 = case_when( #convert ordinal to numeric
+     effect_predicted == "Yes" ~ 1,
+     effect_predicted == "No" ~ 0
+   )) %>% 
+  ggplot(aes(x = log10(dose.mg.L.master), y = effect_10)) +
+  geom_point(alpha = 0.7) +#color = "black") +
+  labs(x = "Density",
+    y = "Predicted CRAM Score") +
+  theme_dark() #+
+  #facet_wrap(.~polymer)
+```
+### Predictor Selector
+```{r}
+# Using caret to select the best predictors
+# What are the parameters you want to use to run recursive feature elimination (rfe)?
+my_ctrl <- rfeControl(functions = rfFuncs,
+                      method = "cv",
+                      verbose = FALSE,
+                      returnResamp = "all")
+
+# rfe = recursive feature elimination
+# THIS STEP TAKES FOR-EV-ER!!!
+set.seed(22)
+my_rfe <- rfe(y = rf_dat$effect_f, # set dependent variable
+              x = rf_dat %>% select(-effect_f), # set predictor variables
+              size = c(1:2, 4, 6, 8, 10, 13), # sets how many variables are in the overall model
+              # I have 13 total possible variables, so I've chosen increments of 3 to look at.
+              rfeControl = my_ctrl) # pull in control from above
+
+# can you make your model even simpler?
+# the following will pick a model with the smallest number of predictor variables based on the tolerance ("tol") that you specify (how much less than the best are you willing to tolerate?)
+my_size <- pickSizeTolerance(my_rfe$results, metric = "Accuracy", tol = 1, maximize = F)
+# higher tol (~10) gives you less variables
+# lower tol (~1) gives you more variables - "I'd like the simplest model within 1% of the best model."
+pickVars(my_rfe$variables, size = my_size)
+```
+
+```{r}
+# Predict scores using the above 2 variables:
+
+# Create re-finalized training dataset and include all possible variables. 
+rf_dat2 <- multiVar_small_train %>%  select(dose.mg.L.master, organism.group, effect_f) 
+
+set.seed(4) # assures the data pulled is random, but sets it for the run below (makes outcome stable)
+myrf2 <- randomForest(y = rf_dat2$effect_f, # dependent variable
+  x = rf_dat2 %>%
+    select(-effect_f),
+  importance = T, 
+  proximity = T, 
+  ntrees = 500)  
+
+myrf2 # examine the results. 
+```
+
+
+```{r}
+importance <- as.data.frame(as.table(myrf$importance))
+
+# Nicer ggplot variable importance plot.
+vip_plot_a <- importance %>%
+ filter(Var2 == "MeanDecreaseAccuracy") %>%
+  mutate(Var1 = factor(Var1)) %>%
+  mutate(Var1_f = fct_reorder(Var1, Freq)) %>%
+  ggplot(aes(x = Freq, y = Var1_f)) +
+  geom_point(size = 3, alpha = 0.75, color = "black") +
+  labs(x = "Importance",
+    y = "Variables") +
+  theme_bw()
+
+# vip_plot_b <- importance %>%
+#   filter(Var2 == "MeanDecreaseGini") %>%
+#   mutate(Var1 = factor(Var1)) %>%
+#   mutate(Var1_f = fct_reorder(Var1, Freq)) %>%
+#   ggplot(aes(x = Freq, y = Var1_f)) +
+#   geom_point(size = 3, alpha = 0.75, color = "black") +
+#   labs(x = "Node Purity",
+#     y = "Variables") +
+#   theme_bw()
+
+vip_plot <- vip_plot_a #+ vip_plot_b
+
+vip_plot
+# ggsave("cram_vip_plot.png",
+#      path = "/Users/heilil/Desktop/R_figures",
+#      width = 25,
+#      height = 10,
+#      units = "cm"
+#    )
+```
+GINI importance measures the average gain of purity by splits of a given variable. If the variable is useful, it tends to split mixed labeled nodes into pure single class nodes. Splitting by a permuted variables tend neither to increase nor decrease node purities. Permuting a useful variable, tend to give relatively large decrease in mean gini-gain. GINI importance is closely related to the local decision function, that random forest uses to select the best available split. Therefore, it does not take much extra time to compute. On the other hand, mean gini-gain in local splits, is not necessarily what is most useful to measure, in contrary to change of overall model performance. Gini importance is overall inferior to (permutation based) variable importance as it is relatively more biased, more unstable and tend to answer a more indirect question.
+
+
+### Quantile Regression model
+```{r}
+# Quantile random forest regression mode, instead of looking at the mode of trees, can compare to 10th, 50th, 90th percentiles etc.
+
+# Need to make a new dataset taking the above results of pickVars into account.
+# Create finalized training dataset and include all possible variables. 
+qrf_dat <- multiVar_small_train  %>%
+  select(-effect_predicted, -ID)
+#   select(asci, RdCrsWs, PctAgWs, PctUrbWsRp100, PctOpWsRp100, PctOpWs, DamDensWs, RdDensWs, NABD_DensWs, PctUrbWs, PctUrbCatRp100, RdDensWsRp100, PctOpCat, PctUrbCat, RdDensCat, CBNFWs, PctOpCatRp100, PctAgWsRp100, TRIDensWs, AgKffactWs, FertWs) 
+
+ set.seed(20)
+ myqrf <- quantregForest(y = qrf_dat$effect_f, # dependent variable
+              x = qrf_dat %>%
+                  select(-effect_f),
+              importance = T,
+              proximity = T,
+              keep.inbag=T,
+              ntrees = 500)
+
+#predict(myqrf) # automatically presents 10th %tile, median, and 90th %tile
+```
+
+```{r}
+#predict(myqrf, what=c(0.2, 0.3, 0.999)) # to print specific quantiles
+```
+
+
+```{r}
+plot(myqrf) # plots the results.
+```
+# Again appears to improve after ~100 trees.
+
+### Model Validation
+#### Categorical Response
+
+
+#### Continuous Response
+```{r}
+# Compare predicted vs. actual results, including by size.
+# Adding lines of slope=1 and linear models to each plot.
+val1 <- multiVar_small_train %>% 
+  ggplot(aes(x = effect_predicted, y = effect_f)) +
+  geom_point(color = "#2A3927", alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "#2A3927") +
+  labs(x = "Predicted Effect",
+    y = "Effect measured",
+    title = "Training Data\nn=613") +
+  geom_abline(intercept = 0, slope = 1) +
+  theme_bw()
+
+val1
+
+lm1 <- lm(cram~cram_predicted, data = mydf2_train2)
+summary(lm1)
+
+val2 <- ggplot(mydf2_test2, aes(x = cram_predicted, y = cram)) +
+  geom_point(color = "#3793EC", alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE, color = "#3793EC") +
+  scale_x_continuous(breaks = c(0.5, 0.7, 0.9)) +
+  labs(x = "CRAM predicted",
+    y = "CRAM measured",
+    title = "Testing Data\nn=202") +
+  geom_abline(intercept = 0, slope = 1) +
+  theme_bw()
+
+val2
+
+lm2 <- lm(cram~cram_predicted, data = mydf2_test2)
+summary(lm2)
+
+# Create the full testing + training dataset to plot together.
+mydf2_test2$set <- "Testing"
+mydf2_train2$set <- "Training"
+full_train_test <- bind_rows(mydf2_test2, mydf2_train2) %>%
+  mutate(set_f = factor(set, levels = c("Training", "Testing")))
+
+val3 <- ggplot(full_train_test, aes(x = cram_predicted, y = cram, color = set_f)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(name = "Set", values = c("#2A3927", "#3793EC"), drop = FALSE) +
+  labs(x = "CRAM predicted",
+    y = "CRAM measured",
+    title = "All Data\nn=815") +
+  geom_abline(intercept = 0, slope = 1, color = "black") +
+  facet_wrap(~PSA6) +
+  theme_bw()
+
+val3
+
+val_fig <- (val1 + val2) /
+  (val3)
+
+val_fig + plot_annotation(
+  title = 'CRAM Random Forest Results',
+  subtitle = 'All modeling performed using StreamCAT datasets.',
+  caption = 'Linear models are colored according to dataset. Lines of slope = 1 are denoted in black.'
+)
+
+# Save figure.
+# ggsave("cram_rfmodel_validation.png",
+#      path = "/Users/heilil/Desktop/R_figures",
+#      width = 35,
+#      height = 25,
+#      units = "cm"
+#    )
+
+lm3 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Central_Valley") %>%
+    filter(set_f == "Training"))
+
+lm4 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Central_Valley") %>%
+    filter(set_f == "Testing"))
+
+lm5 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Chaparral") %>%
+    filter(set_f == "Training"))
+
+lm6 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Chaparral") %>%
+    filter(set_f == "Testing"))
+
+lm7 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Deserts_Modoc") %>%
+    filter(set_f == "Training"))
+
+lm8 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Deserts_Modoc") %>%
+    filter(set_f == "Testing"))
+
+lm9 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "North_Coast") %>%
+    filter(set_f == "Training"))
+
+lm10 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "North_Coast") %>%
+    filter(set_f == "Testing"))
+
+lm11 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Sierra") %>%
+    filter(set_f == "Training"))
+
+lm12 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "Sierra") %>%
+    filter(set_f == "Testing"))
+
+lm13 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "South_Coast") %>%
+    filter(set_f == "Training"))
+
+lm14 <- lm(cram~cram_predicted, 
+  data = full_train_test %>%
+    filter(PSA6 == "South_Coast") %>%
+    filter(set_f == "Testing"))
+
+# Chose not to compute confusion matrix / accuracy score since this is more applicable to categorical ouputs from random forest models -
+# Instead, calculated Root Mean Squared Error (RMSE) of both training and test datasets.
+# If test RMSE values are much greater than training, then possible the model has been over fit.
+
+predtest <- predict(myrf2, mydf2_test2)
+rmse(mydf2_test2$cram,predtest)
+# 9.03
+
+predtrain <- predict(myrf2, mydf2_train2)
+rmse(mydf2_train2$cram,predtrain)
+# 4.20
+
+# Double checking using the original random forest dataset (rf_dat) with all 35 possible variables included to see where the error in number of predictors starts to increase dramatically (to help double check our decision to include 25 parameters).
+dc <- rfcv(rf_dat %>%
+    select(-cram), 
+  rf_dat$cram,
+  step = 0.7, # default is 0.5
+  scale="log")
+
+dc$error.cv
+#34        24        17        12         8         6         4         3         2 
+# 96.28062  97.29366  99.08743 102.93752 115.52580 120.63049 122.09563 123.74425 139.30181 
+# 1 
+# 206.58921 
+
+# Appears between 34 and 24 variables, there is an insignificant increase in error.
+# However, this model is much larger than the CSCI (20) and ASCI (10) models, so we may decide to trim this down in the future.
+
+```
+
+# Works Cited
+
+
+
+=======
+>>>>>>> 1a6a3e4a7fded4e841412cd86dae11eed4ce0abe
+# Non-linear Dose Response
+If we hold all paramaters constant except for dose, we should observe a non-linear dose-response behavior that can be best predicted by a 3- or 4-parameter Hill Equation. The most available information is likely for polystyrene spheres in crustaceans.There are 21 studies available.
+
