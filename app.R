@@ -450,8 +450,8 @@ br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
 #Plot type widget
-selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
-             list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
+# selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
+#              list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
 
 column(width = 12,
        column(width = 12,
