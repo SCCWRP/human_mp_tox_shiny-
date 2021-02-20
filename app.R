@@ -356,10 +356,13 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) #Renames for widget
-
-
-
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>%  #Renames for widget
+  mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Y" ~ "Red Criteria Failed",
+                                                 particle.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Y" ~ "Red Criteria Failed",
+                                                 design.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Y" ~ "Red Criteria Failed",
+                                                 risk.tier.zero == "N" ~ "Red Criteria Passed"))) 
 
 #### User Interface ####
 
@@ -450,8 +453,8 @@ br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
 #Plot type widget
-selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
-             list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
+# selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
+#              list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
 
 column(width = 12,
        column(width = 12,
@@ -502,10 +505,12 @@ br(),
 p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively.
   The values in the parentheses represent the number of measurements and studies, respectively, of each metric along the y-axis."),
 br(),
-p("The data displayed in these figures are not filtered for quality and only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass or counts per volume - other dosing units (e.g., particle mass/food mass) 
+p("The data displayed in these figures only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass or counts per volume - other dosing units (e.g., particle mass/food mass) 
    are not displayed but are available in the complete database file."),
-br(), 
+br(),
 p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
+br(),
+p(strong("The data may be filtered by 'red criteria' for particle characterization, experimental design and applicability for risk assessment. More information about quality screening may be found in the Resources tab. ")),
 br(), 
 p("Change the plot type: The data may be visualized as a boxplot, violin plot or beeswarm plot using the drop-down menu below. Users may also visualize all individual data points by using the checkbox."),
 br(), 
@@ -523,8 +528,11 @@ br(),
                                          h4("Particle Characteristics")),
                                   
                                   column(width = 3,
-                                         h4("Biological Factors"))),
-                           
+                                         h4("Biological Factors")),
+                                  
+                                  column(width = 3,
+                                         h4("Quality Criteria"))),
+                                 
                            # widgets
                            column(width = 12,
                                   
@@ -552,13 +560,13 @@ br(),
                                                      multiple = TRUE)),
                                   
                                   column(width = 3,
-                                         pickerInput(inputId = "species_h_check", # polymer checklist
-                                                     label = "Species:", 
-                                                     choices = levels(human_setup$species_h_f),
-                                                     selected = levels(human_setup$species_h_f),
+                                         pickerInput(inputId = "particle_tier_zero_h_check", # polymer checklist
+                                                     label = "Particle Characterization:", 
+                                                     choices = levels(human_setup$tier_zero_particle_f),
+                                                     selected = levels(human_setup$tier_zero_particle_f),
                                                      options = list(`actions-box` = TRUE), 
                                                      multiple = TRUE))),
-                        
+
                            # New row of widgets
                            column(width = 12,
                                   
@@ -579,6 +587,14 @@ br(),
                                                     choices = levels(human_setup$bio_h_f),
                                                     selected = levels(human_setup$bio_h_f),
                                                     options = list(`actions-box` = TRUE),
+                                                    multiple = TRUE)),
+                                 
+                                 column(width = 3,
+                                        pickerInput(inputId = "design_tier_zero_h_check", # polymer checklist
+                                                    label = "Experimental Design:", 
+                                                    choices = levels(human_setup$tier_zero_design_f),
+                                                    selected = levels(human_setup$tier_zero_design_f),
+                                                    options = list(`actions-box` = TRUE), 
                                                     multiple = TRUE))),
 
                            # New row of widgets
@@ -605,6 +621,23 @@ br(),
                                                      label = "Life Stages:", 
                                                      choices = levels(human_setup$life_h_f),
                                                      selected = levels(human_setup$life_h_f),
+                                                     options = list(`actions-box` = TRUE), 
+                                                     multiple = TRUE)),
+                                  column(width = 3,
+                                         pickerInput(inputId = "risk_tier_zero_h_check", # polymer checklist
+                                                     label = "Applicability for Risk Assessment:", 
+                                                     choices = levels(human_setup$tier_zero_risk_f),
+                                                     selected = levels(human_setup$tier_zero_risk_f),
+                                                     options = list(`actions-box` = TRUE), 
+                                                     multiple = TRUE))),
+
+                            column(width = 12,
+       
+                                  column(width = 3, offset = 6, 
+                                         pickerInput(inputId = "species_h_check", # polymer checklist
+                                                     label = "Species:", 
+                                                     choices = levels(human_setup$species_h_f),
+                                                     selected = levels(human_setup$species_h_f),
                                                      options = list(`actions-box` = TRUE), 
                                                      multiple = TRUE))),
                            
@@ -719,6 +752,8 @@ br(),
 tabPanel("4: Resources", 
          br(),     
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
+         br(),
+         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EWr13IwjTIZHsqzq5vIkPswBsECP2riSv0rkj5_iEf56vQ?e=auae3g", 'Quality Screening: Red Criteria')),
          br(),
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EdKsPlTjls9FtDrwqisZmAEBi7tZQYyywL3qml9y-fR25g?e=pHJkGY", 'Mammalian Study List')),
          br(),
@@ -1006,8 +1041,10 @@ print(p)
     shape_h_c <- input$shape_h_check # assign values to "shape_c" 
     size_h_c <- input$size_h_check # assign values to "size_c"
     exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
-    species_h_c<-input$species_h_check
-    #range_n <- input$range # assign values to "range_n"
+    species_h_c<-input$species_h_check #assign values to "species_h_c"
+    particle_tier_zero_h<-input$particle_tier_zero_h_check #assign values to "particle_tier_zero_h"
+    design_tier_zero_h<-input$design_tier_zero_h_check #assign values to "design_tier_zero_h"
+    risk_tier_zero_h<-input$risk_tier_zero_h_check #assign values to "risk_tier_zero_h"
     dose_check <- input$dose_check #renames selection from radio button
     Rep_Con_rad <- input$Rep_Con_rad #use nominal or calculated exposure concentrations. Options are TRUE (calculated) or FALSE (reported)
     
@@ -1051,9 +1088,11 @@ print(p)
       filter(shape_h_f %in% shape_h_c) %>% #filter by shape
       filter(size_h_f %in% size_h_c) %>% #filter by size class
       filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
-      filter(species_h_f %in% species_h_c)
-      #filter(vivo_h_f %in% vivo_h_c) #filter by invivo or invitro
-       
+      filter(species_h_f %in% species_h_c) %>% #filter by species
+      filter(tier_zero_particle_f %in% particle_tier_zero_h) %>% #filter by particle red quality criteria
+      filter(tier_zero_design_f %in% design_tier_zero_h) %>% #filter by experimental design red quality criteria
+      filter(tier_zero_risk_f %in% risk_tier_zero_h) #filter by risk assessment red quality criteria
+    
       #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
     
   })
@@ -1388,6 +1427,11 @@ print(p)
     shinyjs::reset("bio_h_check")
     shinyjs::reset("vivo_h_check")
     shinyjs::reset("exposure_route_h_check")
+    shinyjs::reset("species_h_check")
+    shinyjs::reset("particle_tier_zero_h_check")
+    shinyjs::reset("design_tier_zero_h_check")
+    shinyjs::reset("risk_tier_zero_h_check")
+    
   }) #If we add more widgets, make sure they get added here.   
   
 } #Server end
