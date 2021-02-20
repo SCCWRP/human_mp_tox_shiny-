@@ -1132,10 +1132,10 @@ server <- function(input, output) {
         scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
         geom_label_repel(data = human_size1, 
-                        aes(label = paste("(",measurements,",",studies,")")),
-                        nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                        nudge_y = 0, #I would also make the text as big as the axis labels
-                        segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                         aes(label = paste("(",measurements,",",studies,")")),
+                         nudge_x = 1000, 
+                         nudge_y = 0, 
+                         segment.colour = NA, size=4) +
         theme_classic() +
         theme(text = element_text(size=18), 
               legend.position = "right") +
@@ -1181,9 +1181,9 @@ server <- function(input, output) {
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_label_repel(data = human_shape1, 
                       aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                      nudge_x = 1000, 
+                      nudge_y = 0, 
+                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -1231,7 +1231,7 @@ server <- function(input, output) {
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1279,7 +1279,7 @@ server <- function(input, output) {
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1329,7 +1329,7 @@ server <- function(input, output) {
                      aes(label = paste("(",measurements,",",studies,")")),
                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                      nudge_y = 0, #I would also make the text as big as the axis labels
-                     segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                     segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1378,7 +1378,7 @@ server <- function(input, output) {
                       aes(label = paste("(",measurements,",",studies,")")),
                       nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
                       nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
