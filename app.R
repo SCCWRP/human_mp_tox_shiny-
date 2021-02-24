@@ -357,12 +357,12 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
                                         species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>%  #Renames for widget
-  mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Y" ~ "Red Criteria Failed",
-                                                 particle.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
-  mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Y" ~ "Red Criteria Failed",
-                                                 design.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
-  mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Y" ~ "Red Criteria Failed",
-                                                 risk.tier.zero == "N" ~ "Red Criteria Passed"))) 
+  mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Fail" ~ "Red Criteria Failed",
+                                                 particle.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Fail" ~ "Red Criteria Failed",
+                                                 design.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Fail" ~ "Red Criteria Failed",
+                                                 risk.tier.zero == "Pass" ~ "Red Criteria Passed"))) 
 
 #### User Interface ####
 
