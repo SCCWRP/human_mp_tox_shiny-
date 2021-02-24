@@ -711,38 +711,38 @@ br(),
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "lvl_h_plot_react"),
+                                         plotOutput(outputId = "lvl_h_plot_react", height = "600px"),
                                          br())), 
                                 
                                 
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "lvl2_h_plot_react"),
+                                         plotOutput(outputId = "lvl2_h_plot_react", height = "600px"),
                                          br())), 
                                   
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "exposure_route_h_plot_react"),
+                                         plotOutput(outputId = "exposure_route_h_plot_react", height = "600px"),
                                          br())), 
                              
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "size_h_plot_react"),
+                                         plotOutput(outputId = "size_h_plot_react", height = "600px"),
                                          br())), 
                                  
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "shape_h_plot_react"),
+                                         plotOutput(outputId = "shape_h_plot_react", height = "600px"),
                                          br())), 
 
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "poly_h_plot_react"),
+                                         plotOutput(outputId = "poly_h_plot_react", height = "600px"),
                                          br()))),
                                   
                                   
@@ -1133,9 +1133,10 @@ server <- function(input, output) {
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
         geom_label_repel(data = human_size1, 
                          aes(label = paste("(",measurements,",",studies,")")),
-                         nudge_x = 1000, 
-                         nudge_y = 0, 
-                         segment.colour = NA, size=4) +
+                         hjust = 0,
+                         direction = "y", 
+                         nudge_x = 1000000000,
+                         segment.colour = NA, size = 3.5, show.legend = FALSE) +
         theme_classic() +
         theme(text = element_text(size=18), 
               legend.position = "right") +
@@ -1180,10 +1181,11 @@ server <- function(input, output) {
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_label_repel(data = human_shape1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, 
-                      nudge_y = 0, 
-                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -1228,10 +1230,11 @@ server <- function(input, output) {
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
       geom_label_repel(data = human_poly1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1276,10 +1279,11 @@ server <- function(input, output) {
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       geom_label_repel(data = human_lvl1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1326,10 +1330,11 @@ server <- function(input, output) {
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
      geom_label_repel(data = human_lvl21, 
-                     aes(label = paste("(",measurements,",",studies,")")),
-                     nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                     nudge_y = 0, #I would also make the text as big as the axis labels
-                     segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
+                      aes(label = paste("(",measurements,",",studies,")")),
+                      hjust = 0,
+                      direction = "y", 
+                      nudge_x = 1000000000,
+                      segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1375,10 +1380,11 @@ server <- function(input, output) {
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_label_repel(data = human_exposure1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=4) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
