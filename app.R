@@ -1113,9 +1113,9 @@ server <- function(input, output) {
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
                         )
     #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
@@ -1164,9 +1164,9 @@ server <- function(input, output) {
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                     "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                     "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_shape1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1214,9 +1214,9 @@ server <- function(input, output) {
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     human_poly1 <- human_filter() %>%
       drop_na(dose_new) %>%
       group_by(poly_h_f, vivo_h_f, effect_h_f) %>% 
@@ -1262,9 +1262,9 @@ server <- function(input, output) {
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     #build plot 
     human_lvl1 <- human_filter() %>%
     drop_na(dose_new) %>%
@@ -1311,9 +1311,9 @@ server <- function(input, output) {
   output$lvl2_h_plot_react <- renderPlot({
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_lvl21 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1362,9 +1362,9 @@ server <- function(input, output) {
   output$exposure_route_h_plot_react <- renderPlot({
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_exposure1 <- human_filter() %>%
       drop_na(dose_new) %>%
