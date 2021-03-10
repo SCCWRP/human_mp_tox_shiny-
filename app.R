@@ -357,12 +357,12 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
                                         species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>%  #Renames for widget
-  mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Y" ~ "Red Criteria Failed",
-                                                 particle.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
-  mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Y" ~ "Red Criteria Failed",
-                                                 design.tier.zero == "N" ~ "Red Criteria Passed"))) %>% 
-  mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Y" ~ "Red Criteria Failed",
-                                                 risk.tier.zero == "N" ~ "Red Criteria Passed"))) 
+  mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Fail" ~ "Red Criteria Failed",
+                                                 particle.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Fail" ~ "Red Criteria Failed",
+                                                 design.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
+  mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Fail" ~ "Red Criteria Failed",
+                                                 risk.tier.zero == "Pass" ~ "Red Criteria Passed"))) 
 
 #### User Interface ####
 
@@ -711,38 +711,38 @@ br(),
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "lvl_h_plot_react"),
+                                         plotOutput(outputId = "lvl_h_plot_react", height = "600px"),
                                          br())), 
                                 
                                 
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "lvl2_h_plot_react"),
+                                         plotOutput(outputId = "lvl2_h_plot_react", height = "600px"),
                                          br())), 
                                   
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "exposure_route_h_plot_react"),
+                                         plotOutput(outputId = "exposure_route_h_plot_react", height = "600px"),
                                          br())), 
                              
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "size_h_plot_react"),
+                                         plotOutput(outputId = "size_h_plot_react", height = "600px"),
                                          br())), 
                                  
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "shape_h_plot_react"),
+                                         plotOutput(outputId = "shape_h_plot_react", height = "600px"),
                                          br())), 
 
                            column(width = 12,
                                   
                                   column(width = 12,
-                                         plotOutput(outputId = "poly_h_plot_react"),
+                                         plotOutput(outputId = "poly_h_plot_react", height = "600px"),
                                          br()))),
                                   
                                   
@@ -785,145 +785,145 @@ server <- function(input, output) {
 
 #Test code for reactive plots based on measurements or study types  
   
+#   output$polymer_plot <- renderPlot({
+# #make distinct plots for measurements or studies
+# 
+# #make plot for studies
+# if(input$overview.type == "studies"){
+#   p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#     geom_bar(position="stack", stat="identity") +
+#     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#     scale_fill_manual(values = cal_palette("seagrass"))+
+#     ylab("Number of Studies") +
+#     labs(fill="Effect") +
+#     ggtitle("Polymer Type") +
+#     guides(x = guide_axis(angle = 45))+
+#     overviewTheme()
+# }
+# 
+#     else{
+#       # generate plot
+#       p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("seagrass"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Effect") +
+#         ggtitle("Polymer Type") +
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+# 
+# print(p)
+#   })
+# 
+#   #in vitro/in vivo plot
+#   output$vivo_plot <- renderPlot({
+# 
+# 
+#     #measurements and types
+#     if(input$overview.type == "measurementsAndTypes"){
+#       # generate plot
+#       p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Effect") +
+#         ggtitle("In Vitro or In Vivo")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#       }
+#     #measurements and years
+#     if(input$overview.type == "measurementsAndYears" ){
+#       # generate plot
+#       p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Study Type") +
+#         ggtitle("In Vitro or In Vivo Measurements by Year")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#       #currently displays years as a factor. can't decide if to switch to numeric or not
+#       }
+# 
+#     #studies and types
+#     if(input$overview.type == "studiesAndTypes"){
+#       p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Studies") +
+#         labs(fill="Effect") +
+#         ggtitle("In Vitro or In Vivo Studies by Type")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+# 
+#     #studies and years
+#     if(input$overview.type == "studiesAndYears" ){
+#       # generate plot
+#       p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= year, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
+#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Studies") +
+#         labs(fill="Study Type") +
+#         ggtitle("In Vitro or In Vivo Studies by Year")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+# 
+#     print(p)
+#   })
+
+
+  #Polymer category plot
   output$polymer_plot <- renderPlot({
-#make distinct plots for measurements or studies
 
-#make plot for studies
-if(input$overview.type == "studies"){
-  p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-    geom_bar(position="stack", stat="identity") +
-    geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-    scale_fill_manual(values = cal_palette("seagrass"))+
-    ylab("Number of Studies") +
-    labs(fill="Effect") +
-    ggtitle("Polymer Type") +
-    guides(x = guide_axis(angle = 45))+
-    overviewTheme()
-}
-
-    else{
-      # generate plot
-      p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("seagrass"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        ggtitle("Polymer Type") +
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-
-print(p)
+    # generate plot
+    ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+      scale_fill_manual(values = cal_palette("seagrass"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("Polymer Type")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
   })
 
-  #in vitro/in vivo plot
+  
+  #In vivo in vitro plot
   output$vivo_plot <- renderPlot({
 
-
-    #measurements and types
-    if(input$overview.type == "measurementsAndTypes"){
-      # generate plot
-      p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        ggtitle("In Vitro or In Vivo")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-      }
-    #measurements and years
-    if(input$overview.type == "measurementsAndYears" ){
-      # generate plot
-      p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Study Type") +
-        ggtitle("In Vitro or In Vivo Measurements by Year")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-      #currently displays years as a factor. can't decide if to switch to numeric or not
-      }
-
-    #studies and types
-    if(input$overview.type == "studiesAndTypes"){
-      p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Studies") +
-        labs(fill="Effect") +
-        ggtitle("In Vitro or In Vivo Studies by Type")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-
-    #studies and years
-    if(input$overview.type == "studiesAndYears" ){
-      # generate plot
-      p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= year, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
-        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Studies") +
-        labs(fill="Study Type") +
-        ggtitle("In Vitro or In Vivo Studies by Year")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-
-    print(p)
+    # generate plot
+    ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+      scale_fill_manual(values = cal_palette("lupinus"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      ggtitle("In Vivo/In Vitro")+
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
   })
-  
-  #commenting out so reactive takes precedent
-  # #Polymer category plot
-  # output$polymer_plot <- renderPlot({
-  #   
-  #   # generate plot
-  #   ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-  #     geom_bar(position="stack", stat="identity") +
-  #     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
-  #     scale_fill_manual(values = cal_palette("seagrass"))+
-  #     theme_classic() +
-  #     ylab("Number of Endpoints Measured") +
-  #     labs(fill="Effect") +
-  #     ggtitle("Polymer Type")+
-  #     guides(x = guide_axis(angle = 45))+
-  #     theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
-  #     theme(legend.position = "right",
-  #           axis.ticks= element_blank(),
-  #           axis.text.x = element_text(),
-  #           axis.text.y = element_blank(),
-  #           axis.title.x = element_blank())
-  # })
-  
-  #commenting out so reactive takes precedent.
-  # #In vivo in vitro plot
-  # output$vivo_plot <- renderPlot({
-  #   
-  #   # generate plot
-  #   ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-  #     geom_bar(position="stack", stat="identity") +
-  #     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
-  #     scale_fill_manual(values = cal_palette("lupinus"))+
-  #     theme_classic() +
-  #     ylab("Number of Endpoints Measured") +
-  #     labs(fill="Effect") +
-  #     ggtitle("In Vivo/In Vitro")+
-  #     guides(x = guide_axis(angle = 45))+
-  #     theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
-  #     theme(legend.position = "right",
-  #           axis.ticks= element_blank(),
-  #           axis.text.x = element_text(),
-  #           axis.text.y = element_blank(),
-  #           axis.title.x = element_blank())
-  # })
-  
+
   #Size category plot
   output$size_plot <- renderPlot({
     
@@ -1113,9 +1113,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
                         )
     #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
@@ -1132,10 +1132,11 @@ print(p)
         scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
         scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
         geom_label_repel(data = human_size1, 
-                        aes(label = paste("(",measurements,",",studies,")")),
-                        nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                        nudge_y = 0, #I would also make the text as big as the axis labels
-                        segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                         aes(label = paste("(",measurements,",",studies,")")),
+                         hjust = 0,
+                         direction = "y", 
+                         nudge_x = 1000000000,
+                         segment.colour = NA, size = 3.5, show.legend = FALSE) +
         theme_classic() +
         theme(text = element_text(size=18), 
               legend.position = "right") +
@@ -1163,9 +1164,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                     "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                     "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_shape1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1180,10 +1181,11 @@ print(p)
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_label_repel(data = human_shape1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
@@ -1212,9 +1214,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     human_poly1 <- human_filter() %>%
       drop_na(dose_new) %>%
       group_by(poly_h_f, vivo_h_f, effect_h_f) %>% 
@@ -1228,10 +1230,11 @@ print(p)
       scale_color_manual(values = c("#FAB455", "#A5683C")) +
       scale_fill_manual(values = c("#FAB455", "#A5683C")) +
       geom_label_repel(data = human_poly1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1259,9 +1262,9 @@ print(p)
     
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     #build plot 
     human_lvl1 <- human_filter() %>%
     drop_na(dose_new) %>%
@@ -1276,10 +1279,11 @@ print(p)
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
       geom_label_repel(data = human_lvl1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1307,9 +1311,9 @@ print(p)
   output$lvl2_h_plot_react <- renderPlot({
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_lvl21 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1326,10 +1330,11 @@ print(p)
       scale_color_manual(values = c("#A99CD9", "#6C568C")) +
       scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
      geom_label_repel(data = human_lvl21, 
-                     aes(label = paste("(",measurements,",",studies,")")),
-                     nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                     nudge_y = 0, #I would also make the text as big as the axis labels
-                     segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                      aes(label = paste("(",measurements,",",studies,")")),
+                      hjust = 0,
+                      direction = "y", 
+                      nudge_x = 1000000000,
+                      segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18),
             legend.position = "right") +
@@ -1357,9 +1362,9 @@ print(p)
   output$exposure_route_h_plot_react <- renderPlot({
     #plot types
     plot.type<-switch(input$plot.type,
-                      "boxplot" 	= geom_boxplot(alpha = 0.7, aes(color = effect_h_f)),
-                      "violin" = geom_violin(alpha = 0.7, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.7, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
+                      "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
     
     human_exposure1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1375,10 +1380,11 @@ print(p)
       scale_color_manual(values = c("#C7EAE5","#35978F")) +
       scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
       geom_label_repel(data = human_exposure1, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      nudge_x = 1000, #These nudge values likely control the positioning - I would mess with these to get them where you like, I'm thinking far right or far left
-                      nudge_y = 0, #I would also make the text as big as the axis labels
-                      segment.colour = NA, size=5) + #Creates labels for each level for the number of studies and measurements being plotted
+                       aes(label = paste("(",measurements,",",studies,")")),
+                       hjust = 0,
+                       direction = "y", 
+                       nudge_x = 1000000000,
+                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
       theme_classic() +
       theme(text = element_text(size=18), 
             legend.position = "right") +
