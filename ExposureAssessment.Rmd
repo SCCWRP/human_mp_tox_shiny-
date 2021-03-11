@@ -36,6 +36,7 @@ library(knitr)
 library(papeR)
 library(wesanderson)
 library(janitor)
+library(ggdark)
 ```
 
 
@@ -480,7 +481,8 @@ Based on the average mass of 1-10 micron microplastic particles in drinking wate
 
 ```{r}
 # 9.65 x 10^-8 mg from above
-ug.Particle.drinkingWater = 5.65e-06 #calcaulated mean value from Hazimah
+### Comment out particle.mass.ug and replace with summaryDistribution to rever
+ug.Particle.drinkingWater = particle.mass.ug  # summaryDistribution$`Average Mass (mg)`[1] * 1000 #ug to mg  #5.65e-06 #calcaulated mean value from Hazimah
 
 #summaryDistribution$`Average Mass (mg)`[1] * 1000 #ug to mg
 #5.65e-6 ug/particle from Bart's paper
@@ -532,6 +534,15 @@ totalExposure.summary <- totalExposure %>%
 totalExposure.summary  
 ```
 
+Acceptable Daily Dose (mg/kg-day) may also be expressed as mg/capita-day for children and adults by multiplying OEHHA's default values for body weight by the ADD. These values are 80 kg for adults, and 37 kg for children.
+
+```{r}
+ADD.Child = ADD * 37
+ADD.Adult = ADD * 80
+paste("child ADD:", signif(ADD.Child,3), "mg/capita-day")
+paste("adult ADD:", signif(ADD.Adult,3), "mg/capita-day")
+```
+
 
 ```{r}
 totalExposure.summary %>% 
@@ -545,7 +556,8 @@ totalExposure.summary %>%
   labs(title = "Microplastics Risk Characterization (Deterministic)",
        subtitle ="Acceptable Daily Dose in Dotted Red Line; Ingestion Exposure Only (no inhalation)",
        caption = "Median, Min, and Max exposure estimates Based on Mohamed Nor et al (2021)") +
-  theme_minimal(base_size = 15) +
+  dark_theme_minimal(base_size = 15) +
+  #theme_minimal(base_size = 15) +
   theme(axis.title.x = element_blank(),
     plot.title = element_text(hjust = 0.5, face="bold"),
     plot.subtitle = element_text(hjust = 0.5),
@@ -570,23 +582,27 @@ exceedance <- Data2 %>%
   dplyr::select(c(TapWater.particles.L.bioavailable, aboveC)) %>%
   group_by(aboveC) %>%
   dplyr::summarize(Freq = n() / sum(n))
+```
 
+```{r}
 #plot
 ggplot(Data2, aes(x = TapWater.particles.L.bioavailable, fill = aboveC)) + 
   geom_histogram(aes(y = ..count../sum(..count..)),bins = 50, alpha = 0.9, position = "identity") + 
-  geom_vline(xintercept = C.part.L, color = "red", linetype = "dashed") +
-  geom_vline(xintercept = 10 * C.part.L, color = "green", linetype = "dashed") +
-  geom_text(aes(x = C.part.L, y = 0.10), label = "Health Protective Concentration (NL)") +
-  geom_text(aes(x = 10 * C.part.L, y = 0.07), label = "Response Level (10x NL)") +
-  geom_text(aes(x = C.part.L, y = 0.09), label = paste(100*round(exceedance$Freq[1],4), "% Above NL")) +
-  geom_text(aes(x = 10* C.part.L, y = 0.06), label = paste(100 * round(exceedance$Freq[2],4), "% Above RL")) +
+  geom_vline(xintercept = C.part.L, color = "goldenrod2", linetype = "dashed") +
+  geom_vline(xintercept = 10 * C.part.L, color = "tomato1", linetype = "dashed") +
+  geom_text(aes(x = C.part.L, y = 0.10), label = "Health Protective Concentration (NL)", color = "goldenrod2") +
+  geom_text(aes(x = 10 * C.part.L, y = 0.07), label = "Response Level (10x NL)", color = "tomato1") +
+  geom_text(aes(x = C.part.L, y = 0.09), label = paste(100*round(exceedance$Freq[1],4), "% Above NL"), color = "goldenrod2") +
+  geom_text(aes(x = 10* C.part.L, y = 0.06), label = paste(100 * round(exceedance$Freq[2],4), "% Above RL"), color = "tomato1") +
   scale_x_log10(name = "Concentration of 1-10 micron microplastics (particles/L)") +
    scale_y_continuous(name = "Relative Frequency") +
+  scale_fill_manual(values = c("above RL" = "tomato1", "below NL"= "cyan3", "above NL" = "goldenrod2")) +
   labs(title = "Microplastics in Tap Water Distribution (Particles/L; 1- 10 um)",
-       subtitle ="Health-Protective Concentration in Dotted Red Line",
-       caption = paste0("Based on Probability Density Functions in Mohamed Nor et al (2021); alpha = ",alpha, "; average mass of particle in drinking water = ", ug.Particle.drinkingWater, " ug/particle")
+       subtitle ="Health-Protective Concentration in Dotted Yellow Line",
+       caption = paste0("Based on Probability Density Functions in Mohamed Nor et al (2021); alpha = ",alpha, "; average mass of particle in drinking water = ", signif(ug.Particle.drinkingWater,2), " ug/particle")
        )+
-  theme_minimal(base_size = 15) +
+  dark_theme_minimal(base_size = 15) +
+  #theme_minimal(base_size = 15) +
   theme(
     plot.title = element_text(hjust = 0.5, face="bold"),
     plot.subtitle = element_text(hjust = 0.5),
