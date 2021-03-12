@@ -47,9 +47,9 @@ library(ggdark)
 
 # Simulated distributions of particles
 
-THe following is based on Mohamed Nor et al (2021). ES&T. 
+To determine the mass of particles in drinking water, a simulated distribution of particles (including shape, density, volume, mass, and relative abundance) is generated, based on equations and probability density functions described in Kooi and Koelmans (2019).
 
-Shape is defined as:
+Where shape is defined as:
 Simplifed equation for corey shape factor:
 
 $CSF = H/sqrt(LW)$
@@ -59,7 +59,7 @@ Equation for abundance of particles based on density (two distributions). (Note 
 
 $y = f1(\frac{1}{sqrt(2pi()\sigma_1^2})e^{-(x-\mu_1)^2/2\sigma_1^2} + f2(\frac{1}{sqrt(2pi()\sigma_2^2})e^{-(x-\mu_2)^2/2\sigma_2^2}$
 
-For polymer abundance, for the K&K2019 paper I used the fixed values from Burns & Boxall review, and went straight for density. Given these fixed relative abundances, you could calculate polymer type randomly for N particles via: 
+For polymer abundance, fixed values from Burns & Boxall (2018) are applied which are used to determine density. Given these fixed relative abundances, polymer type is randomly generated for N particles via: 
 
 pols <- c("PE", "PP", "PS")
 rel.ab <- c(0.5, 0.3, 0.2)
@@ -78,7 +78,9 @@ $m = pV*\frac{1}{1e12}*1000$
 
 Where *m* is the mass (mg), *p* is density (g/cm^3), *V* is volume (um^3) - which is calculated by the cube of the length (um) of each particle, and additional conversion factors for mg to g (x1000) and cm^3 to um^3 (1e-12).
 
-The parameters for fitting shape, density, and mass of microplastics particles for converting between number and mass are taken from Mohamed Nor et al (2021) (Table S7) for 'food' - as the authors reported that there are no significant differences between tap water and other food matrices for these parameters.
+The parameters for fitting shape, density, and mass of microplastics particles for converting between number and mass are taken from Kooi and Koelmans (2019). 
+
+The probability density function for the occurence of microplastics in tap water is generated based on Mohamed Nor et al (2021) (Table S7) for 'food' - as the authors reported that there are no significant differences between tap water and other food matrices for these parameters.
 
 ```{r, include=FALSE}
 #rm(list=ls())
@@ -188,6 +190,7 @@ df2 <- df %>%
   mutate(um3 = (Size^3))
 ```
 
+The above code generates 10,000 particles. The distributions are visualized below.
 
 ```{r}
 ##++++++++++++++++++++++++++++++++++++++++
@@ -208,7 +211,8 @@ grid.arrange(p1,
              ncol = 2)
 ```
 
-From this distribution of simulated microplastics in drinking water, the 1-10 micron fraction will be considered bioavailable.
+From this distribution of simulated microplastics in drinking water, the 1-10 micron fraction will be considered to be bioavailable. Below is a table summarizing the mass of particles in discrete size bins within this simulated distribution. 
+
 ```{r}
 summaryDistribution <- df2 %>% 
   group_by(size.category) %>% 
@@ -226,12 +230,15 @@ kable(summaryDistribution)
 The bioavailable fraction (1-10 um) for tap water is 0.75 (alpha = 1.6) or 0.971 (alpha = 2.5).
 
 ```{r}
-summaryDistribution$`Average Mass (mg)`[1]
+paste("average mass of 1-10 micron particles:",summaryDistribution$`Average Mass (mg)`[1], "mg")
 ```
 
 The average mass for the 1-10 micron fraction is 9.65 x 10^-8 mg if alpha = 1.6; and 3.42 x 10^-8 if alpha = 2.5.
 
 ### Tap Water
+
+The following code generates occurence distribution for microplastics in tap water based on the bimodal PDf in Mohamed Nor et al (2021).
+
 ```{r}
 n = 10000
 ## Generate values for the three distributions
@@ -263,8 +270,8 @@ for(i in 1:n){
 
 colnames(Data) <- c("Size")
 
-min(Data$Size) ##20 um
-max(Data$Size) ##5000 um
+#min(Data$Size) ##20 um
+#max(Data$Size) ##5000 um
 
 
 ##++++++++++++++++++++++++++++++++++
@@ -295,6 +302,8 @@ for(i in 1:n){
 
 Data <- Data %>% mutate(TapWater.particles.L = 10^(TapWater.log.particles.L))
 ```
+Below is a histogram of the occurence of microplastics in tap water in the PDF.
+
 ```{r}
 min(Data$TapWater.log.particles.L) ##0
 max(Data$TapWater.log.particles.L) ## 5.260823
@@ -305,8 +314,9 @@ ggplot(Data, aes(x = TapWater.particles.L, fill = Size)) +
   theme_minimal(base_size = 15)
 ```
 
+## Summary Table of Exposure Sources
 
-## Summary Table
+Below is  table of summary statistics for microplastics occurence in various exposure media. Values are from Mohamed Nor et al (2021).
 ```{r paged.print=TRUE}
 # Static import of median and 95th percentile exposure
 
@@ -326,21 +336,21 @@ kable(MediaSummary,
 ```
 
 
-```{r eval=FALSE, include=FALSE}
-ingestionSummary <- data.frame(
-  Parameter = c("Drinking Water", "Fish", "Mollusc", "Crustacean", "Bottled Water", "Salt", "Beer", "Milk", "Air"),
-  Units = c("Fish Ingestion Rate", "Particles/g BWW", "Particles/g TWW", "Particles/g BWW", "Particles/L", "Particles/kg", "Particles/L", "Particles/L", "Particles/m<sup>3</sup>"),
-  #mean = c(mean(Data$TapWater.particles.L)), 
-  median = c(median(Data$TapWater.particles.L), 10^-0.73, 10 ^ 0.91, 10 ^0.38, 10^2.53, 10^3.11, 10^2.12, 10^2.12, 10^1.56), 
-  UCL95 = c(quantile(Data$TapWater.particles.L,probs = 0.95)[[1]], 10 ^ 1.79, 10^2.63, 10^2.11, 10^3.97, 10^5.08,10^3.55, 10^3.51,10^4.28 )
-  )
+<!-- ```{r eval=FALSE, include=FALSE} -->
+<!-- ingestionSummary <- data.frame( -->
+<!--   Parameter = c("Drinking Water", "Fish", "Mollusc", "Crustacean", "Bottled Water", "Salt", "Beer", "Milk", "Air"), -->
+<!--   Units = c("Fish Ingestion Rate", "Particles/g BWW", "Particles/g TWW", "Particles/g BWW", "Particles/L", "Particles/kg", "Particles/L", "Particles/L", "Particles/m<sup>3</sup>"), -->
+<!--   #mean = c(mean(Data$TapWater.particles.L)),  -->
+<!--   median = c(median(Data$TapWater.particles.L), 10^-0.73, 10 ^ 0.91, 10 ^0.38, 10^2.53, 10^3.11, 10^2.12, 10^2.12, 10^1.56),  -->
+<!--   UCL95 = c(quantile(Data$TapWater.particles.L,probs = 0.95)[[1]], 10 ^ 1.79, 10^2.63, 10^2.11, 10^3.97, 10^5.08,10^3.55, 10^3.51,10^4.28 ) -->
+<!--   ) -->
 
-kable(MediaSummary,
-      col.names = c("Media", "Units", "Median", "Upper 95th Percentile"),
-      digits = 1,
-      caption = "Means and Percentiles of Exposure Media of Microplastics based on Modeled Concentrations from Nur Mohamed et al (2021)"
-      )
-```
+<!-- kable(MediaSummary, -->
+<!--       col.names = c("Media", "Units", "Median", "Upper 95th Percentile"), -->
+<!--       digits = 1, -->
+<!--       caption = "Means and Percentiles of Exposure Media of Microplastics based on Modeled Concentrations from Nur Mohamed et al (2021)" -->
+<!--       ) -->
+<!-- ``` -->
 
 
 
@@ -350,12 +360,14 @@ kable(MediaSummary,
 
 OEHHA develops health-protective concentrations using the general approach of the Public Health Goal (PHG) program for developing health-protective concentrations of chemicals in drinking water that are expected to result in no adverse effects from exposure over a lifetime. For noncancer effects, the derivation of the health-protective concentration starts with the PODs derived from animal or human studies. This dose is converted to an acceptable daily dose (ADD), which is then back calculated to a health protective concentration in drinking water. Because there were no studies of the carcinogenicity of microplastics, only a noncancer health-protective concentration was derived.
 
-OEHHA evaluated the health outcomes of the most sensitive animal toxicity studies available in the literature for health-protective concentration derivation. In the XXX studies selected as candidate critical studies (Table 1), the health outcomes included effects on reproductive organs and tissues following oral exposure to polystyrene microplastic particles. From these identified targets of microplastics, the MALE GONADS?? were found to be the most sensitive to microplastics-induced toxicity. These target organs are the same as those identified by XXXXXX. As discussed in the following sections, OEHHA identified the thyroid as the most sensitive for health-protective concentration derivation.
+OEHHA evaluated the health outcomes of the most sensitive animal toxicity studies available in the literature for health-protective concentration derivation. In the XXX studies selected as candidate critical studies (Table X) *To be completed*, the health outcomes included effects on reproductive organs and tissues following oral exposure to polystyrene microplastic particles. From these identified targets of microplastics, the male reproductive effects were found to be the most sensitive to microplastics-induced toxicity. As discussed in the following sections, OEHHA identified male reproductive organs as the most sensitive for health-protective concentration derivation.
 
-<DESCRIBE STUDY DETAILS BREIFY HERE>
+
+<DESCRIBE STUDY DETAILS BRIEFlY HERE>
+
 
 ## Critical Effect Determination
-Table 1 lists the PODs (both NOAELs and BMDLs) derived from the studies OEHHA identified as suitable for quantitative dose-response analysis and health-protective concentration derivation. The results from animal toxicity studies of microplastics in mice and rats support the human testes as a potential target organ of microplastics, and the measured effects in the XXXX were found to be more sensitive than in the XXXX. Spermatogenesis and sperm motility disruption from the Xie et al (2020), Huo et al (2021) and Amereh et al (2020) studies were the most sensitive endpoints in the microplastics animal toxicity database, and both were considered for health-protective concentration derivation.
+Table X lists the PODs (both NOAELs and BMDLs) derived from the studies OEHHA identified as suitable for quantitative dose-response analysis and health-protective concentration derivation. The results from animal toxicity studies of microplastics in mice and rats support the human testes as a potential target organ of microplastics. Spermatogenesis and sperm motility disruption from the Xie et al (2020), Huo et al (2021) and Amereh et al (2020) studies were the most sensitive endpoints in the microplastics animal toxicity database, and both were considered for health-protective concentration derivation. Hou et al (2021) was used to derive a point of departure, with a LOAEL of 0.017 mg/kg-day for decreased sperm viability.
 
 
 # Health-Protective Concentration Calculation
@@ -377,14 +389,10 @@ $POD_{Human} = \frac{LOD_{animal} (mg/kg-day)}{DAF (unitless)}$
 ## Acceptable Daily Dose (ADD)
 An ADD is the estimated maximum daily dose of a chemical (in mg/kg-day) that can be consumed by a human for an entire lifetime without adverse effects. To determine the ADD, the POD is adjusted by factors to account for uncertainties in the risk assessment, such as differences between animals and humans (interspecies extrapolation), and differences among humans (intraspecies variation, including sensitive subgroups) in response to a chemical exposure. Additionally, factors may be applied to extrapolate from subchronic to chronic exposure duration, from LOAEL to NOAEL when a NOAEL or BMDL is not available, and also when the toxicity database is incomplete. These factors combined are referred to as the composite uncertainty factor (UF).
 
-When developing health-protective concentrations for noncancer effects based on animal toxicity studies, OEHHA generally applies a composite UF of 300, consisting of 10 for interspecies extrapolation (√10 for pharmacokinetics and √10 for
-pharmacodynamics) and 30 for intraspecies variability (10 for pharmacokinetics and √10 for pharmacodynamics) (OEHHA, 2008). A detailed description of these factors is presented in Appendix XXX. 
+When developing health-protective concentrations for noncancer effects based on animal toxicity studies, OEHHA generally applies a composite UF of 300, consisting of 10 for interspecies extrapolation (10 for particokinetics and 10 for
+particodynamics) and 30 for intraspecies variability (OEHHA, 2008).
 
-When calculating the ADD for microplastics using the POD from Xie et al. (2020), OEHHA applied an interspecies UF of √10 to account for potential differences in particodynamics when extrapolating data from animal studies to humans. Because microplastics are not known to be metabolized in animals or humans, and because a particokinetic adjustment was applied to the animal POD to derive a human equivalent dose, the particokinetic components of the interspecies and intraspecies UFs were reduced by √10 each. Therefore, the intraspecies UF was reduced from OEHHA’s default of 30 to 10 to account for human variability. Additionally, an additional UF of √10 was applied for database deficiencies, most notably the absence of a chronic toxicity study. This resulted in a composite UF of 100.
-
-An uncertainty factor of 10 for interspecies extrapolation is applied due to lack of data for converting between animal and human studies for microplastics. An uncertainty factor of 30 is appliaed for intraspecies variability. An unceratinty factor of 10 for LOAEL to NOAEL is used. Although the critical threshold study was subchronic (<8% of the animal's lifetime), no uncertainty factors were applied to convert to chronic because the 35-day exposure covers an entire sperm cycle (from spermatogonia to mature spermatozoa).
-
-A database deficiency UF of √10 was added, as a chronic exposure study may result in more severe effects than what was detected in Xie et al. (2020). In addition, it is not known whether chronic exposure would result in other effects that occur at lower doses than the observed changes in immune system and reproductive function in adult animals. Additionally, other deficiencies in the database besides chronic exposure studies exist for microplastics. *describe unknowns here*
+When calculating the ADD for microplastics using the POD from Hou et al. (2021), an interspecies UF of 10 was applied to account for potential differences in particodynamics when extrapolating data from animal studies to humans. An uncertainty factor of 10 for interspecies extrapolation is applied due to lack of data for converting between animal and human studies for microplastics. An uncertainty factor of 30 is applied for intraspecies variability. An uncertainty factor of 10 for LOAEL to NOAEL is used. Although the critical threshold study was subchronic (<8% of the animal's lifetime), no uncertainty factors were applied to convert to chronic because the 35-day exposure covers an entire sperm cycle (from spermatogonia to mature spermatozoa).An additional uncertainty factor of 10 is applied for LOAEL to NOAEL. The composite uncertainty factor is 10 x 30 x 10 = *3,000*.
 
 To calculate the ADD, divide the POD<sub>Human</sub> by the composite UF:
 
@@ -392,11 +400,13 @@ $ADD = \frac{POD_{human} (mg/kg-day)}{UF}$
 
 $ADD = \frac{POD_{human} (0.017 mg/kg-day)}{UF (3,000)} = 5.7 x 10^{-6} mg/kg-day$
 
+Thus, the acceptable daily dose (ADD) is 5.7e-6 mg/kg-day.
+
 ## Relative Source Contribution
 
 In estimating health-protective levels of chemicals in drinking water for noncancer endpoints, OEHHA considers the relative source contribution (RSC), which is the proportion of exposures to a chemical attributed to tap water as part of total exposure from all sources, including food and ambient air. When developing an appropriate RSC value for a chemical, OEHHA follows US EPA’s Exposure Decision Tree Approach (US EPA, 2000). This approach takes into account the availability of exposure data, including the levels and relevant sources of exposure, and any other non-water regulatory standards for the chemical. In addition, any specific subpopulations of concern are identified and considered in the process. A chemical-specific RSC value can be calculated when adequate data are available for all sources of exposure, including exposures from drinking water. If data are not adequate for determining the contribution of one or more of these non-water exposure sources, then default values may be used (US EPA, 2000). The default estimates include a low estimate of 20% and a high estimate of 80%, used when data are not otherwise available to better characterize sources of exposure.
 
-For microplastics, the population of concern is all residents of California. Relevant exposure sources to Californians include environmental media and consumer products. However,the availability of data to quantify microplastics exposure from these sources is limited. Microplastics have been detected in household dust, air, seafood (fish, molluscs, crustaceans), salt, bottled water, beer, milk, and tap water - all of which are consumed on a daily basis (Mohamed Nor et al 2021). Frequency of detection and concentrations measured varied widely by study and products tested. Further, no standardized analytical methods exist. Mohamed Nor et al (2021) estimated dietary exposures from microplastics ranged from *MIN* ng/kg-day (minimum) to *Max* ng/kg-day (maximum).
+For microplastics, the population of concern is all residents of California. Relevant exposure sources to Californians include environmental media and consumer products. However,the availability of data to quantify microplastics exposure from these sources is limited. Microplastics have been detected in household dust, air, seafood (fish, molluscs, crustaceans), salt, bottled water, beer, milk, and tap water - all of which are consumed on a daily basis (Mohamed Nor et al 2021). Frequency of detection and concentrations measured varied widely by study and products tested. Further, no standardized analytical methods exist. Mohamed Nor et al (2021) estimated dietary exposures from microplastics ranged from 4.1e-9 and 3.46e-9 mg/kg-day to 4.1e-9 and 3.46e-9 mg/kg-day (maximum) for adults and children, respectively.
 
 While there is limited data quantifying the levels of microplastics in some items (particularly fruits, vegetables, grains, meat, and processed foods), microplastics aare a ubiquitous environmental contaminant and the potential exposure sources are extensive. Because there is insufficient human data to assess the population’s exposure to microplastics from all sources other than tap water, a default RSC of 20% was selected and is consistent with the US EPA (2000) guidance.
 
@@ -408,7 +418,7 @@ The daily water intake equivalent (DWI) is expressed in the units of liters or l
 
 Microplastics exposure from tap water is expected to be predominately from oral exposure. *Volatilization is negligible ref* *dermal exposure is negligible ref.*
 
-The 70-yr lifetime weighted average (0.053 L/kg-day) drinking water intake (DWI) rate is used. for health-protective concentration. *explain why susceptible*. Also, infants have higher exposure to drinking water contaminants because they consume more water (when fed reconstituted formula) on a body weight basis than adults. 
+The 70-yr lifetime weighted average (0.053 L/kg-day) drinking water intake (DWI) rate is used. for health-protective concentration. 
 
 ### Health-Protective Concentration
 
@@ -434,7 +444,7 @@ $V = \frac{4}{3}{\pi}r^3$
 Where r = radius (length/2; 2.5 um).
 ```{r}
 particle.volume = (4/3)*pi*2.5^3
-paste(round(particle.volume,1), "um3")
+paste("volume of 5-micron polystyrene sphere:",round(particle.volume,1), "um^3")
 ```
 Particle mass may then be calculated as follows:
 
@@ -444,13 +454,13 @@ Where *m* is the mass (mg), *p* is density (g/cm^3; 1.05 for polystyrene), *V* i
 ```{r}
 polystyrene.density = 1.05 #g/cm^3
 particle.mass.ug = polystyrene.density * particle.volume * 1e-12 * 1000 * 1000 # ug
-paste(signif(particle.mass.ug,3),"ug/particle")
+paste("mass per particle for 5 um polystyrene sphere:", signif(particle.mass.ug,3),"ug/particle")
 ```
 The number of 5 micron polystyrene spherical particles for the health-protective concentration in drinking water may then be estimated by dividing the mass-based health-protective concentration (0.022 ug/L) by the mass/particle (ug/particle) of 5 um polystyrene spheres. 
 
 ```{r}
 C.part.L.5um.PS.spheres = C / particle.mass.ug 
-paste(signif(C.part.L.5um.PS.spheres,3),"5-um Polystyrene Spherical Particles/L")
+paste("health protection concentration:",signif(C.part.L.5um.PS.spheres,3),"5-um Polystyrene Spherical Particles/L")
 ```
 This value can now be aligned to a 1-10 micron size range using equation 3 in Mohamed Nor et al (2021).
 
@@ -475,7 +485,7 @@ This value can now be aligned to a 1-10 micron size range using equation 3 in Mo
 <!-- #   mutate(TapWater.particles.L.corrected = CF * TapWater.particles.L) #convert single concenetrations -->
 <!-- # ``` -->
 
-# CONVERT ALL PARTICLES IN DRINKING WATER TO MASS/L #
+# NEED TO DO: CONVERT ALL PARTICLES IN DRINKING WATER TO MASS/L # HAZIMAH MAY HELP
 
 Based on the average mass of 1-10 micron microplastic particles in drinking water (5.65 x 10^-6 ug/particle) (Mohamed Nor et al 2021).Correcting the simulated distribution of 1-5,000 micron microplastics particles for the bioavailable fraction of 1-10 micron particles (0.97) in global drinking water estimates, this threshold translates to approximately:
 
@@ -496,6 +506,7 @@ paste("Health Protective Concentration:", round(C.part.L,1), "particles/L")
 
 # Risk Characterization
 
+The following is a table of summary statistics for *total* estimated exposure of microplastics to humans based on Mohamed Nor et al (2021).
 
 ```{r}
 minExposureChild.mg.capita.day = 1.28e-7
@@ -542,7 +553,8 @@ ADD.Adult = ADD * 80
 paste("child ADD:", signif(ADD.Child,3), "mg/capita-day")
 paste("adult ADD:", signif(ADD.Adult,3), "mg/capita-day")
 ```
-
+### Total Risk Exceendace
+A simple plot relating total estimated exposure to the ADD is shown below.
 
 ```{r}
 totalExposure.summary %>% 
@@ -565,7 +577,7 @@ totalExposure.summary %>%
   )
 ```
 
-
+Below is a table estimating the percent exceedance of the health-protective concentration (particles/L) for tap water based on the PDF in Mohamed Nor et al (2021). Notification Level (NL) = Health protection concentration. Reponse Level (RL) = 10 x NL.
 ```{r}
 #correct for bioavailability
 Data2 <- Data %>% 
@@ -582,7 +594,12 @@ exceedance <- Data2 %>%
   dplyr::select(c(TapWater.particles.L.bioavailable, aboveC)) %>%
   group_by(aboveC) %>%
   dplyr::summarize(Freq = n() / sum(n))
+
+exceedance
 ```
+
+### Tap Water Exceedance
+Below is a plot of the probability density function of microplastics in tap water with NL and RL annotated.
 
 ```{r}
 #plot
@@ -610,7 +627,7 @@ ggplot(Data2, aes(x = TapWater.particles.L.bioavailable, fill = aboveC)) +
   )
 ```
 
-Alternatively, the concentration of microplastics in tap water can be displayed in estimated mass (ug/L) alongside the health-protective concentration. By
+Alternatively, the concentration of microplastics in tap water can be displayed in estimated mass (ug/L) alongside the health-protective concentration. *THIS SECTION IS INCOMPLETE. NEED TO ESTIMATE MASS FOR EACH PARTICLE IN DISTRIBUTION USING PDFs FROM HAZIMAH*
 
 ```{r}
 #correct for bioavailability
@@ -650,9 +667,9 @@ ggplot(Data3, aes(x = tapWater.ug.L.bioavailable, fill = aboveC)) +
   )
 ```
 
+Percent exceedance of NL/RL in tap water may be visualzed as a cumulative density fuction.
 
-
-Cumulative Density Function
+### Cumulative Density Function
 ```{r}
 ECDF.tapWater <- Data2 %>% 
   ggplot(aes(x = TapWater.particles.L.bioavailable))+
@@ -684,7 +701,24 @@ ECDF.tapWater
 OEHHA (2008). Air Toxics Hot Spots Risk Assessment Guidelines: Technical Support Document for the Derivation of Noncancer Reference Exposure Levels. Office of Environmental Health Hazard Assessment, California Environmental Protection Agency, Sacramento, California. 
 
 
+Amereh, Fatemeh, Mohammad Babaei, Akbar Eslami, Simin Fazelipour, and Mohammad Rafiee. 2020. “The Emerging Risk of Exposure to Nano(Micro)Plastics on Endocrine Disturbance and Reproductive Toxicity: From a Hypothetical Scenario to a Global Public Health Challenge.” Environmental Pollution 261 (June): 114158. https://doi.org/10.1016/j.envpol.2020.114158.
 
+Amereh, Fatemeh, Akbar Eslami, Simin Fazelipour, Mohammad Rafiee, Mohammad Ismail Zibaii, and Mohammad Babaei. 2019. “Thyroid Endocrine Status and Biochemical Stress Responses in Adult Male Wistar Rats Chronically Exposed to Pristine Polystyrene Nanoplastics.” Toxicology Research 8 (6): 953–63. https://doi.org/10.1039/c9tx00147f.
+
+Hou, Baolian, Fangyi Wang, Tao Liu, and Zhiping Wang. 2021. “Reproductive Toxicity of Polystyrene Microplastics: In Vivo Experimental Study on Testicular Toxicity in Mice.” Journal of Hazardous Materials 405 (March): 124028. https://doi.org/10.1016/j.jhazmat.2020.124028.
+
+Kooi, Merel, and Albert A Koelmans. 2019. “Simplifying Microplastic via Continuous Probability Distributions for Size, Shape, and Density.” Environmental Science & Technology Letters 6 (9): 551–57.
+
+Li, Zekang, Shuxiang Zhu, Qian Liu, Jialiu Wei, Yinchuan Jin, Xifeng Wang, and Lianshuang Zhang. 2020. “Polystyrene Microplastics Cause Cardiac Fibrosis by Activating Wnt/β-Catenin Signaling Pathway and Promoting Cardiomyocyte Apoptosis in Rats.” Environmental Pollution 265 (October): 115025. https://doi.org/10.1016/j.envpol.2020.115025.
+
+Park, Eun-Jung, Ji-Seok Han, Eun-Jun Park, Eunsol Seong, Gwang-Hee Lee, Dong-Wan Kim, Hwa-Young Son, Hyoung-Yun Han, and Byoung-Seok Lee. 2020. “Repeated-Oral Dose Toxicity of Polyethylene Microplastics and the Possible Implications on Reproduction and Development of the next Generation.” Toxicology Letters 324 (May): 75–85. https://doi.org/10.1016/j.toxlet.2020.01.008.
+
+Wei, Jialiu, Xifeng Wang, Qian Liu, Na Zhou, Shuxiang Zhu, Zekang Li, Xiaoli Li, Jinpeng Yao, and Lianshuang Zhang. 2021. “The Impact of Polystyrene Microplastics on Cardiomyocytes Pyroptosis through NLRP3 /Caspase‐1 Signaling Pathway and Oxidative Stress in Wistar Rats.” Environmental Toxicology, January, tox.23095. https://doi.org/10.1002/tox.23095.
+
+Xie, Xiaoman, Ting Deng, Jiufei Duan, Jing Xie, Junlin Yuan, and Mingqing Chen. 2020. “Exposure to Polystyrene Microplastics Causes Reproductive Toxicity through Oxidative Stress and Activation of the P38 MAPK Signaling Pathway.” Ecotoxicology and Environmental Safety 190 (March): 110133. https://doi.org/10.1016/j.ecoenv.2019.110133.
+
+
+Mohamed Nor et al (2021). "Lifetime accumulation of microplastic in children and adults." Environmental Science & Technology.
 
 
 
