@@ -1,0 +1,15 @@
+---
+title: "Benchmark Dose Modelling"
+author: "Scott Coffin"
+date: "3/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+BMDS (usually BMR of 5% for dichotomous or 1 SD for continuous)
+
+PROAST
+https://www.rivm.nl/en/proast

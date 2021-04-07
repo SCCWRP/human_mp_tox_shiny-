@@ -548,12 +548,15 @@ Red_Criteria <- human_setup %>%
 #Plot particle quality
 Particle <- Red_Criteria %>% 
   distinct(tier_zero_particle_f, vivo_h_f, quality_particle) %>% 
-  ggplot(aes(x = tier_zero_particle_f, y = quality_particle)) +
-  geom_bar(stat = "identity", fill = "darkcyan") +
+  ggplot(aes(x = tier_zero_particle_f, y = quality_particle, fill = tier_zero_particle_f)) +
+  geom_bar(stat = "identity") +
   facet_wrap(~vivo_h_f)+
+  scale_fill_manual(values = c("#BD382F", "#1CA385")) +
   theme_test()+
   theme(axis.title.x = element_blank(),
-        text = element_text(size = 16))+
+        text = element_text(size = 16),
+        legend.title = element_blank(),
+        legend.position = "none")+
   ylim(0,35)+
   labs(title = "Particle Characteristics", y = "Number of Studies")
 
@@ -562,12 +565,15 @@ plot(Particle)
 #Plot design quality
 Design <- Red_Criteria %>% 
   distinct(tier_zero_design_f, vivo_h_f, quality_design) %>%   
-  ggplot(aes(x = tier_zero_design_f, y = quality_design)) +
-  geom_bar(stat = "identity", fill = "navy") +
+  ggplot(aes(x = tier_zero_design_f, y = quality_design, fill = tier_zero_design_f)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#BD382F", "#1CA385")) +
   facet_wrap(~vivo_h_f)+
   theme_test()+
   theme(axis.title.x = element_blank(),
-        text = element_text(size = 16))+
+        text = element_text(size = 16),
+        legend.title = element_blank(),
+        legend.position = "none")+
   ylim(0,35)+
   labs(title = "Experimental Design", y = "Number of Studies")
 
@@ -576,12 +582,15 @@ plot(Design)
 #Plot risk quality
 Risk <- Red_Criteria %>% 
   distinct(tier_zero_risk_f, vivo_h_f, quality_risk) %>%  
-  ggplot(aes(x = tier_zero_risk_f, y = quality_risk)) +
-  geom_bar(stat = "identity", fill = "plum") +
+  ggplot(aes(x = tier_zero_risk_f, y = quality_risk, fill = tier_zero_risk_f)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#BD382F", "#1CA385")) +
   theme_test()+
   theme(axis.title.x = element_blank(),
-        text = element_text(size = 16))+
-  ylim(0,35)+
+        text = element_text(size = 16),
+        legend.title = element_blank(),
+        legend.position = "none")+
+ # ylim(0,35)+
   labs(title = "Risk Assessment", subtitle = "In Vivo Data Only", y = "Number of Studies")
 
 plot(Risk)
@@ -598,11 +607,14 @@ All <- Red_Criteria %>%
   group_by(all) %>% 
   mutate(all_count = n_distinct(article, all)) %>%
   distinct(all, all_count) %>% 
-  ggplot(aes(x = all, y = all_count)) +
-  geom_bar(stat = "identity", fill = "darkmagenta") +
+  ggplot(aes(x = all, y = all_count, fill = factor(all_count))) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c( "#1CA385", "#BD382F")) +
   theme_test()+
   theme(axis.title.x = element_blank(),
-        text = element_text(size = 16))+
+        text = element_text(size = 16),
+        legend.title = element_blank(),
+        legend.position = "none")+
   labs(title = "Pass All Red Criteria", subtitle = "In Vivo Data Only", y = "Number of Studies")
 
 
@@ -617,7 +629,7 @@ Particle_Score <- human_setup %>%
   geom_bar(stat = "identity", fill = "darkcyan") +
   theme_test() +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
-  geom_hline(aes(yintercept = 14), linetype = "dotted", size = 1)+
+  geom_hline(aes(yintercept = 14), linetype = "dotted", size = 1, color = 'darkgreen')+
   labs(title = "Particle Characteristics", subtitle = "Maximum Score = 14", caption = "Dotted line displays max score", y = "Score")
 
 plot(Particle_Score)  
@@ -629,7 +641,7 @@ Design_Score <- human_setup %>%
   geom_bar(stat = "identity", fill = "navy") +
   theme_test() +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
-  geom_hline(aes(yintercept = 32), linetype = "dotted", size = 1)+
+  geom_hline(aes(yintercept = 32), linetype = "dotted", size = 1, color = 'darkgreen')+
   labs(title = "Experimental Design", subtitle = "Maximum Score = 32", caption = "Dotted line displays max score", y = "Score")
 
 plot(Design_Score)
@@ -641,7 +653,7 @@ Risk_Score <- human_setup %>%
   geom_bar(stat = "identity", fill = "plum") +
   theme_test() +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
-  geom_hline(aes(yintercept = 12), linetype = "dotted", size = 1)+
+  geom_hline(aes(yintercept = 12), linetype = "dotted", size = 1, color = 'darkgreen')+
   labs(title = "Risk Assessment", subtitle = "Maximum Score = 12", caption = "Dotted line displays max score", y = "Score")
 
 plot(Risk_Score)
@@ -653,7 +665,8 @@ Total_Score <- human_setup %>%
   geom_bar(stat = "identity", fill = "darkmagenta") +
   theme_test() +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
-  geom_hline(aes(yintercept = 58), linetype = "dotted", size = 1)+
+  geom_hline(aes(yintercept = 58), linetype = "dotted", size = 1, color = 'darkgreen')+
   labs(title = "Total Score", subtitle = "Maximum Score = 58", caption = "Dotted line displays max score", y = "Score")
 
 plot(Total_Score)
+
