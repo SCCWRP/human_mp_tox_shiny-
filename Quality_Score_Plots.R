@@ -595,6 +595,7 @@ Risk <- Red_Criteria %>%
 
 plot(Risk)
 
+
 #Pass all criteria
 All <- Red_Criteria %>% 
   filter(!vivo_h_f == "In Vitro") %>% 
@@ -617,56 +618,81 @@ All <- Red_Criteria %>%
         legend.position = "none")+
   labs(title = "Pass All Red Criteria", subtitle = "In Vivo Data Only", y = "Number of Studies")
 
-
 plot(All)
+
+#### combine plots
+gridExtra::grid.arrange(Particle, Design, Risk, All)
 
 ###Quality Histograms###
 
+
 Particle_Score <- human_setup %>%
-  distinct(doi, authors, year, particle.quality) %>% 
+  distinct(doi, authors, year, particle.quality, particle.tier.zero) %>% 
   drop_na() %>%
-  ggplot(aes(x = reorder(paste(authors, year), particle.quality), y = particle.quality)) +
-  geom_bar(stat = "identity", fill = "darkcyan") +
-  theme_test() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
+  ggplot(aes(x = reorder(paste(authors, year), particle.quality), y = particle.quality, fill = particle.tier.zero)) +
+  geom_bar(stat = "identity") + #, fill = "darkcyan") +
+  scale_fill_manual(name = "Passes particle 'red' criteria", values = c("#BD382F", "#1CA385")) +
   geom_hline(aes(yintercept = 14), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Particle Characteristics", subtitle = "Maximum Score = 14", caption = "Dotted line displays max score", y = "Score")
+  labs(title = "Particle Characteristics", subtitle = "Maximum Score = 14", caption = "Dotted line displays max score", y = "Score") +
+  theme_test(base_size = 15) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
 
 plot(Particle_Score)  
 
 Design_Score <- human_setup %>%
-  distinct(doi, authors, year, experimental.design.quality) %>% 
+  distinct(doi, authors, year, experimental.design.quality, tier_zero_design_f) %>% 
   drop_na() %>%
-  ggplot(aes(x = reorder(paste(authors, year), experimental.design.quality), y = experimental.design.quality)) +
-  geom_bar(stat = "identity", fill = "navy") +
-  theme_test() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
+  ggplot(aes(x = reorder(paste(authors, year), experimental.design.quality), y = experimental.design.quality, fill = tier_zero_design_f)) +
+  geom_bar(stat = "identity") + #, fill = "navy") +
+  scale_fill_manual(name = "Passes Design 'red' criteria", values = c("#1CA385")) +#, "#BD382F",)) +
   geom_hline(aes(yintercept = 32), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Experimental Design", subtitle = "Maximum Score = 32", caption = "Dotted line displays max score", y = "Score")
+  labs(title = "Experimental Design", subtitle = "Maximum Score = 32", caption = "Dotted line displays max score", y = "Score") +
+theme_test(base_size = 15) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
 
 plot(Design_Score)
 
 Risk_Score <- human_setup %>%
-  distinct(doi, authors, year, risk.quality) %>% 
+  distinct(doi, authors, year, risk.quality, tier_zero_risk_f) %>% 
   drop_na() %>%
-  ggplot(aes(x = reorder(paste(authors, year), risk.quality), y = risk.quality)) +
-  geom_bar(stat = "identity", fill = "plum") +
-  theme_test() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
+  ggplot(aes(x = reorder(paste(authors, year), risk.quality), y = risk.quality, fill = tier_zero_risk_f)) +
+  geom_bar(stat = "identity") + #, fill = "plum") +
+  scale_fill_manual(name = "Passes Risk Assessment 'red' criteria", values = c("#BD382F","#1CA385")) +
   geom_hline(aes(yintercept = 12), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Risk Assessment", subtitle = "Maximum Score = 12", caption = "Dotted line displays max score", y = "Score")
+  labs(title = "Risk Assessment", subtitle = "Maximum Score = 12", caption = "Dotted line displays max score", y = "Score") +
+  theme_test(base_size = 15) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
 
 plot(Risk_Score)
 
 Total_Score <- human_setup %>%
-  distinct(doi, authors, year, total.score.quality) %>% 
+  # annotate passing for all criteria
+  mutate(all = if_else(tier_zero_particle_f == "Red Criteria Passed" & 
+                         tier_zero_design_f == "Red Criteria Passed" & 
+                         tier_zero_risk_f == "Red Criteria Passed", "Y", "N")) %>% 
+  distinct(doi, authors, year, total.score.quality, all) %>% 
   drop_na() %>%
-  ggplot(aes(x = reorder(paste(authors, year), total.score.quality), y = total.score.quality)) +
-  geom_bar(stat = "identity", fill = "darkmagenta") +
-  theme_test() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), axis.title.x = element_blank())+
-  geom_hline(aes(yintercept = 58), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Total Score", subtitle = "Maximum Score = 58", caption = "Dotted line displays max score", y = "Score")
+  ggplot(aes(x = reorder(paste(authors, year), total.score.quality), y = total.score.quality, fill = all)) +
+  geom_bar(stat = "identity") + #, fill = "darkmagenta") +
+  scale_fill_manual(name = "Passes all 'red' criteria", values = c("#BD382F", "#1CA385")) +
+  geom_hline(aes(yintercept = 58), linetype = "dotted", size = 1, color = 'darkgreen') +
+  labs(title = "Total Score", subtitle = "Maximum Score = 58", caption = "Dotted line displays max score", y = "Score") +
+theme_test(base_size = 15) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
 
 plot(Total_Score)
 
+### combined
+gridExtra::grid.arrange(Particle_Score, Design_Score, Risk_Score, Total_Score, ncol = 2)
