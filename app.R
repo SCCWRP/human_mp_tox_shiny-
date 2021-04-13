@@ -753,7 +753,7 @@ human_endpoint <- human_setup %>%
 ui <- fluidPage(theme = shinytheme("flatly"),  
                 
 # App title
-titlePanel(tagList(span((h1("Microplastics Toxicity Database: Mammals"))),
+titlePanel(tagList(span((h1("Microplastics Toxicity Database: Human Health"))),
            span(actionButton("database_link", label="Go to Aquatic Organisms Database", class = "btn-primary", onclick ="window.open('https://sccwrp.shinyapps.io/aq_mp_tox_shiny/', '_blank')", style = "float:right")))
            ),
                 
@@ -1168,9 +1168,9 @@ tabPanel("5: Resources",
          br(),     
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
          br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EWr13IwjTIZHsqzq5vIkPswBsECP2riSv0rkj5_iEf56vQ?e=auae3g", 'Quality Screening: Red Criteria')),
+         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES__CpJgGq5In6bouO9li7QBwTBERpd_1zgmw2tTrg59ZA?e=CN3Xg0", 'Quality Screening: Red Criteria')),
          br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EdKsPlTjls9FtDrwqisZmAEBi7tZQYyywL3qml9y-fR25g?e=pHJkGY", 'Mammalian Study List')),
+         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ER4Blg_W9LtDi-2vJGUK6kcBOdZ-GTgA-HZV4swPwD4bJQ?e=WPHXdZ", 'Human Health Study List')),
          br(),
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXf0crCKDPVHo5xBEdw4PQwBxA8cnu0x4WY477CuEzZcPw?e=qs00V3", 'Dose Conversion Methods'))),
          
