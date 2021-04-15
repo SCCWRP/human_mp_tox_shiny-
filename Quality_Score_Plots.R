@@ -7,6 +7,7 @@ library(tidyverse) #General everything
 library(calecopal) #Color palette
 library(ggdark)
 library(hrbrthemes)
+library(plotly)
 
 
 # * theme----
@@ -523,7 +524,12 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>%  #Renames for widget
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))
+
+
+##### Renames for widget ------
+
+human_setup <- human_setup %>% 
   mutate(tier_zero_particle_f = factor(case_when(particle.tier.zero == "Fail" ~ "Red Criteria Failed",
                                                  particle.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
   mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Fail" ~ "Red Criteria Failed",
@@ -662,6 +668,59 @@ gridExtra::grid.arrange(Particle, Design, Risk, All)
 
 ## Heatmaps -----
 
+ParticleQuality <- human_setup %>%  
+  # Data wrangling
+  as_tibble() %>%
+  mutate(author_year = paste0(authors, " et. al (", year,")")) %>% 
+  select(c(author_year,particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7)) %>% 
+  drop_na() %>% 
+  distinct(particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, author_year) %>% 
+  gather(key="Criteria", value="Score", -1) %>%
+#  mutate(Score = factor(Score)) %>% 
+  mutate(Score_f = factor(case_when(Score == 0 ~ "Not Reported",
+                                    Score == 1 ~ "Good",
+                                    Score == 2 ~ "Exceptional"))) %>% 
+  mutate(red_factor = case_when(Criteria == "particle.1" ~ "red",
+                         Criteria == "particle.2" ~ "red",
+                         Criteria == "particle.3" ~ "red",
+                         Criteria == "particle.4" ~ "pink",
+                         Criteria == "particle.5" ~ "pink",
+                         Criteria == "particle.6" ~ "pink",
+                         Criteria == "particle.7" ~ "pink"))
+
+#rank discrete data
+#mock_trans$rank <- ave(mock_trans$red, FUN = rank)
+
+### notes from Todd: order studies by year (not score), keep 0's as one color; annotate red criteria in axis or otherwise
+
+# Viz
+particleHeat <- ParticleQuality %>%   
+  ggplot(aes(author_year, Criteria)) + 
+  geom_tile(aes(fill = Score_f), color = "white", size = 0.25) +
+  theme_ipsum() +
+  scale_fill_manual(name = "Score",
+                    #labels = c("Not Reported", "Good", "Exceptional"),
+                    values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
+  ylab("Criteria") +
+  labs(title = "Screening & Prioritization",
+       subtitle = "(Particle Criteria; Human in vivo)") +
+  #lines
+  geom_hline(yintercept = 3.5, color = "red", linetype = "dashed", size = 1.3) +
+  geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 1.3) +
+  #geom_segment(aes(x = 0.5, xend = 0.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
+  #geom_segment(aes(x = 5.5, xend = 5.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
+  geom_text(x = 5, y = 3.7, label = "'Red criteria'", color = "red", size =5) +
+  coord_cartesian(#xlim = c(1,5),
+                 clip = "off") + # This keeps the labels from disappearing
+  theme_minimal(base_size = 15) +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        #axis.title.y = element_text(size = 12, vjust = 0.5),
+        axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+ggplotly(particleHeat)
 #* Particle quality -----
 
 #** in vitro ----- 

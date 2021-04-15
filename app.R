@@ -1136,7 +1136,15 @@ tabPanel("4: Endpoint Categorization",
 
 tabPanel("5: Study Screening", 
          br(),
-         p("This plot displays scores from the study prioritization screening tool.")
+         p("This plot displays scores from the study prioritization screening tool."),
+         column(width = 12,
+                
+                #Go button
+                column(width = 3,
+                       actionButton("go_quality", "Update Filters", class = "btn-success")), # adds update action button
+                
+         ), #closes out button column
+         plotlyOutput("quality_plot")
          
          #This is the new tab for the quality screening figure
          
@@ -1856,6 +1864,62 @@ server <- function(input, output) {
                       # bio org
                       rep("orchid", length(unique(paste(human_filter_endpoint()$vivo_h_f,human_filter_endpoint()$lvl1_h_f, human_filter_endpoint()$lvl2_h_f, human_filter_endpoint()$lvl3_h_f, human_filter_endpoint()$bio_h_f))))))
   })
+  
+##### Quality Scores #####
+  
+quality_filtered <- eventReactive(list(input$go_quality),{
+  human_setup %>%  
+    # Data wrangling
+    as_tibble() %>%
+    mutate(author_year = paste0(authors, " et. al (", year,")")) %>% 
+    select(c(author_year,particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7)) %>% 
+    drop_na() %>% 
+    distinct(particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, author_year) %>% 
+    gather(key="Criteria", value="Score", -1) %>%
+    mutate(Score_f = factor(case_when(Score == 0 ~ "Not Reported",
+                                      Score == 1 ~ "Good",
+                                      Score == 2 ~ "Exceptional"))) %>% 
+    mutate(red_factor = case_when(Criteria == "particle.1" ~ "red",
+                                  Criteria == "particle.2" ~ "red",
+                                  Criteria == "particle.3" ~ "red",
+                                  Criteria == "particle.4" ~ "pink",
+                                  Criteria == "particle.5" ~ "pink",
+                                  Criteria == "particle.6" ~ "pink",
+                                  Criteria == "particle.7" ~ "pink"))
+})
+  
+output$quality_plot <- renderPlotly({
+  #build ggplot from filtered dataset
+qualityHeat <- quality_filtered() %>%   
+    ggplot(aes(author_year, Criteria)) + 
+    geom_tile(aes(fill = Score_f), color = "white", size = 0.25) +
+    theme_ipsum() +
+    scale_fill_manual(name = "Score",
+                      #labels = c("Not Reported", "Good", "Exceptional"),
+                      values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
+    ylab("Criteria") +
+    labs(title = "Screening & Prioritization",
+         subtitle = "(Particle Criteria; Human in vivo)") +
+    # add lines
+    geom_hline(yintercept = 3.5, color = "red", linetype = "dashed", size = 1.3) +
+    geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 1.3) +
+    #geom_segment(aes(x = 0.5, xend = 0.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
+    #geom_segment(aes(x = 5.5, xend = 5.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
+    geom_text(x = 5, y = 3.7, label = "'Red criteria'", color = "red", size =5) +
+    coord_cartesian(#xlim = c(1,5),
+      clip = "off") + # This keeps the labels from disappearing
+    theme_minimal(base_size = 15) +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          #axis.title.y = element_text(size = 12, vjust = 0.5),
+          axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+
+  # generate plot  
+ggplotly(qualityHeat)
+  
+})
   
 } #Server end
 
