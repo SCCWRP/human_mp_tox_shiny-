@@ -1,16 +1,23 @@
 #Quality Score Plots for meeting on 4/8/21
 #Created by: Leah Thornton Hampton
 #Date: 4/6/21
-
+# Setup -----
 #Load Packages
 library(tidyverse) #General everything
 library(calecopal) #Color palette
+library(ggdark)
+library(hrbrthemes)
 
-#Import Data
+
+# * theme----
+theme <- #theme_gray(base_size = 20)#,
+  dark_theme_bw(base_size = 18)
+
+# * Import Data ----
 
 human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 
-#Data Tidying
+#*  Data Tidying----
 
 human_v1 <- human %>% # start with original data set
   #full dataset filters.
@@ -522,11 +529,20 @@ human_setup <- human_v1 %>% # start with original data set
   mutate(tier_zero_design_f = factor(case_when(design.tier.zero == "Fail" ~ "Red Criteria Failed",
                                                design.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
   mutate(tier_zero_risk_f = factor(case_when(risk.tier.zero == "Fail" ~ "Red Criteria Failed",
-                                             risk.tier.zero == "Pass" ~ "Red Criteria Passed")))
+                                             risk.tier.zero == "Pass" ~ "Red Criteria Passed"))) %>% 
+  mutate(particle.source.valid = factor(case_when(particle.source == "lab" ~ "Y",
+                                                  particle.source == "commercial" ~ "Y",
+                                                  particle.source == "N" ~ "N"))) %>% 
+  mutate(sol.rinse.valid = factor(case_when(sol.rinse == "deionized.water" ~ "Y"))) %>% 
+  mutate(sol.rinse.valid = replace_na(sol.rinse,"N"))
+                                  
+                                  
 
 
 
 #Count how many studies passed and failed each red criteria category
+
+#### Tables----
 
 Red_Criteria <- human_setup %>%
   distinct(article, vivo_h_f, tier_zero_particle_f, tier_zero_design_f, tier_zero_risk_f) %>%
@@ -543,7 +559,10 @@ Red_Criteria <- human_setup %>%
   mutate(quality_risk = n_distinct(article, tier_zero_risk_f)) %>% 
   ungroup() 
 
-####Red Criteria####
+
+#Red Criteria ----
+
+#* Particle quality ####
 
 #Plot particle quality
 Particle <- Red_Criteria %>% 
@@ -551,52 +570,64 @@ Particle <- Red_Criteria %>%
   ggplot(aes(x = tier_zero_particle_f, y = quality_particle, fill = tier_zero_particle_f)) +
   geom_bar(stat = "identity") +
   facet_wrap(~vivo_h_f)+
-  scale_fill_manual(values = c("#BD382F", "#1CA385")) +
-  theme_test()+
-  theme(axis.title.x = element_blank(),
-        text = element_text(size = 16),
-        legend.title = element_blank(),
-        legend.position = "none")+
+  scale_fill_manual(name = "Red Criteria", values = c("#BD382F", "#1CA385")) +
+  theme+
+  theme(axis.text.x = element_blank(),
+    #axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+    #legend.position = "none",
+        plot.subtitle = element_text(hjust = 0.5)
+       ) +
   ylim(0,35)+
   labs(title = "Particle Characteristics", y = "Number of Studies")
 
 plot(Particle)
 
-#Plot design quality
+#* Design quality ----
 Design <- Red_Criteria %>% 
   distinct(tier_zero_design_f, vivo_h_f, quality_design) %>%   
   ggplot(aes(x = tier_zero_design_f, y = quality_design, fill = tier_zero_design_f)) +
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("#BD382F", "#1CA385")) +
+  scale_fill_manual(name = "Red Criteria", values = c("#BD382F", "#1CA385")) +
   facet_wrap(~vivo_h_f)+
-  theme_test()+
-  theme(axis.title.x = element_blank(),
-        text = element_text(size = 16),
-        legend.title = element_blank(),
-        legend.position = "none")+
+  theme + 
+  theme(axis.text.x = element_blank(),
+   # axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+  #  legend.position = "none",
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)
+    ) +
   ylim(0,35)+
   labs(title = "Experimental Design", y = "Number of Studies")
 
 plot(Design)
 
-#Plot risk quality
+#### * Design and Particle ----
+gridExtra::grid.arrange(Particle, Design)
+
+#* Risk quality -----
 Risk <- Red_Criteria %>% 
+  filter(!vivo_h_f == "In Vitro") %>% 
   distinct(tier_zero_risk_f, vivo_h_f, quality_risk) %>%  
   ggplot(aes(x = tier_zero_risk_f, y = quality_risk, fill = tier_zero_risk_f)) +
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("#BD382F", "#1CA385")) +
-  theme_test()+
-  theme(axis.title.x = element_blank(),
-        text = element_text(size = 16),
-        legend.title = element_blank(),
-        legend.position = "none")+
+  scale_fill_manual(name = "Red Criteria",values = c("#BD382F", "#1CA385")) +
+  theme+
+  theme(axis.text.x = element_blank(),
+    #axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = "none",
+        plot.subtitle = element_text(hjust = 0.5)) +
  # ylim(0,35)+
   labs(title = "Risk Assessment", subtitle = "In Vivo Data Only", y = "Number of Studies")
 
 plot(Risk)
 
 
-#Pass all criteria
+#* All criteria ----
 All <- Red_Criteria %>% 
   filter(!vivo_h_f == "In Vitro") %>% 
   group_by(article, tier_zero_particle_f, tier_zero_design_f, tier_zero_risk_f) %>% 
@@ -611,46 +642,93 @@ All <- Red_Criteria %>%
   ggplot(aes(x = all, y = all_count, fill = factor(all_count))) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = c( "#1CA385", "#BD382F")) +
-  theme_test()+
-  theme(axis.title.x = element_blank(),
-        text = element_text(size = 16),
-        legend.title = element_blank(),
-        legend.position = "none")+
+  theme+
+  theme(axis.text.x = element_blank(),
+    #axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none"
+    ) +
   labs(title = "Pass All Red Criteria", subtitle = "In Vivo Data Only", y = "Number of Studies")
 
 plot(All)
 
+### * Combine risk and all ----
+gridExtra::grid.arrange(Risk, All)
+
 #### combine plots
 gridExtra::grid.arrange(Particle, Design, Risk, All)
 
-###Quality Histograms###
+## Heatmaps -----
+
+#* Particle quality -----
+
+#** in vitro ----- 
+particle_Criteria_vitro <- human_setup %>%
+  #data wrangling
+  filter(!vivo_h_f == "In Vitro") %>% 
+  distinct(
+    #doi, authors, year, 
+    size.valid, shape.valid, polymer.valid, particle.source.valid, sol.rinse.valid) %>% 
+  rowid_to_column(var = "X") %>% 
+  gather(key = "Y", value = "Z", -1) %>% 
+  #change Y to numeric
+  mutate(Y=as.numeric(gsub("V","",Y))) %>%
+  # Viz
+  ggplot(aes(X, Y, fill= Z)) + 
+  geom_tile() +
+  theme_ipsum() +
+  theme(legend.position="none")
+  
+  
+
+  scale_fill_manual(values = c( "#1CA385", "#BD382F")) +
+  theme+
+  theme(axis.text.x = element_blank(),
+        #axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none"
+  ) +
+  labs(title = "Pass All Red Criteria", subtitle = "In Vivo Data Only", y = "Number of Studies")
+
+plot(All)
 
 
+### Quality Histograms ----
+
+#* Particle score ----
 Particle_Score <- human_setup %>%
+  filter(!vivo_h_f == "In Vitro") %>% 
   distinct(doi, authors, year, particle.quality, particle.tier.zero) %>% 
   drop_na() %>%
   ggplot(aes(x = reorder(paste(authors, year), particle.quality), y = particle.quality, fill = particle.tier.zero)) +
   geom_bar(stat = "identity") + #, fill = "darkcyan") +
   scale_fill_manual(name = "Passes particle 'red' criteria", values = c("#BD382F", "#1CA385")) +
-  geom_hline(aes(yintercept = 14), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Particle Characteristics", subtitle = "Maximum Score = 14", caption = "Dotted line displays max score", y = "Score") +
-  theme_test(base_size = 15) +
+  geom_hline(aes(yintercept = 14), linetype = "dotted", size = 1, color = 'cyan')+
+  labs(title = "Particle Characteristics", subtitle = "Maximum Score = 14; in vivo only", caption = "Dotted line displays max score", y = "Score") +
+  theme +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
         axis.title.x = element_blank(),
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5))
 
+
 plot(Particle_Score)  
 
+#* Design score ----
 Design_Score <- human_setup %>%
+  filter(!vivo_h_f == "In Vitro") %>% 
   distinct(doi, authors, year, experimental.design.quality, tier_zero_design_f) %>% 
   drop_na() %>%
   ggplot(aes(x = reorder(paste(authors, year), experimental.design.quality), y = experimental.design.quality, fill = tier_zero_design_f)) +
   geom_bar(stat = "identity") + #, fill = "navy") +
   scale_fill_manual(name = "Passes Design 'red' criteria", values = c("#1CA385")) +#, "#BD382F",)) +
-  geom_hline(aes(yintercept = 32), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Experimental Design", subtitle = "Maximum Score = 32", caption = "Dotted line displays max score", y = "Score") +
-theme_test(base_size = 15) +
+  geom_hline(aes(yintercept = 32), linetype = "dotted", size = 1, color = 'cyan')+
+  labs(title = "Experimental Design", subtitle = "Maximum Score = 32;  in vivo only", caption = "Dotted line displays max score", y = "Score") +
+theme +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
         axis.title.x = element_blank(),
         plot.title = element_text(hjust = 0.5),
@@ -658,15 +736,17 @@ theme_test(base_size = 15) +
 
 plot(Design_Score)
 
+#* Risk score ----
 Risk_Score <- human_setup %>%
+  filter(!vivo_h_f == "In Vitro") %>% 
   distinct(doi, authors, year, risk.quality, tier_zero_risk_f) %>% 
   drop_na() %>%
   ggplot(aes(x = reorder(paste(authors, year), risk.quality), y = risk.quality, fill = tier_zero_risk_f)) +
   geom_bar(stat = "identity") + #, fill = "plum") +
   scale_fill_manual(name = "Passes Risk Assessment 'red' criteria", values = c("#BD382F","#1CA385")) +
   geom_hline(aes(yintercept = 12), linetype = "dotted", size = 1, color = 'darkgreen')+
-  labs(title = "Risk Assessment", subtitle = "Maximum Score = 12", caption = "Dotted line displays max score", y = "Score") +
-  theme_test(base_size = 15) +
+  labs(title = "Risk Assessment", subtitle = "Maximum Score = 12; in vivo only", caption = "Dotted line displays max score", y = "Score") +
+  theme +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
         axis.title.x = element_blank(),
         plot.title = element_text(hjust = 0.5),
@@ -674,7 +754,9 @@ Risk_Score <- human_setup %>%
 
 plot(Risk_Score)
 
+# *Total Score ----
 Total_Score <- human_setup %>%
+  filter(!vivo_h_f == "In Vitro") %>% 
   # annotate passing for all criteria
   mutate(all = if_else(tier_zero_particle_f == "Red Criteria Passed" & 
                          tier_zero_design_f == "Red Criteria Passed" & 
@@ -685,8 +767,8 @@ Total_Score <- human_setup %>%
   geom_bar(stat = "identity") + #, fill = "darkmagenta") +
   scale_fill_manual(name = "Passes all 'red' criteria", values = c("#BD382F", "#1CA385")) +
   geom_hline(aes(yintercept = 58), linetype = "dotted", size = 1, color = 'darkgreen') +
-  labs(title = "Total Score", subtitle = "Maximum Score = 58", caption = "Dotted line displays max score", y = "Score") +
-theme_test(base_size = 15) +
+  labs(title = "Total Score", subtitle = "Maximum Score = 58; in vivo only", caption = "Dotted line displays max score", y = "Score") +
+theme +
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
         axis.title.x = element_blank(),
         plot.title = element_text(hjust = 0.5),
