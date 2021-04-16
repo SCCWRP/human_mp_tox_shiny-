@@ -666,16 +666,41 @@ gridExtra::grid.arrange(Risk, All)
 #### combine plots
 gridExtra::grid.arrange(Particle, Design, Risk, All)
 
+
+##### Pass All Simple -----
+#* All criteria ----
+passAll <- human_setup %>% 
+  mutate(author_year = paste0(authors," (", year,")")) %>% 
+  filter(!invitro.invivo == "In Vitro") %>% 
+  dplyr::distinct(author_year, pass.all.red) %>% 
+  group_by(pass.all.red) %>% 
+  summarize(count = n()) %>% 
+  drop_na() %>% 
+  ggplot(aes(x = pass.all.red, y = count, fill = factor(pass.all.red))) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c( "#1CA385", "#BD382F")) +
+  theme+
+  theme(axis.text.x = element_blank(),
+        #axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = .5), 
+        axis.title.x = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = "none"
+  ) +
+  labs(title = "Pass All Red Criteria", subtitle = "In Vivo Data Only", y = "Number of Studies")
+
+plot(passAll)
+
 ## Heatmaps -----
 
+# pivot data
 ParticleQuality <- human_setup %>%  
-  # Data wrangling
-  as_tibble() %>%
-  mutate(author_year = paste0(authors, " et. al (", year,")")) %>% 
-  select(c(author_year,particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7)) %>% 
+  mutate(Study = paste0(authors, " (", year,")")) %>% 
+  distinct(Study, genus, species, life.stage, invitro.invivo, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, year) %>% 
   drop_na() %>% 
-  distinct(particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, author_year) %>% 
-  gather(key="Criteria", value="Score", -1) %>%
+  pivot_longer(!c(Study,  genus, species, life.stage, invitro.invivo, exposure.category, year),
+               names_to ="Criteria", 
+               values_to ="Score") %>%
 #  mutate(Score = factor(Score)) %>% 
   mutate(Score_f = factor(case_when(Score == 0 ~ "Not Reported",
                                     Score == 1 ~ "Good",
@@ -695,8 +720,16 @@ ParticleQuality <- human_setup %>%
 
 # Viz
 particleHeat <- ParticleQuality %>%   
-  ggplot(aes(author_year, Criteria)) + 
-  geom_tile(aes(fill = Score_f), color = "white", size = 0.25) +
+  ggplot(aes(Study, Criteria)) + 
+  geom_tile(aes(fill = Score_f,
+                #define text for hover-over
+                text = paste("Criteria:", Criteria, "\n",
+                             "Score:", Score_f, "\n",
+                             "Organism:", genus, species, "\n",
+                             "Life Stage:", life.stage, "\n",
+                             "Type:", invitro.invivo, "\n",
+                             "Exposure:", exposure.category, "\n")),
+            color = "white", size = 0.25,) +
   theme_ipsum() +
   scale_fill_manual(name = "Score",
                     #labels = c("Not Reported", "Good", "Exceptional"),
@@ -720,7 +753,13 @@ particleHeat <- ParticleQuality %>%
         plot.title = element_text(hjust = 0.5),
         plot.subtitle = element_text(hjust = 0.5))
 
-ggplotly(particleHeat)
+ggplotly(particleHeat,
+         tooltip = c("text", "x"))
+
+
+##### **Plotly -----
+
+
 #* Particle quality -----
 
 #** in vitro ----- 
