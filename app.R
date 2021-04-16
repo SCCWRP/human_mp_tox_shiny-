@@ -26,6 +26,7 @@ library(shinyjs) #Exploration tab - reset button
 library(tigerstats) #row percent values 
 library(ggbeeswarm) #plot all points nicely
 library(collapsibleTree) #plot type for endpoint category tree
+library(hrbrthemes) #theme for screening plot
 
 # Load finalized dataset.
 
@@ -1136,7 +1137,8 @@ tabPanel("4: Endpoint Categorization",
 
 tabPanel("5: Study Screening", 
          br(),
-         p("This plot displays scores from the study prioritization screening tool."),
+         p("This plot displays scores from the study prioritization screening tool. 'Red Criteria' are displayed in red text. For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
+         br(),
          column(width = 12,
                 
                 #Go button
@@ -1156,7 +1158,7 @@ tabPanel("6: Resources",
          br(),     
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
          br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ES__CpJgGq5In6bouO9li7QBwTBERpd_1zgmw2tTrg59ZA?e=CN3Xg0", 'Quality Screening: Red Criteria')),
+         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EcJuT9TQeP1LkWAO81pE1DgBTxem_6m_gEh0DPXRexHHhA?e=LucgNJ", 'Study Screening Scoring Criteria')),
          br(),
          h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ER4Blg_W9LtDi-2vJGUK6kcBOdZ-GTgA-HZV4swPwD4bJQ?e=WPHXdZ", 'Human Health Study List')),
          br(),
