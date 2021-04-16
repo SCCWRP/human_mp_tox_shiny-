@@ -1140,13 +1140,117 @@ tabPanel("5: Study Screening",
          p("This plot displays scores from the study prioritization screening tool. 'Red Criteria' are displayed in red text. For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
          br(),
          column(width = 12,
+                # widget headers
+                column(width=12,
+                       
+                       column(width = 3,
+                              h4("Effects")),
+                       
+                       column(width = 3,
+                              h4("Particle Characteristics")),
+                       
+                       column(width = 3,
+                              h4("Biological Factors"))),
+                
+                
+                # widgets
+                column(width = 12,
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "lvl1_h_quality", # endpoint checklist
+                                          label = "Broad Endpoint Category:", 
+                                          choices = levels(human_setup$lvl1_h_f),
+                                          selected = levels(human_setup$lvl1_h_f),
+                                          options = list(`actions-box` = TRUE), # option to de/select all
+                                          multiple = TRUE)), # allows for multiple inputs
+                       column(width = 3,
+                              pickerInput(inputId = "poly_h_quality", # polymer checklist
+                                          label = "Polymer:", 
+                                          choices = levels(human_setup$poly_h_f),
+                                          selected = levels(human_setup$poly_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE)),
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "exposure_route_h_quality", # polymer checklist
+                                          label = "Exposure Route:", 
+                                          choices = levels(human_setup$exposure_route_h_f),
+                                          selected = levels(human_setup$exposure_route_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE))),
+                
+                
+                # New row of widgets
+                column(width = 12,
+                       
+                       column(width = 3,
+                              htmlOutput("secondSelection_quality")), # dependent endpoint checklist
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "shape_h_quality", # shape checklist
+                                          label = "Shape:", 
+                                          choices = levels(human_setup$shape_h_f),
+                                          selected = levels(human_setup$shape_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE)),
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "bio_h_quality", # bio org checklist
+                                          label = "Level of Biological Organization", 
+                                          choices = levels(human_setup$bio_h_f),
+                                          selected = levels(human_setup$bio_h_f),
+                                          options = list(`actions-box` = TRUE),
+                                          multiple = TRUE))),
+                
+                # New row of widgets
+                column(width = 12,
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "effect_h_quality",  # Effect Yes/No widget
+                                          label = "Effect:",
+                                          choices = levels(human_setup$effect_h_f),
+                                          selected = levels(human_setup$effect_h_f),
+                                          options = list(`actions-box` = TRUE),
+                                          multiple = TRUE)),
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "size_h_quality", # Environment checklist
+                                          label = "Size Category:", 
+                                          choices = levels(human_setup$size_h_f),
+                                          selected = levels(human_setup$size_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE)),
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "life_h_quality", # life stage checklist
+                                          label = "Life Stages:", 
+                                          choices = levels(human_setup$life_h_f),
+                                          selected = levels(human_setup$life_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE))),
+                
+                column(width = 12,
+                       
+                       column(width = 3, offset = 6, 
+                              pickerInput(inputId = "species_h_quality", # polymer checklist
+                                          label = "Species:", 
+                                          choices = levels(human_setup$species_h_f),
+                                          selected = levels(human_setup$species_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE))),
                 
                 #Go button
                 column(width = 3,
                        actionButton("go_quality", "Update Filters", class = "btn-success")), # adds update action button
                 
          ), #closes out button column
-         plotOutput("quality_plot")
+         
+         # build plotly
+         
+         fluidRow(
+           column(12,HTML("Filtered Data:"), plotlyOutput("quality_plot")  )
+         ) # closes out fluidRow
+         
          
          #This is the new tab for the quality screening figure
          
@@ -1869,15 +1973,55 @@ server <- function(input, output) {
   
 ##### Quality Scores #####
   
+  #Create dependent dropdown checklists: select lvl2 by lvl1.
+  output$secondSelection_quality <- renderUI({
+    
+    lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
+    
+    human_new <- human_setup %>% # take original dataset
+      filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
+      mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
+    
+    pickerInput(inputId = "lvl2_h_quality", 
+                label = "Specific Endpoint within Broad Category:", 
+                choices = levels(human_new$lvl2_f_new),
+                selected = levels(human_new$lvl2_f_new),
+                options = list(`actions-box` = TRUE),
+                multiple = TRUE)})
+  
 quality_filtered <- eventReactive(list(input$go_quality),{
+  
+  # every selection widget should be represented as a new variable below
+  lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
+  lvl2_h_c <- input$lvl2_h_quality # assign lvl2 values to "lvl2_c"
+  bio_h_c <- input$bio_h_quality # assign bio values to "bio_c"
+  effect_h_c <- input$effect_h_quality # assign effect values to "effect_c"
+  life_h_c <- input$life_h_quality #assign values to "life_quality"
+  poly_h_c <- input$poly_h_quality # assign values to "poly_c"
+  shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
+  size_h_c <- input$size_h_quality # assign values to "size_c"
+  exposure_route_h_c<-input$exposure_route_h_quality#assign values to exposure
+  species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
+  
+  #make summary dataset to display in heatmap below
   human_setup %>%  
-    # Data wrangling
-    as_tibble() %>%
-    mutate(author_year = paste0(authors, " et. al (", year,")")) %>% 
-    select(c(author_year,particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7)) %>% 
+    #filter(vivo_h_f %in% vivo_h_c) %>% #filter by invivo or invitro
+    filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
+    filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
+    filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
+    filter(effect_h_f %in% effect_h_c) %>% #filter by effect
+    filter(life_h_f %in% life_h_c) %>% #filter by life stage
+    filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
+    filter(shape_h_f %in% shape_h_c) %>% #filter by shape
+    filter(size_h_f %in% size_h_c) %>% #filter by size class
+    filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
+    filter(species_h_f %in% species_h_c) %>%   #filter by species
+    mutate(Study = paste0(authors, " (", year,")")) %>% 
+    distinct(Study, genus, species, life.stage, invitro.invivo, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, year) %>% 
     drop_na() %>% 
-    distinct(particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, author_year) %>% 
-    gather(key="Criteria", value="Score", -1) %>%
+    pivot_longer(!c(Study,  genus, species, life.stage, invitro.invivo, exposure.category, year),
+                 names_to ="Criteria", 
+                 values_to ="Score") %>%
     mutate(Score_f = factor(case_when(Score == 0 ~ "Not Reported",
                                       Score == 1 ~ "Good",
                                       Score == 2 ~ "Exceptional"))) %>% 
@@ -1888,13 +2032,24 @@ quality_filtered <- eventReactive(list(input$go_quality),{
                                   Criteria == "particle.5" ~ "pink",
                                   Criteria == "particle.6" ~ "pink",
                                   Criteria == "particle.7" ~ "pink"))
+    
 })
   
-output$quality_plot <- renderPlot({
-  #build ggplot from filtered dataset
-qualityHeat <- quality_filtered() %>%   
-    ggplot(aes(author_year, Criteria)) + 
-    geom_tile(aes(fill = Score_f), color = "white", size = 0.25) +
+##### **Build Plotly -----
+quality_plotly <- eventReactive(list(input$go_quality),{
+  #build ggplot from filtered dataset above
+quality_filtered() %>%   
+    ggplot(aes(Study, Criteria)) + 
+    geom_tile(aes(fill = Score_f,
+                  #define text for hover-over
+                  text = paste("Study:", Study, "\n",
+                               "Criteria:", Criteria, "\n",
+                               "Score:", Score_f, "\n",
+                               "Organism:", genus, species, "\n",
+                               "Life Stage:", life.stage, "\n",
+                               "Type:", invitro.invivo, "\n",
+                               "Exposure:", exposure.category, "\n")),
+              color = "white", size = 0.25,) +
     theme_ipsum() +
     scale_fill_manual(name = "Score",
                       #labels = c("Not Reported", "Good", "Exceptional"),
@@ -1902,7 +2057,7 @@ qualityHeat <- quality_filtered() %>%
     ylab("Criteria") +
     labs(title = "Screening & Prioritization",
          subtitle = "(Particle Criteria; Human in vivo)") +
-    # add lines
+    #lines
     geom_hline(yintercept = 3.5, color = "red", linetype = "dashed", size = 1.3) +
     geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 1.3) +
     #geom_segment(aes(x = 0.5, xend = 0.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
@@ -1916,12 +2071,12 @@ qualityHeat <- quality_filtered() %>%
           #axis.title.y = element_text(size = 12, vjust = 0.5),
           axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
           plot.title = element_text(hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5))
+          plot.subtitle = element_text(hjust = 0.5))                                  
+                                })
 
-  # generate plot  
-#ggplotly(qualityHeat)
-qualityHeat
-  
+##### **Render Plotly -----
+output$quality_plot <- renderPlotly({
+  ggplotly(quality_plotly(), tooltip = c("text"))
 })
   
 } #Server end
