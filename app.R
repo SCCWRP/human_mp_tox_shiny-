@@ -1166,7 +1166,7 @@ tabPanel("6: Resources",
          
 #### Contact UI ####
 
-tabPanel("6: Contact", 
+tabPanel("7: Contact", 
          br(),
          h4("For scientific questions or access to the complete database, please contact Dr. Leah Thornton Hampton (leahth@sccwrp.org)."),
          br(),
