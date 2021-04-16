@@ -1132,7 +1132,7 @@ tabPanel("4: Endpoint Categorization",
          
 ), #closes out tab
 
-#### Endpoint Category UI ####
+#### Study Screening UI ####
 
 tabPanel("5: Study Screening", 
          br(),
@@ -1144,7 +1144,7 @@ tabPanel("5: Study Screening",
                        actionButton("go_quality", "Update Filters", class = "btn-success")), # adds update action button
                 
          ), #closes out button column
-         plotlyOutput("quality_plot")
+         plotOutput("quality_plot")
          
          #This is the new tab for the quality screening figure
          
@@ -1888,7 +1888,7 @@ quality_filtered <- eventReactive(list(input$go_quality),{
                                   Criteria == "particle.7" ~ "pink"))
 })
   
-output$quality_plot <- renderPlotly({
+output$quality_plot <- renderPlot({
   #build ggplot from filtered dataset
 qualityHeat <- quality_filtered() %>%   
     ggplot(aes(author_year, Criteria)) + 
@@ -1917,7 +1917,8 @@ qualityHeat <- quality_filtered() %>%
           plot.subtitle = element_text(hjust = 0.5))
 
   # generate plot  
-ggplotly(qualityHeat)
+#ggplotly(qualityHeat)
+qualityHeat
   
 })
   
