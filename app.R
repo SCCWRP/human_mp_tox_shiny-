@@ -280,6 +280,7 @@ human_setup <- human_v1 %>% # start with original data set
   mutate(lvl2_h_f = factor(case_when(lvl2 == "actinobacteria" ~ "Actinobacteria",
                                      lvl2 == "amino.acid.metabolism" ~ "Amino Acid Metabolism",
                                      lvl2 == "apoptosis.cell.cycle"~"Apoptosis and Cell Cycle",
+                                     lvl2 == "anxiety" ~ "Anxiety",
                                      lvl2 == "bacteroidetes"~ "Bacteriodetes",
                                      lvl2 == "bile.acid" ~ "Bile Acid",
                                      lvl2 == "blood.gen" ~ "Blood",
@@ -298,9 +299,10 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl2 == "dna.damage" ~ "DNA Damage",
                                      lvl2 == "energy.metabolism" ~ "Energy Metabolism",
                                      lvl2 == "exploration" ~ "Exploration",
+                                     lvl2 == "feeding" ~ "Feeding", 
                                      lvl2 == "firmicutes"~ "Firmicutes",
-                                     lvl2 == "gametes" ~ "Gametes",
                                      lvl2 == "gen.stress" ~ "General Stress",
+                                     lvl2 == "heart.tissue" ~ "Heart Tissue",
                                      lvl2 == "hemolysis" ~ "Hemolysis",
                                      lvl2 == "immune.cells"~"Immune Cells",
                                      lvl2 == "immune.other"~"Immune Other ",
@@ -313,6 +315,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl2 == "kidney.histo"~"Kidney Histological abnormalities",
                                      lvl2 == "lipid.metabolism"~"Lipid Metabolism",
                                      lvl2 == "liver.histo"~"Liver Histological Abnormalities",
+                                     lvl2 == "liver.kidney.products" ~ "Liver & Kidney Products",
                                      lvl2 == "locomotion"~"Locomotion",
                                      lvl2 == "lungs.histo" ~ "Lung Histological Abnormalities",
                                      lvl2 == "lysosome" ~ "Lyosome",
@@ -324,10 +327,12 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl2 == "oxidative.stress"~"Oxidative Stress",
                                      lvl2 == "patescibacteria" ~ "Patescibacteria",
                                      lvl2 == "permeability" ~ "Permeability",
+                                     lvl2 == "predator.avoidance" ~ "Predator Avoidance",
                                      lvl2 == "proliferation" ~ "Proliferation",
                                      lvl2 == "proteobacteria"~"Protebacteria",
                                      lvl2 == "reproduction" ~ "Reproduction",
                                      lvl2 == "reproductive.tissue" ~ "Reproductive Tissues",
+                                     lvl2 == "reproductive.endocrine.signaling" ~ "Reproductive Endocrine Signaling",
                                      lvl2 == "respiration"~"Respiration",
                                      lvl2 == "spleen.histo" ~ "Spleen Histological Abnormalities",
                                      lvl2 == "tenericutes" ~ "Tenericutes",
@@ -342,6 +347,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "a.proteobacteria.genomicdna" ~ "a Proteobacteria Genomic DNA",
                                      lvl3 == "aat.proteinexpression" ~ "aat protein expression",
                                      lvl3 == "abcb11.mrnaexpression" ~ "abcb11 mRNA expression",
+                                     lvl3 == "abp.mrnaexpression" ~ "abp mRNA expression",
                                      lvl3 == "acc.mrnaexpression" ~ "acc mRNA expression",
                                      lvl3 == "acetylcarnitine.con" ~ "Acetylcarnitine Concentration",
                                      lvl3 == "ache.activity" ~ "AchE Activity",
@@ -351,14 +357,26 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "adipylcarnite.con" ~ "Adipylcarnite Concentration",
                                      lvl3 == "akkermansia.geonmicdna" ~ "Akkermansia Genomic DNA",
                                      lvl3 == "alanine.con" ~ "Alanine Concentration",
+                                     lvl3 == "alpha.smooth.muscle.actin.protein.expression.reproduction" ~ "Alpha Smooth Muscle Actin Protein Expression (Reproductive Tissue)",
+                                     lvl3 == "alpha.smooth.muscle.actin.protein.expression.cardio" ~ "Alpha Smooth Muscle Actin Protein Expression (Cardiovascular Tissue)",
+                                     lvl3 == "alt.con" ~ "Alanine Aminotransferase Concentration",
                                      lvl3 == "alternation" ~ "Alternation",
                                      lvl3 == "annexinv" ~ "Annexin V",
                                      lvl3 == "annexinv.binding" ~ "Annexin V Binding",
                                      lvl3 == "ano1.mrnaexpression" ~ "ano1 mRNA expression",
+                                     lvl3 == "anti.mullerian.hormone.con" ~ "Anti Mullerian Hormone Concentration",
                                      lvl3 == "ap1.proteinexpression" ~ "ap1 protein expression",
                                      lvl3 == "apoptosis" ~ "Apoptosis",
                                      lvl3 == "arginine.con" ~ "Arginine Concentration",
+                                     lvl3 == "asc.proteinexpression" ~ "ASC protein expression",
+                                     lvl3 == "ast.con" ~ "Aspartate Transaminase Concentration",
                                      lvl3 == "atp.con" ~ "ATP Concentration",
+                                     lvl3 == "bcatenin.proteinexpression.reproduction" ~ "Beta Catenin Protein Expression (Reproductive Tissue)",
+                                     lvl3 == "p-bcatenin.proteinexpression.reproduction" ~ "Phosphorylated Beta Catenin Protein Expression (Reproductive Tissue)",
+                                     lvl3 == "bcatenin.proteinexpression.cardio" ~ "Beta Catenin Protein Expression (Cardiovascular Tissue)",
+                                     lvl3 == "p-bcatenin.proteinexpression.cardio" ~ "Phosphorylated Beta Catenin Protein Expression (Cardiovascular Tissue)",
+                                     lvl3 == "bcl2.proteinexpression" ~ "BCL2 Protein Expression",
+                                     lvl3 == "blood.testis.barrier.disruption" ~ "Blood Testes Barrier Disruption",
                                      lvl3 == "b.cells" ~ "B Cells",
                                      lvl3 == "b.proteobacteria.genomicdna" ~ "B Proteobacteria Genomic DNA",
                                      lvl3 == "bacteriodetes.genomicdna" ~ "Bacteriodetes Genomic DNA",
@@ -374,8 +392,13 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "brain.histo" ~ "Brain Histology",
                                      lvl3 == "butyrylcarnitine.con" ~ "Butyrylcarnitine Concentration",
                                      lvl3 == "c0.c16.c18.ratio" ~ "C0/C16/C18 Ratio",
+                                     lvl3 == "callogen.proteinexpression" ~ "Callogen Protein Expression",
+                                     lvl3 == "callogen3.proteinexpression" ~ "Callogen 3 Protein Expression",
                                      lvl3 == "caspase.activation" ~ "Caspase Activation",
+                                     lvl3 == "casp3.con" ~ "Caspase 3 Concentration",
                                      lvl3 == "caspase3.activity" ~ "Caspase 3 Activity",
+                                     lvl3 == "caspase1.mrnaexpression" ~ "Caspase 1 mRNA expression",
+                                     lvl3 == "caspase1.proteinexpression" ~ "Caspase 1 protein expression",
                                      lvl3 == "caspase3.proteinexpression" ~ "Caspase 3 protein expression",
                                      lvl3 == "caspase8.proteinexpression" ~ "Caspase 8 protein expression",
                                      lvl3 == "caspase9.proteinexpression" ~ "Caspase 9 protein expression",
@@ -416,20 +439,31 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "cholesterol.con" ~ "Cholesterol Concentration",
                                      lvl3 == "chrebp.mrnaexpression" ~ "chrebp mRNA expression",
                                      lvl3 == "citrulline.con" ~ "Citrulline Concentration",
+                                     lvl3 == "ckmb.con" ~ "Creatine Kinase Myocardial Band",
+                                     lvl3 == "claudin11.proteinexpression" ~ "claudin11 protein expression",
+                                     lvl3 == "cleaved.caspase1.proteinexpression" ~ "Cleaved Caspase 1 protein expression",
+                                     lvl3 == "cleaved.caspase3.proteinexpression" ~ "Cleaved Caspase 3 protein expression",
+                                     lvl3 == "cleaved.gsdmd.proteinexpression" ~ "Cleaved Gasdermin D protein expression",
                                      lvl3 == "claudin1.mrnaexpression" ~ "claudin1 mRNA expression",
                                      lvl3 == "clostridiales.genomicdna" ~ "Clostridiales Genomic DNA",
+                                     lvl3 == "cluster.score" ~ "Cluster Score",
                                      lvl3 == "cmyc.mrnaexpression" ~ "cmyc mRNA expression",
                                      lvl3 == "coar.mrnaexpression" ~ "coar mRNA expression",
                                      lvl3 == "coas.mrnaexpression" ~ "coas mRNA expression",
+                                     lvl3 == "collagenous.fiber.staining" ~ "Collagenous Fiber Staining",
                                      lvl3 == "complement.activation.bb" ~ "Complement Activation Bb",
                                      lvl3 == "complement.activation.c3a" ~ "Complement Activation C3a",
                                      lvl3 == "complement.activation.c4d" ~ "Complement Activation C4d",
                                      lvl3 == "complement.activation.sc5b9" ~ "Complement Activation sc5b9",
                                      lvl3 == "complement.activiation.c5b9" ~ "Complement Activation c5b9",
                                      lvl3 == "complement.activiation.ic3b" ~ "Complement Activation ic3b",
+                                     lvl3 == "connexin43.proteinexpression" ~ "Connexin 43 protein expression",
+                                     lvl3 == "ctnl.con" ~ "Cardiac Troponin I",
                                      lvl3 == "cpt1a.mrnaexpression" ~ "cpt1a mRNA expression",
                                      lvl3 == "creatine.con" ~ "Creatine Concentration",
                                      lvl3 == "cs.mrnaexpression" ~ "cs mRNA expression",
+                                     lvl3 == "cxcl10.con" ~ "cxc10 concentration",
+                                     lvl3 == "cxcl2.mrnaexpression" ~ "cxcl2 mRNA expression",
                                      lvl3 == "cxcl10.mrnaexpression" ~ "cxc10 mRNA expression",
                                      lvl3 == "cyclind.proteinexpression" ~ "Cylin D protein expression",
                                      lvl3 == "cyclind1.mrnaexpression" ~ "cyclin d1 mRNA expression",
@@ -447,6 +481,9 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "desulfovibrio.genomicdna" ~ "Desulfovibrio Genomic DNA",
                                      lvl3 == "dgat1.mrnaexpression" ~ "dgat1 mRNA expression",
                                      lvl3 == "dgat2.mrnaexpression" ~ "dgat2 mRNA expression",
+                                     lvl3 == "d.lactate.con" ~ "D Lactate Concentration",
+                                     lvl3 == "dao.activity" ~ "DAO Activity",
+                                     lvl3 == "dazl.mrnaexpression" ~ "dazl mRNA expression",
                                      lvl3 == "dna.damage" ~ "DNA Damage",
                                      lvl3 == "dodecanoylcarnitine.con" ~ "Dodecanoylcarnitine Concentration",
                                      lvl3 == "dodecenoylcarnitine.con" ~ "Dodecenoylcarnitine Concentration",
@@ -465,6 +502,13 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "fas.mrnaexpression" ~ "fas mRNA expression",
                                      lvl3 == "fat.index" ~ "Fat Index",
                                      lvl3 == "fat.mrnaexpression" ~ "fat mRNA expression",
+                                     lvl3 == "fat.vacuoles" ~ "Fat Vacuoles",
+                                     lvl3 == "fibronectin.proteinexpression.reproduction" ~ "Fibronectin protein expression (Reproductive Tissue)",
+                                     lvl3 == "fibronectin.proteinexpression.cardio" ~ "Fibronectin protein expression (Cardiovascular Tissue)",
+                                     lvl3 == "focaladhesionkinase.proteinexpression" ~ "Focal Adhesion Kinase protein expression",
+                                     lvl3 == "folliclestimulatinghormone.con" ~ "Follicle Stimulating Hormone Concentration",
+                                     lvl3 == "fsh.mrnaexpression" ~ "Follicle Stimulating Hormone mRNA expression",
+                                     lvl3 == "food.intake" ~ "Food Intake",
                                      lvl3 == "fatp2.mrnaexpression" ~ "fatp2 mRNA expression",
                                      lvl3 == "firmicutes.genomicdna" ~ "Firmicutes Genomic DNA",
                                      lvl3 == "freecarnitine.con" ~ "Free Carnitine Concentration",
@@ -475,6 +519,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "fxr.mrnaexpression" ~ "fxr mRNA expression",
                                      lvl3 == "gcsf.release" ~ "gcsf mRNA expression",
                                      lvl3 == "gestation.period" ~ "Gestation Period",
+                                     lvl3 == "germinal.epithelium.height" ~ "Germinal Epithelium Cell Height",
                                      lvl3 == "gk.mrnaexpression" ~ "gk mRNA expression",
                                      lvl3 == "glucose.con" ~ "Glucose Concentration",
                                      lvl3 == "glut2.mrnaexpression" ~ "glut2 mRNA expression",
@@ -485,6 +530,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "gpat.mrnaexpression" ~ "gpat mRNA expression",
                                      lvl3 == "gpx.activity" ~ "Glutathione Peroxidase Activity",
                                      lvl3 == "gsh.con" ~ "Glutathione Concentration",
+                                     lvl3 == "gsdmd.proteinexpression" ~ "Gasdermin D protein expression",
                                      lvl3 == "gstp1.mrnaexpression" ~ "gstp1 mRNA expression",
                                      lvl3 == "gut.mucus.secretion" ~ "Gut Muscus Secretion",
                                      lvl3 == "heart.histo" ~ "Heart Histology",
@@ -503,6 +549,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "ho1.proteinexpression" ~ "ho1 protein expression",
                                      lvl3 == "hsp70.mrnaexpression" ~ "hsp70 mRNA expression",
                                      lvl3 == "ic3b.con" ~ "iC3b Concentration",
+                                     lvl3 == "ifny.con" ~ "Interferon y Concentration",
                                      lvl3 == "IgA.con" ~ "IgA Concentration",
                                      lvl3 == "IgE.con" ~ "IgE Concentration",
                                      lvl3 == "IgG.con" ~ "IgG Concentration",
@@ -515,20 +562,32 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "il1b.mrnaexpression" ~ "IL1b mRNA expression",
                                      lvl3 == "il1b.proteinexpression" ~ "IL1b protein expression",
                                      lvl3 == "il1b.release" ~ "IL1b Release",
+                                     lvl3 == "il1b.con" ~ "IL1b Concentration",
                                      lvl3 == "il2.release" ~ "IL2 Release",
                                      lvl3 == "il5.release" ~ "IL5 Release",
                                      lvl3 == "il6.proteinexpression" ~ "IL6 protein expression",
                                      lvl3 == "il6.mrnaexpression" ~ "IL6 mRNA expression",
                                      lvl3 == "il6.release" ~ "IL6 Release",
+                                     lvl3 == "il6.con" ~ "Interleukin 6 Concentration",
                                      lvl3 == "il8.mrnaexpression" ~ "IL8 mRNA expression",
                                      lvl3 == "il8.proteinexpression" ~ "IL8 protein expression",
+                                     lvl3 == "il18.proteinexpression" ~ "IL18 protein expression",
                                      lvl3 == "il8.release" ~ "IL8 Release",
+                                     lvl3 == "il8.con" ~ "IL8 Concentration",
+                                     lvl3 == "il18.con" ~ "IL18 Concentration",
                                      lvl3 == "il9.release" ~ "IL9 Release",
+                                     lvl3 == "immune.cell.proliferation" ~ "Immune Cell Proliferation",
+                                     lvl3 == "immune.cell.protein.con" ~ "Immune Cell Protein Concentration",
+                                     lvl3 == "inflammatory.cell.infiltration" ~ "Inflammatory Cell Infiltration",
+                                     lvl3 == "intestinal.permeability" ~ "Intestinal Permeability",
+                                     lvl3 == "intestinal.tissue.inflammation" ~ "Intestinal Tissue Inflammation",
                                      lvl3 == "inos.mrnaexpression" ~ "iNOS mRNA expression",
                                      lvl3 == "intracellular.ca.level" ~ "Intracellular Calcium Levels",
                                      lvl3 == "invariant.natural.killer.cells" ~ "Invariant Natural Killer Cells",
                                      lvl3 == "irf5.proteinexpression" ~ "irf5 protein expression",
                                      lvl3 == "isovalerylcarnitine.con" ~ "Isovalerylcarnitine Concentration",
+                                     lvl3 == "keap1.proteinexpression" ~ "keap1 protein expression",
+                                     lvl3 == "kidney.tissue.inflammation" ~ "Kidney Tissue Inflammation",
                                      lvl3 == "ki67.mrnaexpression" ~ "ki67 mRNA expression",
                                      lvl3 == "kidney.histo" ~ "Kidney Histology",
                                      lvl3 == "klf4.mrnaexpression" ~ "klf4 mRNA expression",
@@ -539,12 +598,16 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "ldh.release" ~ "Lactate Dehydrogenase Release",
                                      lvl3 == "leucine.con" ~ "Leucine Concentration",
                                      lvl3 == "leukocyte.adhesion" ~ "Leukocyte Adhesion",
+                                     lvl3 == "lh.mrnaexpression"~ "lh mRNA expression",
                                      lvl3 == "linoleylcarnitine.con" ~ "Linoleylcarnitine Concentration",
                                      lvl3 == "lipid.droplets" ~ "Lipid Droplets",
                                      lvl3 == "liver.histo" ~ "Liver Histology",
                                      lvl3 == "liver.index" ~ "Liver Index",
+                                     lvl3 == "liver.tissue.inflammation" ~ "Liver Tissue Inflammation",
                                      lvl3 == "lowdensitylipoprotein.con" ~ "Low Density Lipoprotein Concentration",
                                      lvl3 == "lung.histo" ~ "Lung Histology",
+                                     lvl3 == "lung.tissue.inflammation" ~ "Lung Tissue Inflammation",
+                                     lvl3 == "luteinizinghormone.con" ~ "Luteinizinghormone Concentration",
                                      lvl3 == "lymphocyte.count" ~ "Lymphocyte Count",
                                      lvl3 == "lysosomal.integrity" ~ "Lysosomal Integrity",
                                      lvl3 == "lysosomal.protonation" ~ "Lyosomal Protonation",
@@ -552,6 +615,8 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "macrophage.polarization" ~ "Macrophage Polarization",
                                      lvl3 == "malonylcarnitine.con" ~ "Malonylcarnitine Concentration",
                                      lvl3 == "mcad.mrnaexpression" ~ "mcad mRNA expression",
+                                     lvl3 == "mcp1.con" ~ "mcp1 Concentration",
+                                     lvl3 == "mcp1.mrnaexpression" ~ "mcp1 mRNA expression",
                                      lvl3 == "mda.activity" ~ "Malondialdehyde Activity",
                                      lvl3 == "mda.con" ~ "Malondialdehyde Concentration",
                                      lvl3 == "mean.corpuscular.hemoglobin" ~ "Mean Corpuscular Hemoglobin",
@@ -567,6 +632,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "meprinb.mrnaexpression" ~ "meprinb mRNA expression",
                                      lvl3 == "methionine.con" ~ "Methionine Concentration",
                                      lvl3 == "methylmalonic.con" ~ "Methylmalonic Concentration",
+                                     lvl3 == "mice.in.predator.field.of.view" ~ "Within Predator Field of View",
                                      lvl3 == "micronuclei.freq" ~ "Micronuclei Frequency",
                                      lvl3 == "mitochondria.membrane.potential" ~ "Mitochondrial Membrane Potential",
                                      lvl3 == "mitochondria.num" ~ "Number of Mitochondria",
@@ -583,48 +649,66 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "muribaculum.genomicdna" ~ "Muribaculum Genomic DNA",
                                      lvl3 == "nadh.levels" ~ "NADH Levels",
                                      lvl3 == "natural.killer.cells" ~ "Natural Killer Cell Count",
+                                     lvl3 == "ncadherin.proteinexpression" ~ "N-cadherin protein expression",
                                      lvl3 == "neutrophil.count" ~ "Neutrophil Count",
                                      lvl3 == "nfkb.mrnaexpression" ~ "nfkB mRNA expression",
+                                     lvl3 == "nfkb.proteinexpression" ~ "nfkB protein expression",
                                      lvl3 == "nfkb1.mrnaexpression" ~ "nfkb1 mRNA expression",
                                      lvl3 == "nfkbp75.proteinexpression" ~ "nfkbp75 protein expression",
                                      lvl3 == "nhe3.mrnaexpression" ~ "nhe3 mRNA expression",
                                      lvl3 == "nkcc1.mrnaexpression" ~ "nkcc1 mRNA expression",
                                      lvl3 == "nkcc1.proteinexpression" ~ "nkcc1 protein expression",
+                                     lvl3 == "nlrp3.proteinexpression" ~ "nlrp3 protein expression",
                                      lvl3 == "nonestrifiedfattyacid.con" ~ "Nonestrified Fatty Acid Concentration",
                                      lvl3 == "nos2.proteinexpression" ~ "nos2 protein expression",
+                                     lvl3 == "nqo1.proteinexpression" ~ "nqo1 protein expression",
                                      lvl3 == "nrf2.mrnaexpression" ~ "nrf2 mRNA expression",
                                      lvl3 == "nrf2.proteinexpression" ~ "nrf2 protein expression",
                                      lvl3 == "ntcp.mrnaexpression" ~ "ntcp mRNA expression",
                                      lvl3 == "nuclear.intensity" ~ "Nuclear Intensity",
                                      lvl3 == "nuclear.size" ~ "Nuclear Size",
                                      lvl3 == "nucleaus.cytoplasm.ratio" ~ "Nucleaus Cytoplasm Ratio",
+                                     lvl3 == "number.of.growing.follicles" ~ "Number of Growing Follicles",
                                      lvl3 == "number.of.live.births" ~ "Number of Live Births",
+                                     lvl3 == "occludin.proteinexpression" ~ "Occludin protein expression",
                                      lvl3 == "octanoylcarnitine.con" ~ "Octanoylcarnitine Concentration",
                                      lvl3 == "octenoylcarnitine.con" ~ "Octenoylcarnitine Concentration",
                                      lvl3 == "odoribacter.genomicdna" ~ "Odoribacter Genomic DNA",
                                      lvl3 == "oleylcarnitine.con" ~ "Oleylcarnitine Concentration",
                                      lvl3 == "open.arm.entries" ~ "Open Arm Entries",
                                      lvl3 == "open.arm.time" ~ "Open Arm Time",
+                                     lvl3 == "open.field.test.anxiety.index" ~ "Anxiety Index (Open Field Test)",
+                                     lvl3 == "open.field.test.distance.traveled" ~ "Distance Traveled (Open Field Test)",
+                                     lvl3 == "open.field.test.locomotion.speed" ~ "Locomotion Speed (Open Field Test)",
                                      lvl3 == "opsonization" ~ "Opsonization",
                                      lvl3 == "ornithine.con" ~ "Ornithine Concentration",
                                      lvl3 == "ovary.histo" ~ "Ovary Histology",
                                      lvl3 == "p-ikba.proteinexpression" ~ "p-ikba protein expression",
                                      lvl3 == "p-nfkbp75.proteinexpression" ~ "p-nfkbp75 protein expression",
                                      lvl3 == "p38.mrnaexpression" ~ "p38 mRNA expression",
+                                     lvl3 == "p38.phosphorylation" ~ "p38 Phosphorylation",
+                                     lvl3 == "p38.proteinexpression" ~ "p38 protein expression",
                                      lvl3 == "p53.mrnaexpression" ~ "p53 mRNA expression",
                                      lvl3 == "p53.proteinexpression" ~ "p53 protein expression",
                                      lvl3 == "p70s6k.proteinexpression" ~ "p70s6k protein expression",
                                      lvl3 == "palmitoylcarnitine.con" ~ "Palmitoylcarnitine Concentration",
                                      lvl3 == "parabacteroides.genomicdna" ~ "Parabacteroides Genomic DNA",
                                      lvl3 == "patescibacteria.genomicdna" ~ "Patescibacteria Genomic DNA",
+                                     lvl3 == "p-bcatenin.proteinexpression" ~ "p-Bcatenin protein expression",
                                      lvl3 == "pge2.release" ~ "pge2 Release",
                                      lvl3 == "phagocytosis" ~ "Phagocytosis",
                                      lvl3 == "phenylalanine.con" ~ "Phenylalanine Concentration",
+                                     lvl3 == "p-ikba.proteinexpression" ~ "p-ikba protein expression",
                                      lvl3 == "pk.mrnaexpression" ~ "pk mRNA expression",
                                      lvl3 == "platelet.count" ~ "Platelet Count",
+                                     lvl3 == "plzf.mrnaexpression" ~ "plzf mRNA expression",
+                                     lvl3 == "pnfkb.nfkb.ratio.proteinexpression" ~ "p-nfkB/nfkB Ratio protein expression",
+                                     lvl3 == "p-nfkb.proteinexpression" ~ "p-nfkB protein expression",
+                                     lvl3 == "p-p38.proteinexpression" ~ "p-p38 protein expression",
                                      lvl3 == "ppara.mrnaexpression" ~ "ppar a mRNA expression",
                                      lvl3 == "pparr.mrnaexpression" ~ "ppar r mRNA expression",
                                      lvl3 == "ppary.mrnaexpression" ~ "ppar y mRNA expression",
+                                     lvl3 == "ppary.con" ~ "ppar y Concentration",
                                      lvl3 == "proliferation" ~ "Proliferation",
                                      lvl3 == "immune.cell.proliferation" ~ "Immune Cell Proliferation",
                                      lvl3 == "proline.con" ~ "Proline Concentration",
@@ -645,8 +729,11 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "ros.prod" ~ "ROS Production",
                                      lvl3 == "sc5b9.con" ~ "sc5b9 Concentration",
                                      lvl3 == "scd1.mrnaexpression" ~ "scd1 mRNA expression",
+                                     lvl3 == "sdh.activity" ~ "Succinate dehydrogenase Activity",
                                      lvl3 == "seminal.vesicle.histo" ~ "Seminal Vesicle Histology",
+                                     lvl3 == "seminiferous.tubules.diameter" ~ "Seminiferous Tubules Diameter",
                                      lvl3 == "sex.ratio" ~ "Sex Ratio",
+                                     lvl3 == "shaking.frequency" ~ "Shaking Frequency",
                                      lvl3 == "shannon.index" ~ "Shannon Index",
                                      lvl3 == "slc26a3.mrnaexpression" ~ "slc26a3 mRNA expression",
                                      lvl3 == "slc26a6.mrnaexpression" ~ "slc26a6 mRNA expression",
@@ -656,7 +743,13 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "sod2.mrnaexpression" ~ "sod2 mRNA expression",
                                      lvl3 == "sperm.count" ~ "Sperm Count",
                                      lvl3 == "sperm.deformity" ~ "Sperm Deformity",
+                                     lvl3 == "sperm.dna.damage" ~ "Sperm DNA damage",
+                                     lvl3 == "sperm.maturity" ~ "Sperm Maturity",
+                                     lvl3 == "sperm.motility" ~ "Sperm Motility",
+                                     lvl3 == "sperm.viability" ~ "Sperm Viability",
+                                     lvl3 == "spermatogenic.cell.con" ~ "Spermatogenic Cell Concentration",
                                      lvl3 == "spleen.histo" ~ "Spleen Histology",
+                                     lvl3 == "spleen.tissue.inflammation" ~ "Spleen Tissue Inflammation",
                                      lvl3 == "srebp1c.mrnaexpression" ~ "srebp1c mRNA expression",
                                      lvl3 == "staphylococcus.genomicdna" ~ "Staphylococcus Genomic DNA",
                                      lvl3 == "stat1.phosphorylation" ~ "stat1 Phosphorylation",
@@ -664,6 +757,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "stearoylcarnitine.con" ~ "Stearoylcarnitine Concentration",
                                      lvl3 == "stomach.histo" ~ "Stomach Histology",
                                      lvl3 == "succinylacetone.con" ~ "Succinylacetone Concentration",
+                                     lvl3 == "suzuki.score" ~ "Suzuki Score",
                                      lvl3 == "t.cells" ~ "T Cell Count",
                                      lvl3 == "t3.con" ~ "T3 Concentration",
                                      lvl3 == "t3.t4.ratio" ~ "T3/T4 Ratio",
@@ -671,10 +765,13 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "tenericutes.genomicdna" ~ "Tenericutes Genomic DNA",
                                      lvl3 == "testis.histo" ~ "Testis Histology",
                                      lvl3 == "testis.somatic.index" ~ "Testis Somatic Index",
+                                     lvl3 == "testicular.capsule.diameter" ~ "Testicular Capsule Diameter",
+                                     lvl3 == "testosterone.con" ~ "Testosterone Concentration",
                                      lvl3 == "tetradecadienoylcarnitine.con" ~ "Tetradecadienoylcarnitine Concentration",
                                      lvl3 == "tetradecanocarnitine.con" ~ "Tetradecanocarnitine Concentration",
                                      lvl3 == "tetradecenoylcarnitine.con" ~ "Tetradecenoylcarnitine Concentration",
                                      lvl3 == "tf.proteinexpression" ~ "tf protein expression",
+                                     lvl3 == "tgfb.proteinexpression" ~ "tbfb protein expression",
                                      lvl3 == "tgfb1.mrnaexpression" ~ "tgfb1 mRNA expression",
                                      lvl3 == "tgfb1.release" ~ "tgfb1 Release",
                                      lvl3 == "th17.cell.count" ~ "TH17 Cell Count",
@@ -693,6 +790,7 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "tnfa.mrnaexpression" ~ "tnfa mRNA expression",
                                      lvl3 == "tnfa.proteinexpression" ~ "tnfa protein expression",
                                      lvl3 == "tnfa.release" ~ "TNFa Release",
+                                     lvl3 == "tnfa.con" ~ "TNFa Concentration",
                                      lvl3 == "total.arm.entries" ~ "Total Arm Entries",
                                      lvl3 == "total.arm.entries.5min" ~ "TOtal Arm Entries (5 min)",
                                      lvl3 == "transepithelial.elec.res.respiratory" ~ "Transepithelial Electric Resistance (Respiratory)",
@@ -701,13 +799,19 @@ human_setup <- human_v1 %>% # start with original data set
                                      lvl3 == "treg.cell.count" ~ "Treg Count",
                                      lvl3 == "triglyceride.con" ~ "Triglyceride Concentration",
                                      lvl3 == "trpv1.mrnaexpression" ~ "trpv1 mRNA expression",
+                                     lvl3 == "troponin1.con" ~ "Troponin 1 Concentration",
                                      lvl3 == "tsh.con" ~ "TSH Concentration",
+                                     lvl3 == "tunel.staining" ~ "TUNEL staining",
                                      lvl3 == "tyrosine.con" ~ "Tyrosine Concentration",
                                      lvl3 == "unifrac.diversity" ~ "Unifrac Diversity",
                                      lvl3 == "uterus.histo" ~ "Uterus Histology",
                                      lvl3 == "valine.con" ~ "Valine Concentration",
                                      lvl3 == "verrucomicrobia.genomicdna" ~ "Verrucomicrobia Genomic DNA",
+                                     lvl3 == "vision.tissue.inflammation" ~ "",
+                                     lvl3 == "water.intake" ~ "Water Intake",
+                                     lvl3 == "weight.gain" ~ "Weight Gain",
                                      lvl3 == "white.blood.cell.count" ~ "White Blood Cell Count",
+                                     lvl3 == "wnt.proteinexpression" ~ "wnt protein expression",
                                      lvl3 == "y.proteobacteria.genomicdna" ~ "y Proteobacteria Genomic DNA",
                                      lvl3 == "zo1.mrnaexpression" ~ "zo1 mRNA expression",
                                      lvl3 == "zo1.proteinexpression" ~ "zo1 protein expression"))) %>% 
@@ -719,7 +823,6 @@ human_setup <- human_v1 %>% # start with original data set
                                      invitro.invivo == "invitro"~"In Vitro")))%>% ##Renames for widget 
   mutate(life_h_f = factor(case_when(life.stage == "early,f1"~"Early, F1 Generation",
                                      life.stage == "early,f2"~"Early, F2 Generation",
-                                     life.stage == "juvenile"~"Juvenile",
                                      life.stage == "adult"~"Adult",
                                      life.stage == "Not Reported"~"Not Reported")))%>% #Renames for widget
   mutate(exposure_route_h_f = factor(case_when(exposure.route == "drinking.water" ~ "Drinking Water",
@@ -1103,6 +1206,7 @@ br(),
 #### Endpoint Category UI ####
 
 tabPanel("4: Endpoint Categorization", 
+         h3("Endpoint Categorization of Toxicological Effects", align = "center"),
          br(),
          p("This plot displays the categorization of measured endpoints in the database. Nodes correspond to endpoints assessed in vitro and in vivo (orange), the Broad Endpoint Category (blue), 
          the Specific Endpoint Category (green), Endpoints (pink) and the level of biological organization (purple). Alternatively, the widget below may be used to select
@@ -1136,8 +1240,9 @@ tabPanel("4: Endpoint Categorization",
 #### Study Screening UI ####
 
 tabPanel("5: Study Screening", 
+         h3("Study Screening Results for In Vivo Ingestion Studies", align = "center"),
          br(),
-         p("This plot displays scores from the study prioritization screening tool. 'Red Criteria' are displayed in red text. For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
+         p("This plot displays scores from the study prioritization screening tool developed by Gouin et al. (In prep). For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
          br(),
          column(width = 12,
                 # widget headers
@@ -1171,11 +1276,11 @@ tabPanel("5: Study Screening",
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE)),
                        
-                       column(width = 3,
-                              pickerInput(inputId = "exposure_route_h_quality", # polymer checklist
-                                          label = "Exposure Route:", 
-                                          choices = levels(human_setup$exposure_route_h_f),
-                                          selected = levels(human_setup$exposure_route_h_f),
+                       column(width = 3,  
+                              pickerInput(inputId = "species_h_quality", # polymer checklist
+                                          label = "Species:", 
+                                          choices = levels(human_setup$species_h_f),
+                                          selected = levels(human_setup$species_h_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE))),
                 
@@ -1229,26 +1334,33 @@ tabPanel("5: Study Screening",
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE))),
                 
+                #Go Button and Reset Button
+                
                 column(width = 12,
+                       br(),
+                       column(width = 3,
+                              actionButton("go_quality", "Update Filters", class = "btn-success")),
                        
-                       column(width = 3, offset = 6, 
-                              pickerInput(inputId = "species_h_quality", # polymer checklist
-                                          label = "Species:", 
-                                          choices = levels(human_setup$species_h_f),
-                                          selected = levels(human_setup$species_h_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE))),
+                       column(width = 3,
+                              actionButton("reset_quality", "Reset Filters"))),
                 
-                #Go button
-                column(width = 3,
-                       actionButton("go_quality", "Update Filters", class = "btn-success")), # adds update action button
+                #Button Text
                 
+                column(width = 12,
+                       column(width=3,  
+                              strong(p("To Begin: Click the 'Update Filters' button above."))),
+                       
+                       column(width=3,  
+                              strong(p("To Reset: Click the 'Reset Filters' button above, followed by the 'Update Filters' button to the left.")))),
+                                          
+                 
          ), #closes out button column
-         
+         br(),
          # build plotly
          
          fluidRow(
-           column(12,HTML("Filtered Data:"), plotlyOutput("quality_plot")  )
+           column(12,plotlyOutput("quality_plot", height = "1500px")),
+         
          ) # closes out fluidRow
          
          
@@ -2000,12 +2112,11 @@ quality_filtered <- eventReactive(list(input$go_quality),{
   poly_h_c <- input$poly_h_quality # assign values to "poly_c"
   shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
   size_h_c <- input$size_h_quality # assign values to "size_c"
-  exposure_route_h_c<-input$exposure_route_h_quality#assign values to exposure
   species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
   
   #make summary dataset to display in heatmap below
-  human_setup %>%  
-    #filter(vivo_h_f %in% vivo_h_c) %>% #filter by invivo or invitro
+  human_setup %>%
+    #only in vivo Ingestion studies are scored
     filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
     filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
     filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
@@ -2014,70 +2125,164 @@ quality_filtered <- eventReactive(list(input$go_quality),{
     filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
     filter(shape_h_f %in% shape_h_c) %>% #filter by shape
     filter(size_h_f %in% size_h_c) %>% #filter by size class
-    filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
     filter(species_h_f %in% species_h_c) %>%   #filter by species
     mutate(Study = paste0(authors, " (", year,")")) %>% 
-    distinct(Study, genus, species, life.stage, invitro.invivo, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, year) %>% 
+    distinct(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, 
+             design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, design.13,
+             risk.1, risk.2, risk.3, risk.4, risk.5, risk.6) %>% 
     drop_na() %>% 
-    pivot_longer(!c(Study,  genus, species, life.stage, invitro.invivo, exposure.category, year),
+    pivot_longer(!c(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category),
                  names_to ="Criteria", 
                  values_to ="Score") %>%
     mutate(Score_f = factor(case_when(Score == 0 ~ "Not Reported",
                                       Score == 1 ~ "Good",
                                       Score == 2 ~ "Exceptional"))) %>% 
-    mutate(red_factor = case_when(Criteria == "particle.1" ~ "red",
-                                  Criteria == "particle.2" ~ "red",
-                                  Criteria == "particle.3" ~ "red",
-                                  Criteria == "particle.4" ~ "pink",
-                                  Criteria == "particle.5" ~ "pink",
-                                  Criteria == "particle.6" ~ "pink",
-                                  Criteria == "particle.7" ~ "pink"))
-    
+    mutate(Category = case_when(Criteria == "particle.1" ~ "Particle Characteristics",
+                                Criteria == "particle.2" ~ "Particle Characteristics",
+                                Criteria == "particle.3" ~ "Particle Characteristics",
+                                Criteria == "particle.4" ~ "Particle Characteristics",
+                                Criteria == "particle.5" ~ "Particle Characteristics",
+                                Criteria == "particle.6" ~ "Particle Characteristics",
+                                Criteria == "particle.7" ~ "Particle Characteristics",
+                                Criteria == "design.1" ~ "Experimental Design",
+                                Criteria == "design.2" ~ "Experimental Design",
+                                Criteria == "design.3" ~ "Experimental Design",
+                                Criteria == "design.4" ~ "Experimental Design",
+                                Criteria == "design.5" ~ "Experimental Design",
+                                Criteria == "design.6" ~ "Experimental Design",
+                                Criteria == "design.7" ~ "Experimental Design",
+                                Criteria == "design.8" ~ "Experimental Design",
+                                Criteria == "design.9" ~ "Experimental Design",
+                                Criteria == "design.10" ~ "Experimental Design",
+                                Criteria == "design.11" ~ "Experimental Design",
+                                Criteria == "design.12" ~ "Experimental Design",
+                                Criteria == "design.13" ~ "Experimental Design",
+                                Criteria == "risk.1" ~ "Risk Assessment",
+                                Criteria == "risk.2" ~ "Risk Assessment",
+                                Criteria == "risk.3" ~ "Risk Assessment",
+                                Criteria == "risk.4" ~ "Risk Assessment",
+                                Criteria == "risk.5" ~ "Risk Assessment",
+                                Criteria == "risk.6" ~ "Risk Assessment")) %>%
+    #Set order of categories so they plot in correct order
+    mutate(Category_f = factor(Category, levels = c("Particle Characteristics","Experimental Design", "Risk Assessment"))) %>% 
+    mutate(Criteria = case_when(Criteria == "particle.1" ~ "Particle Size*",
+                                  Criteria == "particle.2" ~ "Particle Shape*",
+                                  Criteria == "particle.3" ~ "Polymer Type*",
+                                  Criteria == "particle.4" ~ "Particle Source*",
+                                  Criteria == "particle.5" ~ "Surface Chemistry",
+                                  Criteria == "particle.6" ~ "Chemical Purity",
+                                  Criteria == "particle.7" ~ "Microbial Contamination",
+                                  Criteria == "design.1" ~ "Concentration Units",
+                                  Criteria == "design.2" ~ "Particle Stability",
+                                  Criteria == "design.3" ~ "Test Vehicle*",
+                                  Criteria == "design.4" ~ "Administered Dose*",
+                                  Criteria == "design.5" ~ "Homogeneity of Exposure",
+                                  Criteria == "design.6" ~ "Administration Route*",
+                                  Criteria == "design.7" ~ "Test Species*",
+                                  Criteria == "design.8" ~ "Feeding/Housing Conditions",
+                                  Criteria == "design.9" ~ "Sample Size*",
+                                  Criteria == "design.10" ~ "Frequency/Duration of Exposure*",
+                                  Criteria == "design.11" ~ "Controls*",
+                                  Criteria == "design.12" ~ "Replicates",
+                                  Criteria == "design.13" ~ "Internal Dose Confirmation",
+                                  Criteria == "risk.1" ~ "Statistical Analysis",
+                                  Criteria == "risk.2" ~ "Endpoints*",
+                                  Criteria == "risk.3" ~ "Dose-Response*",
+                                  Criteria == "risk.4" ~ "Concentration Range",
+                                  Criteria == "risk.5" ~ "Effect Thresholds*",
+                                  Criteria == "risk.6" ~ "Test Particle Relevance")) %>% 
+    #set order of criteria so theeeeey plot in correct order - they have to be in reverse here
+    mutate(Criteria_f = factor(Criteria, levels = c("Test Particle Relevance","Effect Thresholds*","Concentration Range","Dose-Response*","Endpoints*","Statistical Analysis",
+                                                    "Internal Dose Confirmation","Replicates","Controls*","Frequency/Duration of Exposure*","Sample Size*","Feeding/Housing Conditions",
+                                                    "Test Species*","Administration Route*","Homogeneity of Exposure","Administered Dose*","Test Vehicle*","Particle Stability",
+                                                    "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*"))) %>% 
+    mutate(RedCriteria = case_when(Criteria == "particle.1" ~ "Y",
+                                   Criteria == "particle.2" ~ "Y",
+                                   Criteria == "particle.3" ~ "Y",
+                                   Criteria == "particle.4" ~ "Y",
+                                   Criteria == "particle.5" ~ "N",
+                                   Criteria == "particle.6" ~ "N",
+                                   Criteria == "particle.7" ~ "N",
+                                   Criteria == "design.1" ~ "N",
+                                   Criteria == "design.2" ~ "N",
+                                   Criteria == "design.3" ~ "Y",
+                                   Criteria == "design.4" ~ "Y",
+                                   Criteria == "design.5" ~ "N",
+                                   Criteria == "design.6" ~ "Y",
+                                   Criteria == "design.7" ~ "Y",
+                                   Criteria == "design.8" ~ "N",
+                                   Criteria == "design.9" ~ "Y",
+                                   Criteria == "design.10" ~ "Y",
+                                   Criteria == "design.11" ~ "Y",
+                                   Criteria == "design.12" ~ "N",
+                                   Criteria == "design.13" ~ "N",
+                                   Criteria == "risk.1" ~ "N",
+                                   Criteria == "risk.2" ~ "Y",
+                                   Criteria == "risk.3" ~ "Y",
+                                   Criteria == "risk.4" ~ "N",
+                                   Criteria == "risk.5" ~ "Y",
+                                   Criteria == "risk.6" ~ "N")) %>% 
+    mutate(RedCriteria_f = factor(RedCriteria, levels = c("Y","N")))
+
 })
   
 ##### **Build Plotly -----
 quality_plotly <- eventReactive(list(input$go_quality),{
-  #build ggplot from filtered dataset above
+
+#build ggplot from filtered dataset above
 quality_filtered() %>%   
-    ggplot(aes(Study, Criteria)) + 
+    ggplot(aes(Study, Criteria_f)) + 
     geom_tile(aes(fill = Score_f,
                   #define text for hover-over
                   text = paste("Study:", Study, "\n",
-                               "Criteria:", Criteria, "\n",
+                               "Criteria:", Criteria_f, "\n",
+                               "Category:", Category_f, "\n",
                                "Score:", Score_f, "\n",
                                "Organism:", genus, species, "\n",
-                               "Life Stage:", life.stage, "\n",
-                               "Type:", invitro.invivo, "\n",
-                               "Exposure:", exposure.category, "\n")),
-              color = "white", size = 0.25,) +
+                               "Life Stage:", life_h_f, "\n",
+                               "Type:", vivo_h_f, "\n",
+                               "Exposure:", exposure.category, "\n",
+                               "DOI:", paste0(doi), "\n")),
+                  color = "white", size = 0.25) +
     theme_ipsum() +
     scale_fill_manual(name = "Score",
-                      #labels = c("Not Reported", "Good", "Exceptional"),
                       values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
-    ylab("Criteria") +
-    labs(title = "Screening & Prioritization",
-         subtitle = "(Particle Criteria; Human in vivo)") +
-    #lines
-    geom_hline(yintercept = 3.5, color = "red", linetype = "dashed", size = 1.3) +
-    geom_hline(yintercept = 0.5, color = "red", linetype = "dashed", size = 1.3) +
-    #geom_segment(aes(x = 0.5, xend = 0.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
-    #geom_segment(aes(x = 5.5, xend = 5.5, y = 0.5, yend = 3.5), linetype = "dashed", size = 1.3, color = "red") +
-    geom_text(x = 5, y = 3.7, label = "'Red criteria'", color = "red", size =5) +
-    coord_cartesian(#xlim = c(1,5),
-      clip = "off") + # This keeps the labels from disappearing
-    theme_minimal(base_size = 15) +
-    theme(axis.title.x = element_blank(),
+    labs(title = "Screening & Prioritization Scores (In Vivo, Ingestion Studies Only)") +
+    coord_cartesian(clip = "off") + # This keeps the labels from disappearing
+    theme_minimal(base_size = 12) +
+    scale_y_discrete(labels = label_wrap(30)) +
+    facet_grid(Category_f ~ ., scales = "free", space = "free") +
+    theme(
+      #axis.text.y = element_text(face = ifelse(RedCriteria_f == "Y", "bold", "plain")), #I want to make the red criteria bold but this won't work :(
+          axis.title.x = element_blank(),
           axis.title.y = element_blank(),
-          #axis.title.y = element_text(size = 12, vjust = 0.5),
+          panel.grid.minor=element_blank(),
+          panel.grid.major=element_blank(),
           axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
-          plot.title = element_text(hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5))                                  
-                                })
+          plot.title = element_text(hjust = 0.5)) %>% 
+    req(nrow(quality_filtered()) > 0) #suppresses warning message text
+})
 
 ##### **Render Plotly -----
 output$quality_plot <- renderPlotly({
   ggplotly(quality_plotly(), tooltip = c("text"))
 })
+
+# Create "reset" button to revert all filters back to what they began as.
+# Need to call all widgets individually by their ids.
+# See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
+observeEvent(input$reset_quality, {
+  shinyjs::reset("lvl1_h_quality")
+  shinyjs::reset("lvl2_h_quality")
+  shinyjs::reset("bio_h_quality")
+  shinyjs::reset("effect_h_quality")
+  shinyjs::reset("life_h_quality")
+  shinyjs::reset("poly_h_quality")
+  shinyjs::reset("shape_h_quality")
+  shinyjs::reset("size_h_quality")
+  shinyjs::reset("species_h_quality")
+
+}) #If we add more widgets, make sure they get added here.
   
 } #Server end
 
