@@ -1242,7 +1242,7 @@ tabPanel("4: Endpoint Categorization",
 tabPanel("5: Study Screening", 
          h3("Study Screening Results for In Vivo Ingestion Studies", align = "center"),
          br(),
-         p("This plot displays scores from the study prioritization screening tool developed by Gouin et al. (In prep). For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
+         p("This plot displays scores from the", a(href ="https://tger.co.uk/research", 'study prioritization screening tool', .noOWs = "outside"), "developed by Gouin et al. (In prep). For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
          br(),
          column(width = 12,
                 # widget headers
@@ -2134,9 +2134,9 @@ quality_filtered <- eventReactive(list(input$go_quality),{
     pivot_longer(!c(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category),
                  names_to ="Criteria", 
                  values_to ="Score") %>%
-    mutate(Score_f = factor(case_when(Score == 0 ~ "Not Reported",
-                                      Score == 1 ~ "Good",
-                                      Score == 2 ~ "Exceptional"))) %>% 
+    mutate(Score_f = factor(case_when(Score == 0 ~ "Inadequate",
+                                      Score == 1 ~ "Adequate with Restrictions",
+                                      Score == 2 ~ "Adequate"))) %>% 
     mutate(Category = case_when(Criteria == "particle.1" ~ "Particle Characteristics",
                                 Criteria == "particle.2" ~ "Particle Characteristics",
                                 Criteria == "particle.3" ~ "Particle Characteristics",
