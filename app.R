@@ -935,22 +935,22 @@ br(),
 p("Detailed descriptions of data categories may be found under the Resources tab."),
 br(),
 #Plot type widget
-# selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
-#              list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
+ selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
+              list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
 
 column(width = 12,
        column(width = 12,
               plotOutput(outputId = "exposure_plot"),
               br())), 
 
-# column(width = 12,
-#        column(width = 2,
-#               tableOutput('studies'),
-#               br()), 
-# 
-#        column(width = 2,
-#               tableOutput('measurements'),
-#               br())),
+column(width = 12,
+       column(width = 2,
+              tableOutput('studies'),
+              br()),
+
+       column(width = 2,
+              tableOutput('measurements'),
+              br())),
 
 column(width = 12,
        column(width = 6,
@@ -1406,100 +1406,100 @@ server <- function(input, output) {
 
 #Test code for reactive plots based on measurements or study types  
   
-#   output$polymer_plot <- renderPlot({
-# #make distinct plots for measurements or studies
-# 
-# #make plot for studies
-# if(input$overview.type == "studies"){
-#   p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-#     geom_bar(position="stack", stat="identity") +
-#     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-#     scale_fill_manual(values = cal_palette("seagrass"))+
-#     ylab("Number of Studies") +
-#     labs(fill="Effect") +
-#     ggtitle("Polymer Type") +
-#     guides(x = guide_axis(angle = 45))+
-#     overviewTheme()
-# }
-# 
-#     else{
-#       # generate plot
-#       p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-#         geom_bar(position="stack", stat="identity") +
-#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-#         scale_fill_manual(values = cal_palette("seagrass"))+
-#         ylab("Number of Endpoints Measured") +
-#         labs(fill="Effect") +
-#         ggtitle("Polymer Type") +
-#         guides(x = guide_axis(angle = 45))+
-#         overviewTheme()
-#     }
-# 
-# print(p)
-#   })
-# 
-#   #in vitro/in vivo plot
-#   output$vivo_plot <- renderPlot({
-# 
-# 
-#     #measurements and types
-#     if(input$overview.type == "measurementsAndTypes"){
-#       # generate plot
-#       p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-#         geom_bar(position="stack", stat="identity") +
-#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-#         scale_fill_manual(values = cal_palette("lupinus"))+
-#         ylab("Number of Endpoints Measured") +
-#         labs(fill="Effect") +
-#         ggtitle("In Vitro or In Vivo")+
-#         guides(x = guide_axis(angle = 45))+
-#         overviewTheme()
-#       }
-#     #measurements and years
-#     if(input$overview.type == "measurementsAndYears" ){
-#       # generate plot
-#       p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
-#         geom_bar(position="stack", stat="identity") +
-#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-#         scale_fill_manual(values = cal_palette("lupinus"))+
-#         ylab("Number of Endpoints Measured") +
-#         labs(fill="Study Type") +
-#         ggtitle("In Vitro or In Vivo Measurements by Year")+
-#         guides(x = guide_axis(angle = 45))+
-#         overviewTheme()
-#       #currently displays years as a factor. can't decide if to switch to numeric or not
-#       }
-# 
-#     #studies and types
-#     if(input$overview.type == "studiesAndTypes"){
-#       p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
-#         geom_bar(position="stack", stat="identity") +
-#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-#         scale_fill_manual(values = cal_palette("lupinus"))+
-#         ylab("Number of Studies") +
-#         labs(fill="Effect") +
-#         ggtitle("In Vitro or In Vivo Studies by Type")+
-#         guides(x = guide_axis(angle = 45))+
-#         overviewTheme()
-#     }
-# 
-#     #studies and years
-#     if(input$overview.type == "studiesAndYears" ){
-#       # generate plot
-#       p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= year, Percent=Percent)) +
-#         geom_bar(position="stack", stat="identity") +
-#         scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
-#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-#         scale_fill_manual(values = cal_palette("lupinus"))+
-#         ylab("Number of Studies") +
-#         labs(fill="Study Type") +
-#         ggtitle("In Vitro or In Vivo Studies by Year")+
-#         guides(x = guide_axis(angle = 45))+
-#         overviewTheme()
-#     }
-# 
-#     print(p)
-#   })
+  output$polymer_plot <- renderPlot({
+#make distinct plots for measurements or studies
+
+#make plot for studies
+if(input$overview.type == "studies"){
+  p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+    geom_bar(position="stack", stat="identity") +
+    geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+    scale_fill_manual(values = cal_palette("seagrass"))+
+    ylab("Number of Studies") +
+    labs(fill="Effect") +
+    ggtitle("Polymer Type") +
+    guides(x = guide_axis(angle = 45))+
+    overviewTheme()
+}
+
+    else{
+      # generate plot
+      p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("seagrass"))+
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Effect") +
+        ggtitle("Polymer Type") +
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+    }
+
+print(p)
+  })
+
+  #in vitro/in vivo plot
+  output$vivo_plot <- renderPlot({
+
+
+    #measurements and types
+    if(input$overview.type == "measurementsAndTypes"){
+      # generate plot
+      p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Effect") +
+        ggtitle("In Vitro or In Vivo")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+      }
+    #measurements and years
+    if(input$overview.type == "measurementsAndYears" ){
+      # generate plot
+      p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Endpoints Measured") +
+        labs(fill="Study Type") +
+        ggtitle("In Vitro or In Vivo Measurements by Year")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+      #currently displays years as a factor. can't decide if to switch to numeric or not
+      }
+
+    #studies and types
+    if(input$overview.type == "studiesAndTypes"){
+      p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Studies") +
+        labs(fill="Effect") +
+        ggtitle("In Vitro or In Vivo Studies by Type")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+    }
+
+    #studies and years
+    if(input$overview.type == "studiesAndYears" ){
+      # generate plot
+      p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= as.numeric(year), Percent=Percent)) +
+        geom_bar(position="stack", stat="identity") +
+        scale_x_continuous(breaks = seq(from = 1993, to = 2021, by = 1 ))+ #show all dates
+        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+        scale_fill_manual(values = cal_palette("lupinus"))+
+        ylab("Number of Studies") +
+        labs(fill="Study Type") +
+        ggtitle("In Vitro or In Vivo Studies by Year")+
+        guides(x = guide_axis(angle = 45))+
+        overviewTheme()
+    }
+
+    print(p)
+  })
 
 
   #Polymer category plot
@@ -1524,26 +1524,26 @@ server <- function(input, output) {
   })
 
   
-  #In vivo in vitro plot
-  output$vivo_plot <- renderPlot({
-
-    # generate plot
-    ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-      geom_bar(position="stack", stat="identity") +
-      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
-      scale_fill_manual(values = cal_palette("lupinus"))+
-      theme_classic() +
-      ylab("Number of Endpoints Measured") +
-      labs(fill="Effect") +
-      ggtitle("In Vivo/In Vitro")+
-      guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
-      theme(legend.position = "right",
-            axis.ticks= element_blank(),
-            axis.text.x = element_text(),
-            axis.text.y = element_blank(),
-            axis.title.x = element_blank())
-  })
+  # #In vivo in vitro plot
+  # output$vivo_plot <- renderPlot({
+  # 
+  #   # generate plot
+  #   ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+  #     geom_bar(position="stack", stat="identity") +
+  #     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+  #     scale_fill_manual(values = cal_palette("lupinus"))+
+  #     theme_classic() +
+  #     ylab("Number of Endpoints Measured") +
+  #     labs(fill="Effect") +
+  #     ggtitle("In Vivo/In Vitro")+
+  #     guides(x = guide_axis(angle = 45))+
+  #     theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+  #     theme(legend.position = "right",
+  #           axis.ticks= element_blank(),
+  #           axis.text.x = element_text(),
+  #           axis.text.y = element_blank(),
+  #           axis.title.x = element_blank())
+  # })
 
   #Size category plot
   output$size_plot <- renderPlot({
