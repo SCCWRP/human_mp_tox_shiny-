@@ -838,7 +838,11 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))  
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))  %>% 
+  mutate(year_numeric = as.numeric(year)) %>% 
+  mutate(year_f = factor(year_numeric)) %>% 
+  replace_na(list(add.date = "Not Recorded")) %>% 
+  mutate(add.date_f = factor(add.date))
 
 #### Endpoint Category Setup ####
 
@@ -1331,6 +1335,24 @@ tabPanel("5: Study Screening",
                                           label = "Life Stages:", 
                                           choices = levels(human_setup$life_h_f),
                                           selected = levels(human_setup$life_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE))),
+                # new row of widgets
+                column(width = 12,
+                       
+                       column(width = 3,
+                              pickerInput(inputId = "year_h_quality",
+                                          label = "Study Year(s):",
+                                          choices = levels(human_setup$year_f),
+                                          selected = levels(human_setup$year_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE)),
+                       # date added column. COMMENT OUT WHEN NOT NEEDED!
+                       column(width = 3,
+                              pickerInput(inputId = "date.added_h_quality",
+                                          label = "Date Added to Database:",
+                                          choices = levels(human_setup$add.date_f),
+                                          selected = levels(human_setup$add.date_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE))),
                 
@@ -2113,12 +2135,14 @@ quality_filtered <- eventReactive(list(input$go_quality),{
   shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
   size_h_c <- input$size_h_quality # assign values to "size_c"
   species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
+  year_h_c <- input$year_h_quality #year of study
+  date.added_h_c <- input$date.added_h_quality #COMMENT OUT WHEN NOT NEEDED
   
   #make summary dataset to display in heatmap below
   human_setup %>%
     #only in vivo Ingestion studies are scored
     filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-    filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
+    filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs
     filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
     filter(effect_h_f %in% effect_h_c) %>% #filter by effect
     filter(life_h_f %in% life_h_c) %>% #filter by life stage
@@ -2126,6 +2150,8 @@ quality_filtered <- eventReactive(list(input$go_quality),{
     filter(shape_h_f %in% shape_h_c) %>% #filter by shape
     filter(size_h_f %in% size_h_c) %>% #filter by size class
     filter(species_h_f %in% species_h_c) %>%   #filter by species
+    filter(year_f %in%  year_h_c) %>%   #filter by species
+    filter(add.date_f %in% date.added_h_c) %>%   #filter by species
     mutate(Study = paste0(authors, " (", year,")")) %>% 
     distinct(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, 
              design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, design.13,
