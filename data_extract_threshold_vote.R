@@ -31,11 +31,15 @@ human %>%
 
 # make table with endpoint reliability
 reliability.summary <- human %>% 
-  filter(pass.all.red == "Y",
+  rowid_to_column(var = "measurementID") %>% #unique ID
+  mutate(include = case_when(endpoint.reliability == 0 ~ "exclude",
+                             endpoint.reliability == 1 ~ "include",
+                             endpoint.reliability == 2 ~ "include")) %>% 
+  replace_na(list(include = "exclude")) %>% 
+  filter(#pass.all.red == "Y",
          invitro.invivo == "invivo",
          effect == "Y") %>%  
- # mutate("Study" = paste0(authors, year, " (", doi, ")")) %>% 
-  group_by(doi, authors, year, lvl1, lvl2, lvl3, human.relevance) %>% 
+  group_by(measurementID, doi, authors, year, lvl1, lvl2, lvl3, human.relevance, include) %>% 
   summarize(endpoint.reliability = min(endpoint.reliability))
 
 write.csv(reliability.summary, "reliability_summary.csv")
