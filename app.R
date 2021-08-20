@@ -4,10 +4,9 @@
 
 #### Setup ####
 
-# Anything that should only happen ONCE should be placed in this setup section, prior to the actual shiny structure.
-
 # Load packages
 library(tidyverse) #General everything
+library(shinydashboard)
 library(RColorBrewer) #plot colors
 library(ggplot2) #General plotting
 library(ggrepel) #For adding text labels that repel away from data points
@@ -32,17 +31,19 @@ library(hrbrthemes) #theme for screening plot
 
 human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000)
 
-#### Introduction Setup ####
+#### Welcome Setup ####
 
 # All text inputs below.
 
 #### Overview Human Setup ####
 
 #Set up for polymer overview plot
-replace_na(list(size.category = 0, shape = "Not Reported", polymer = "Not Reported", exposure.route = "Not Applicable", life.stage = "Not Reported"))
 polydf<-rowPerc(xtabs( ~polymer +effect, human)) #pulls polymers by effect 
 polyf<-as.data.frame(polydf)%>% #Makes data frame 
-  filter(effect %in% c("Y","N"))%>% #Sorts into Yes and No
+  replace_na(list(polymer = "Not Reported")) %>%  
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type = "polymer")%>%#rename so future columns have same name 
   mutate(Type = case_when(
     Type == "PA" ~ "Polyamide",
@@ -65,7 +66,9 @@ polyfinal<- data.frame(cbind(polyf, Endpoints))%>% #adds it as a column
 #Set up for size overview plot
 sizedf<-rowPerc(xtabs(~size.category +effect, human))
 sizef<-as.data.frame(sizedf)%>%
-  filter(effect %in% c("Y","N"))%>%
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   mutate(size.category = case_when(
     size.category == 1 ~ "1nm < 100nm",
     size.category == 2 ~ "100nm < 1µm",
@@ -85,7 +88,9 @@ sizefinal<- data.frame(cbind(sizef, study_s))%>%
 #Set up for shape overview plot
 shapedf<-rowPerc(xtabs(~shape + effect, human))
 shapef<-as.data.frame(shapedf)%>%
-  filter(effect %in% c("Y","N"))%>%
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type="shape")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Shape")%>%
@@ -103,7 +108,9 @@ shapefinal<- data.frame(cbind(shapef, study_sh))%>%
 #Set up for lvl1 overview plot
 lvl1df<-rowPerc(xtabs(~lvl1 +effect, human))
 lvl1f<-as.data.frame(lvl1df)%>%
-  filter(effect %in% c("Y","N"))%>%
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type= "lvl1")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Lvl1")%>%
@@ -131,7 +138,10 @@ lvl1final<- data.frame(cbind(lvl1f, study_l))%>%
 #Set up for life stage overview plot
 lifedf<-rowPerc(xtabs(~life.stage +effect, human))
 lifef<-as.data.frame(lifedf)%>%
-  filter(effect %in% c("Y","N"))%>%
+  replace_na(list(life.stage = "Not Reported")) %>% 
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type= "life.stage")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Life.stage")%>%
@@ -151,7 +161,9 @@ lifefinal<- data.frame(cbind(lifef, studyli))%>%
 #Set up for in vitro in vivo overview plot
 vivodf<-rowPerc(xtabs(~invitro.invivo +effect, human))
 vivof<-as.data.frame(vivodf)%>%
-  filter(effect %in% c("Y","N"))%>%
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type= "invitro.invivo")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Invivo.invivo")%>%
@@ -165,45 +177,47 @@ vivofinal<- data.frame(cbind(vivof, study_v))%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-#Test Set up for plot type widget
-
-#in vitro/in vivo by year and measurement
-vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, human)) %>%
-  as.data.frame()%>%
-  filter(year!="Total") %>% #supress Total column to be able to cbind later
-  rename(Type= "invitro.invivo")%>%
-  mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Invivo.invivo")%>%
-  mutate(Type = case_when(
-    Type=="invivo"~"In Vivo",
-    Type=="invitro"~"In Vitro"))
-study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, human))
-vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>%
-  rename(Endpoints='Freq.1')%>%
-  rename(category='invitro.invivo')%>%
-  mutate(logEndpoints = log(Endpoints))%>%
-  rename(Percent = Freq)#renames column
-
-#in vitro/in vivo by year and study
-vivoFinal_year_study<-human %>%
-  group_by(invitro.invivo, year) %>%
-  summarize(studyCount = n_distinct(doi)) %>%
-  mutate(freq = 100 * studyCount / sum(studyCount)) %>%
-  as.data.frame()%>%
-  rename(Type= "invitro.invivo")%>%
-  mutate_if(is.numeric, round,0)%>%
-  mutate(plot="Invivo.invivo")%>%
-  mutate(Type = case_when(
-    Type=="invivo"~"In Vivo",
-    Type=="invitro"~"In Vitro")) %>%
-  rename(Studies='studyCount')%>%
-  mutate(logStudies = log(Studies))%>%
-  rename(Percent = freq)#renames column
+# #Test Set up for plot type widget
+# 
+# #in vitro/in vivo by year and measurement
+# vivodf_year_measurement<-rowPerc(xtabs(~invitro.invivo +year, human)) %>%
+#   as.data.frame()%>%
+#   filter(year!="Total") %>% #supress Total column to be able to cbind later
+#   rename(Type= "invitro.invivo")%>%
+#   mutate_if(is.numeric, round,0)%>%
+#   mutate(plot="Invivo.invivo")%>%
+#   mutate(Type = case_when(
+#     Type=="invivo"~"In Vivo",
+#     Type=="invitro"~"In Vitro"))
+# study_v_year<-as.data.frame(xtabs(~invitro.invivo +year, human))
+# vivoFinal_year<- data.frame(cbind(vivodf_year_measurement, study_v_year))%>%
+#   rename(Endpoints='Freq.1')%>%
+#   rename(category='invitro.invivo')%>%
+#   mutate(logEndpoints = log(Endpoints))%>%
+#   rename(Percent = Freq)#renames column
+# 
+# #in vitro/in vivo by year and study
+# vivoFinal_year_study<-human %>%
+#   group_by(invitro.invivo, year) %>%
+#   summarize(studyCount = n_distinct(doi)) %>%
+#   mutate(freq = 100 * studyCount / sum(studyCount)) %>%
+#   as.data.frame()%>%
+#   rename(Type= "invitro.invivo")%>%
+#   mutate_if(is.numeric, round,0)%>%
+#   mutate(plot="Invivo.invivo")%>%
+#   mutate(Type = case_when(
+#     Type=="invivo"~"In Vivo",
+#     Type=="invitro"~"In Vitro")) %>%
+#   rename(Studies='studyCount')%>%
+#   mutate(logStudies = log(Studies))%>%
+#   rename(Percent = freq)#renames column
 
 #Set up for exposure route overview plot
 routedf<-rowPerc(xtabs(~exposure.category +effect, human))
 routef<-as.data.frame(routedf)%>%
-  filter(effect %in% c("Y","N"))%>%
+  mutate(effect = case_when(effect == "Y" ~ "Yes",
+                            effect == "N" ~ "No")) %>% 
+  filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type= "exposure.category")%>%
   mutate_if(is.numeric, round,0)%>%
   mutate(plot="Exposure.category")%>%
@@ -220,14 +234,14 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
   mutate(logEndpoints = log(Endpoints))%>%
   rename(Percent = Freq)#renames column
 
-# Set default theme for overview plots
-overviewTheme <- function(){
-  theme_classic() %+replace%
-    theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20),legend.position = "right",
-          axis.ticks= element_blank(),
-          axis.text.x = element_text(),
-          axis.text.y = element_blank(),
-          axis.title.x = element_blank() ) }
+# # Set default theme for overview plots
+# overviewTheme <- function(){
+#   theme_classic() %+replace%
+#     theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20),legend.position = "right",
+#           axis.ticks= element_blank(),
+#           axis.text.x = element_text(),
+#           axis.text.y = element_blank(),
+#           axis.title.x = element_blank() ) }
 
 #### Exploration Human Setup ####
 
@@ -838,11 +852,11 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))  %>% 
-  mutate(year_numeric = as.numeric(year)) %>% 
-  mutate(year_f = factor(year_numeric)) %>% 
-  replace_na(list(add.date = "Not Recorded")) %>% 
-  mutate(add.date_f = factor(add.date))
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))   
+  # mutate(year_numeric = as.numeric(year)) %>% 
+  # mutate(year_f = factor(year_numeric)) %>% 
+  # replace_na(list(add.date = "Not Recorded")) %>% 
+  # mutate(add.date_f = factor(add.date))
 
 #### Endpoint Category Setup ####
 
@@ -852,87 +866,129 @@ human_endpoint <- human_setup %>%
 
 #### Study Screening Setup ####
 
-human_quality <- human_setup %>% 
+human_quality <- human_setup %>%
   mutate(all_red_pass_f = factor(case_when(pass.all.red == "Y" ~ "'Red Criteria' Passed",
                                            pass.all.red == "N" ~ "'Red Criteria' Failed")))
 
 #### User Interface ####
 
-ui <- fluidPage(theme = shinytheme("flatly"),  
-                
-# App title
-titlePanel(tagList(span((h1("Microplastics Toxicity Database: Human Health"))),
-           span(actionButton("database_link", label="Go to Aquatic Organisms Database", class = "btn-primary", onclick ="window.open('https://sccwrp.shinyapps.io/aq_mp_tox_shiny/', '_blank')", style = "float:right")))
-           ),
-                
-# Title panel subtext
-tags$div("This website is only intended for use by invited participants of the Microplastics Health Effects Workshop."),
-                
-br(), # line break
-                
-# Main panel for displaying outputs
-mainPanel(width = 12,
-                          
-# Output: set of 6 tabs
-tabsetPanel(type = "tabs",
+ui <- dashboardPage(
+  
+  dashboardHeader(title = "Toxicity of Microplastics Explorer", titleWidth = 400),
+  
+  dashboardSidebar(width = 175,
+                   
+                   sidebarMenu(
+                     #Logo image
+                     br(),
+                     tags$img(src="main_logo_drop.png", width = "100%", height = "100%", style = 'display: block; margin-left: auto; margin-right: auto;'),
+                     tags$div("Logo created by J.C. Leapman.", align = 'center', style = 'font-size: 10px; display: block; margin-left: auto; margin-right: auto;'), 
+                     br(),         
+                     #List of tabs
+                     menuItem("Welcome", tabName = "Welcome", icon = icon("home")),
+                     menuItem("Overview", tabName = "Overview", icon = icon("globe")),
+                     menuItem("Search", tabName = "Search", icon = icon("search")),
+                     menuItem("Exploration", tabName = "Exploration", icon = icon("chart-bar")),
+                     menuItem("Study Screening", tabName = "Screening", icon = icon("check-circle")),
+                     menuItem("Resources", tabName = "Resources", icon = icon("question-circle")),
+                     menuItem("Contact", tabName = "Contact", icon = icon("envelope")),
+                     br(),
+                     br(),
+                     #Twitter icon
+                     menuItem("Aquatic Organisms", href = "https://sccwrp.shinyapps.io/aq_mp_tox_shiny/", icon = icon("fish")),
+                     br(),
+                     br(),
+                     #Twitter icon
+                     menuItem("Follow Us on Twitter!", href = "https://twitter.com/ToMExApp", icon = icon("twitter")))
+                   
+  ), #End dashboard sidebar
+  
+  dashboardBody(
+    
+    #extends background color automatically
+    tags$head(tags$style(HTML('.content-wrapper { overflow: auto; }'))),
+    
+    tabItems(
                                       
-#### Introduction UI ####        
-tabPanel("1: Introduction", 
+#### Welcome UI ####        
+tabItem(tabName = "Welcome", 
                                                
-br(), 
-h3("What is the Microplastics Toxicity Database?", align = "center"), #Section 1
-                                               
-strong(p("This database is a repository for microplastics toxicity data that will be used to generate key graphics for the Microplastics Health Effects Workshop.")), 
-                                               
-p("This web application allows users to explore toxicity data using an intuitive interface while retaining the diversity and complexity inherent 
-   to microplastics. Data is extracted from existing, peer-reviewed manuscripts containing toxicity data pertaining to microplastics."),
-                                               
-p("Use the numbered tabs at the top of the page to navigate to each section. Each section provides different information or data visualization options. More specific instructions may be found within each section."),
-                                               
-h3("Why was the Microplastics Toxicity Database and Web Application created?", align = "center"), #Section 2
-                                               
-p("The database and application tools have been created for use by the participants of the ", a(href = "https://www.sccwrp.org/about/research-areas/additional-research-areas/
-trash-pollution/microplastics-health-effects-webinar-series/", 'Microplastics Health Effects Workshop',.noWS = "outside"),".The purpose of this workshop is to identify the most sensitive and biologically critical endpoints associated with microplastics exposure, 
-prioritize which microplastics characteristics (e.g., size, shape, polymer) that are of greatest biological concern, and identify 
-critical thresholds for each at which those biological effects become pronounced. Workshop participants will also make reccomendations for future
-research investments. Workshop findings will be published in a special issue of ", a(href ="https://microplastics.springeropen.com/", 'Microplastics and Nanoplastics', .noOWs = "outside"),". 
-These findings will be used directly by the state of California to fulfill ", a(href = "https://www.sccwrp.org/about/research-areas/
-additional-research-areas/trash-pollution/microplastics-health-effects-webinar-series/history-california-microplastics-legislation/", 'legislative mandates',.noWS = "outside")," regarding the management of microplastics in drinking water and the aquatic environment."),
-                                               
-h3("Contributors", align = "center"), #Section 4: Contributors list with links to twitter and github
-                                               
-p(align = "center", a(href = "https://www.sccwrp.org/about/staff/leah-thornton-hampton/", 'Dr. Leah Thornton Hampton'),", Southern California Coastal Water Research Project ", 
-tags$a(href="https://twitter.com/DrLeahTH", tags$img(src="twitter.png", width="2%", height="2%")), tags$a(href="https://github.com/leahth", tags$img(src="github.png", width="2%", height="2%"))),
-p(align = "center", a(href = "https://www.sccwrp.org/about/staff/heili-lowman/", 'Dr. Heili Lowman'),", Southern California Coastal Water Research Project ",
-tags$a(href="https://twitter.com/heili_lowman", tags$img(src="twitter.png", width="2%", height="2%")), tags$a(href="https://github.com/hlowman", tags$img(src="github.png", width="2%", height="2%"))), 
-p(align = "center", a(href = "https://agency.calepa.ca.gov/staffdirectory/detail.asp?UID=69294&BDO=7&VW=DET&SL=S", 'Dr. Scott Coffin'),", California State Water Resources Control Board", 
-tags$a(href="https://twitter.com/DrSCoffin", tags$img(src="twitter.png", width="2%", height="2%")), tags$a(href="https://github.com/ScottCoffin", tags$img(src="github.png", width="2%", height="2%"))),
-p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", Aquatic Science Center"),
-p(align = "center", a(href = "https://rochmanlab.com/people/", 'Dr. Ludovic Hermabessiere'),", University of Toronto", 
-tags$a(href="https://twitter.com/HermabessiereL", tags$img(src="twitter.png", width="2%", height="2%"))),
-p(align = "center", a(href = "https://rochmanlab.com/people/", 'Hannah De Frond'),", University of Toronto", 
-tags$a(href="https://twitter.com/HanDefrond", tags$img(src="twitter.png", width="2%", height="2%"))),
-p(align = "center", "Emily Darin, Southern California Coastal Water Research Project",
-tags$a(href="https://github.com/EmilyDarin", tags$img(src="github.png", width="2%", height="2%"))),
-p(align = "center", "Syd Kotar, Southern California Coastal Water Research Project"),
-p(align = "center", "Sarah Khan, Southern California Coastal Water Research Project"),
-p(align = "center", a(href = "https://www.wur.nl/en/Persons/Bart-prof.dr.-AA-Bart-Koelmans.htm", 'Dr. Bart Koelmans'),", Wageningen University",
-tags$a(href="https://twitter.com/MicroplasticLab", tags$img(src="twitter.png", width="2%", height="2%"))),
-p(align = "center", a(href = "https://rochmanlab.com/", 'Dr. Chelsea Rochman'),", University of Toronto",
-tags$a(href="https://twitter.com/ChelseaRochman", tags$img(src="twitter.png", width="2%", height="2%"))),
-p(align = "center", a(href = "https://www.sccwrp.org/about/staff/alvina-mehinto/", 'Dr. Alvina Mehinto'),", Southern California Coastal Water Research Project"), 
-p(align = "center", a(href = "https://www.sccwrp.org/about/staff/steve-weisberg/", 'Dr. Steve Weisberg'),", Southern California Coastal Water Research Project"), 
-                                               
-#Logos with links to organizations
-                                               
-splitLayout(align = "center", 
-    tags$a(href="https://www.waterboards.ca.gov", tags$img(src="waterboard.png", width = "100%", height = "100%")),
-    tags$a(href="https://www.sccwrp.org", tags$img(src="sccwrp.png", width = "100%", height = "100%")),
-    tags$a(href="https://www.utoronto.ca", tags$img(src="toronto.png", width = "100%", height = "100%")),
-    tags$a(href="https://www.sfei.org/", tags$img(src="sfei.png", width = "100%", height = "100%"))),
-    br(), 
-                                               
-verbatimTextOutput(outputId = "Introduction1")),
+        #Header     
+        h1("Welcome to the Toxicity of Microplastics Explorer,",br(),"Human Health Database!", align = 'center'),
+        br(),
+        
+        
+        box(status = "primary", width = 12,
+            fluidRow(
+              #top right box
+              column(width = 12, 
+                     
+                     p(tags$img(src="welcome.png", width = "40%", height = "40%", style = "float:left; display: block; margin-left: auto; margin-right: 30px;")),
+                     
+                     h3("What is the Microplastics Toxicity Database?", align = "center"), 
+                     
+                     strong(p("This database is a repository for microplastics 
+                      toxicity data that may inform possible effects on Human Health.")), 
+                     
+                     p("This web application allows users to explore toxicity 
+                    data using an intuitive interface while retaining the diversity and complexity inherent 
+                    to microplastics. Data is extracted from existing, peer-reviewed manuscripts containing 
+                    toxicity data pertaining to microplastics."),
+                     
+                     p("Use the side panel on the left of the page to navigate to each section. Each section provides different information or data visualization options. 
+                      More specific instructions may be found within each section.")))),
+        
+        #bottom left box  
+        box(status = "primary", width = 12, 
+            h3("Why was the Microplastics Toxicity Database and Web Application created?", align = "center"),
+            
+            p("The database and application tools have been created for use by the participants of the ", a(href = "https://www.sccwrp.org/about/
+                      research-areas/additional-research-areas/
+                      trash-pollution/microplastics-health-effects-webinar-series/", 'Microplastics Health Effects Workshop', 
+                                                                                                            .noWS = "outside"),".The purpose of this workshop is to identify the most sensitive and biologically critical endpoints associated with microplastics exposure, 
+                      prioritize which microplastics characteristics (e.g., size, shape, polymer) that are of greatest biological concern, and identify 
+                      critical thresholds for each at which those biological effects become pronounced. Workshop participants will also make reccomendations for future
+                      research investments. Workshop findings will be published in a special issue of ", a(href ="https://microplastics.springeropen.com/", 'Microplastics and Nanoplastics', .noOWs = "outside"),". 
+                      These findings will be used directly by the state of California to fulfill ", a(href = "https://www.sccwrp.org/about/research-areas/
+                      additional-research-areas/trash-pollution/microplastics-health-effects-webinar-series/history-california-microplastics-legislation/", 'legislative mandates', 
+                                                                                                      .noWS = "outside")," regarding the management of microplastics in drinking water and the aquatic environment.")),
+        
+        #bottom right box  
+        box(status = "primary", width = 12, 
+            h3("Contributors", align = "center"), 
+            
+            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/leah-thornton-hampton/", 'Dr. Leah Thornton Hampton'),", Southern California Coastal Water Research Project ", 
+              tags$a(href="https://twitter.com/DrLeahTH", icon("twitter")), tags$a(href="https://github.com/leahth", icon("github"))),
+            p(align = "center", a(href = "https://agency.calepa.ca.gov/staffdirectory/detail.asp?UID=69294&BDO=7&VW=DET&SL=S", 'Dr. Scott Coffin'),", California State Water Resources Control Board", 
+              tags$a(href="https://twitter.com/DrSCoffin", icon("twitter")), tags$a(href="https://github.com/ScottCoffin", icon("github"))),
+            p(align = "center", "Heili Lowman, Southern California Coastal Water Research Project ",
+              tags$a(href="https://twitter.com/heili_lowman", icon("twitter")), tags$a(href="https://github.com/hlowman", icon("github"))), 
+            p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", Aquatic Science Center"),
+            p(align = "center", a(href = "https://rochmanlab.com/people/", 'Dr. Ludovic Hermabessiere'),", University of Toronto", 
+              tags$a(href="https://twitter.com/HermabessiereL", icon("twitter"))),
+            p(align = "center", a(href = "https://rochmanlab.com/people/", 'Hannah De Frond'),", University of Toronto", 
+              tags$a(href="https://twitter.com/HanDefrond", icon("twitter"))),
+            p(align = "center", "Emily Darin, Southern California Coastal Water Research Project",
+              tags$a(href="https://github.com/EmilyDarin", icon("github"))),
+            p(align = "center", "Syd Kotar, Southern California Coastal Water Research Project"),
+            p(align = "center", "Sarah Khan, Southern California Coastal Water Research Project"),
+            p(align = "center", a(href = "https://www.wur.nl/en/Persons/Bart-prof.dr.-AA-Bart-Koelmans.htm", 'Dr. Bart Koelmans'),", Wageningen University",
+              tags$a(href="https://twitter.com/MicroplasticLab", icon("twitter"))),
+            p(align = "center", a(href = "https://rochmanlab.com/", 'Dr. Chelsea Rochman'),", University of Toronto",
+              tags$a(href="https://twitter.com/ChelseaRochman", icon("twitter"))),
+            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/alvina-mehinto/", 'Dr. Alvine Mehinto'),", Southern California Coastal Water Research Project"), 
+            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/steve-weisberg/", 'Dr. Steve Weisberg'),", Southern California Coastal Water Research Project")), 
+        
+        #Logos with links to organizations
+        box(status = "primary", width = 12, align = "center",  
+            splitLayout(align = "center", 
+                        tags$a(href="https://www.waterboards.ca.gov", tags$img(src="waterboard.png", width = "100%", height = "100%")),
+                        tags$a(href="https://www.sccwrp.org", tags$img(src="sccwrp.png", width = "100%", height = "100%")),
+                        tags$a(href="https://www.utoronto.ca", tags$img(src="toronto.png", width = "100%", height = "100%")),
+                        tags$a(href="https://www.sfei.org/", tags$img(src="sfei.png", width = "100%", height = "100%")))),
+        
+        
+),
 
 #### Overview Human UI ####
                                       
@@ -2122,187 +2178,187 @@ print(p)
   
 ##### Study Screening S #####
   
-  #Create dependent dropdown checklists: select lvl2 by lvl1.
-  output$secondSelection_quality <- renderUI({
-    
-    lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
-    
-    human_new <- human_quality %>% # take original dataset
-      filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-      mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
-    
-    pickerInput(inputId = "lvl2_h_quality", 
-                label = "Specific Endpoint within Broad Category:", 
-                choices = levels(human_new$lvl2_f_new),
-                selected = levels(human_new$lvl2_f_new),
-                options = list(`actions-box` = TRUE),
-                multiple = TRUE)})
-  
-quality_filtered <- eventReactive(list(input$go_quality),{
-  
-  # every selection widget should be represented as a new variable below
-  lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
-  lvl2_h_c <- input$lvl2_h_quality # assign lvl2 values to "lvl2_c"
-  bio_h_c <- input$bio_h_quality # assign bio values to "bio_c"
-  effect_h_c <- input$effect_h_quality # assign effect values to "effect_c"
-  life_h_c <- input$life_h_quality #assign values to "life_quality"
-  poly_h_c <- input$poly_h_quality # assign values to "poly_c"
-  shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
-  size_h_c <- input$size_h_quality # assign values to "size_c"
-  species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
-  year_h_c <- input$year_h_quality #year of study
-  date.added_h_c <- input$date.added_h_quality #COMMENT OUT WHEN NOT NEEDED
-  
-  #make summary dataset to display in heatmap below
-  human_setup %>%
-    #only in vivo Ingestion studies are scored
-    filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-    filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs
-    filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
-    filter(effect_h_f %in% effect_h_c) %>% #filter by effect
-    filter(life_h_f %in% life_h_c) %>% #filter by life stage
-    filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
-    filter(shape_h_f %in% shape_h_c) %>% #filter by shape
-    filter(size_h_f %in% size_h_c) %>% #filter by size class
-    filter(species_h_f %in% species_h_c) %>%   #filter by species
-    filter(year_f %in%  year_h_c) %>%   #filter by species
-    filter(add.date_f %in% date.added_h_c) %>%   #filter by species
-
-    mutate(Study = paste0(authors, " (", year,")")) %>% 
-    distinct(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, 
-             design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, design.13,
-             risk.1, risk.2, risk.3, risk.4, risk.5, risk.6) %>% 
-    drop_na() %>% 
-    pivot_longer(!c(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category),
-                 names_to ="Criteria", 
-                 values_to ="Score") %>%
-    mutate(Score_f = factor(case_when(Score == 0 ~ "Inadequate",
-                                      Score == 1 ~ "Adequate with Restrictions",
-                                      Score == 2 ~ "Adequate"))) %>% 
-    mutate(Category = case_when(Criteria == "particle.1" ~ "Particle Characteristics",
-                                Criteria == "particle.2" ~ "Particle Characteristics",
-                                Criteria == "particle.3" ~ "Particle Characteristics",
-                                Criteria == "particle.4" ~ "Particle Characteristics",
-                                Criteria == "particle.5" ~ "Particle Characteristics",
-                                Criteria == "particle.6" ~ "Particle Characteristics",
-                                Criteria == "particle.7" ~ "Particle Characteristics",
-                                Criteria == "design.1" ~ "Experimental Design",
-                                Criteria == "design.2" ~ "Experimental Design",
-                                Criteria == "design.3" ~ "Experimental Design",
-                                Criteria == "design.4" ~ "Experimental Design",
-                                Criteria == "design.5" ~ "Experimental Design",
-                                Criteria == "design.6" ~ "Experimental Design",
-                                Criteria == "design.7" ~ "Experimental Design",
-                                Criteria == "design.8" ~ "Experimental Design",
-                                Criteria == "design.9" ~ "Experimental Design",
-                                Criteria == "design.10" ~ "Experimental Design",
-                                Criteria == "design.11" ~ "Experimental Design",
-                                Criteria == "design.12" ~ "Experimental Design",
-                                Criteria == "design.13" ~ "Experimental Design",
-                                Criteria == "risk.1" ~ "Risk Assessment",
-                                Criteria == "risk.2" ~ "Risk Assessment",
-                                Criteria == "risk.3" ~ "Risk Assessment",
-                                Criteria == "risk.4" ~ "Risk Assessment",
-                                Criteria == "risk.5" ~ "Risk Assessment",
-                                Criteria == "risk.6" ~ "Risk Assessment")) %>%
-    #Set order of categories so they plot in correct order
-    mutate(Category_f = factor(Category, levels = c("Particle Characteristics","Experimental Design", "Risk Assessment"))) %>% 
-    mutate(Criteria = case_when(Criteria == "particle.1" ~ "Particle Size*",
-                                  Criteria == "particle.2" ~ "Particle Shape*",
-                                  Criteria == "particle.3" ~ "Polymer Type*",
-                                  Criteria == "particle.4" ~ "Particle Source*",
-                                  Criteria == "particle.5" ~ "Surface Chemistry",
-                                  Criteria == "particle.6" ~ "Chemical Purity",
-                                  Criteria == "particle.7" ~ "Microbial Contamination",
-                                  Criteria == "design.1" ~ "Concentration Units",
-                                  Criteria == "design.2" ~ "Particle Stability",
-                                  Criteria == "design.3" ~ "Test Vehicle*",
-                                  Criteria == "design.4" ~ "Administered Dose*",
-                                  Criteria == "design.5" ~ "Homogeneity of Exposure",
-                                  Criteria == "design.6" ~ "Administration Route*",
-                                  Criteria == "design.7" ~ "Test Species*",
-                                  Criteria == "design.8" ~ "Feeding/Housing Conditions",
-                                  Criteria == "design.9" ~ "Sample Size*",
-                                  Criteria == "design.10" ~ "Frequency/Duration of Exposure*",
-                                  Criteria == "design.11" ~ "Controls*",
-                                  Criteria == "design.12" ~ "Replicates",
-                                  Criteria == "design.13" ~ "Internal Dose Confirmation",
-                                  Criteria == "risk.1" ~ "Statistical Analysis",
-                                  Criteria == "risk.2" ~ "Endpoints*",
-                                  Criteria == "risk.3" ~ "Dose-Response*",
-                                  Criteria == "risk.4" ~ "Concentration Range",
-                                  Criteria == "risk.5" ~ "Effect Thresholds*",
-                                  Criteria == "risk.6" ~ "Test Particle Relevance")) %>% 
-    #set order of criteria so theeeeey plot in correct order - they have to be in reverse here
-    mutate(Criteria_f = factor(Criteria, levels = c("Test Particle Relevance","Effect Thresholds*","Concentration Range","Dose-Response*","Endpoints*","Statistical Analysis",
-                                                    "Internal Dose Confirmation","Replicates","Controls*","Frequency/Duration of Exposure*","Sample Size*","Feeding/Housing Conditions",
-                                                    "Test Species*","Administration Route*","Homogeneity of Exposure","Administered Dose*","Test Vehicle*","Particle Stability",
-                                                    "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*"))) 
-   
-})
-  
-#Build Plotly
-quality_plotly <- eventReactive(list(input$go_quality),{
-
-#build ggplot from filtered dataset above
-quality_filtered() %>%   
-    ggplot(aes(Study, Criteria_f)) + 
-    geom_tile(aes(fill = Score_f,
-                  #define text for hover-over
-                  text = paste("Study:", Study, "\n",
-                               "Criteria:", Criteria_f, "\n",
-                               "Category:", Category_f, "\n",
-                               "Score:", Score_f, "\n",
-                               "Organism:", genus, species, "\n",
-                               "Life Stage:", life_h_f, "\n",
-                               "Type:", vivo_h_f, "\n",
-                               "Exposure:", exposure.category, "\n",
-                               "DOI:", paste0(doi), "\n")),
-                  color = "white", size = 0.25) +
-    theme_ipsum() +
-    scale_fill_manual(name = "Score",
-                      values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
-    labs(title = "Screening & Prioritization Scores (In Vivo, Ingestion Studies Only, Red Criteria Indicated by (*))") +
-    coord_cartesian(clip = "off") + # This keeps the labels from disappearing
-    theme_minimal(base_size = 14) +
-    scale_y_discrete(labels = label_wrap(30)) +
-    facet_grid(Category_f ~ ., scales = "free", space = "free") +
-    theme(
-      #axis.text.y = element_text(face = ifelse(RedCriteria_f == "Y", "bold", "plain")), #I want to make the red criteria bold but this won't work :(
-          axis.title.x = element_blank(),
-          axis.title.y = element_blank(),
-          panel.grid.minor=element_blank(),
-          panel.grid.major=element_blank(),
-          axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
-          plot.title = element_text(hjust = 0.5)) %>% 
-    req(nrow(quality_filtered()) > 0) #suppresses warning message text
-})
-
-#Render Plotly
-output$quality_plot <- renderPlotly({
-  ggplotly(quality_plotly(), tooltip = c("text")) %>% 
-    layout(legend = list(orientation = "h", #Displays legend horizontally
-                         xanchor = "center", #Use the center of the legend as an anchor
-                         x = 0.5, #Center the legend on the x axis
-                         y = 1.022)) #Places the legend at the top of the plot
-})
-
-# Create "reset" button to revert all filters back to what they began as.
-# Need to call all widgets individually by their ids.
-# See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
-observeEvent(input$reset_quality, {
-  shinyjs::reset("lvl1_h_quality")
-  shinyjs::reset("lvl2_h_quality")
-  shinyjs::reset("bio_h_quality")
-  shinyjs::reset("effect_h_quality")
-  shinyjs::reset("life_h_quality")
-  shinyjs::reset("poly_h_quality")
-  shinyjs::reset("shape_h_quality")
-  shinyjs::reset("size_h_quality")
-  shinyjs::reset("species_h_quality")
-  shinyjs::reset("red_criteria_quality")
-
-}) #If we add more widgets, make sure they get added here.
+#   #Create dependent dropdown checklists: select lvl2 by lvl1.
+#   output$secondSelection_quality <- renderUI({
+#     
+#     lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
+#     
+#     human_new <- human_quality %>% # take original dataset
+#       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
+#       mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
+#     
+#     pickerInput(inputId = "lvl2_h_quality", 
+#                 label = "Specific Endpoint within Broad Category:", 
+#                 choices = levels(human_new$lvl2_f_new),
+#                 selected = levels(human_new$lvl2_f_new),
+#                 options = list(`actions-box` = TRUE),
+#                 multiple = TRUE)})
+#   
+# quality_filtered <- eventReactive(list(input$go_quality),{
+#   
+#   # every selection widget should be represented as a new variable below
+#   lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
+#   lvl2_h_c <- input$lvl2_h_quality # assign lvl2 values to "lvl2_c"
+#   bio_h_c <- input$bio_h_quality # assign bio values to "bio_c"
+#   effect_h_c <- input$effect_h_quality # assign effect values to "effect_c"
+#   life_h_c <- input$life_h_quality #assign values to "life_quality"
+#   poly_h_c <- input$poly_h_quality # assign values to "poly_c"
+#   shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
+#   size_h_c <- input$size_h_quality # assign values to "size_c"
+#   species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
+#   year_h_c <- input$year_h_quality #year of study
+#   date.added_h_c <- input$date.added_h_quality #COMMENT OUT WHEN NOT NEEDED
+#   
+#   #make summary dataset to display in heatmap below
+#   human_setup %>%
+#     #only in vivo Ingestion studies are scored
+#     filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
+#     filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs
+#     filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
+#     filter(effect_h_f %in% effect_h_c) %>% #filter by effect
+#     filter(life_h_f %in% life_h_c) %>% #filter by life stage
+#     filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
+#     filter(shape_h_f %in% shape_h_c) %>% #filter by shape
+#     filter(size_h_f %in% size_h_c) %>% #filter by size class
+#     filter(species_h_f %in% species_h_c) %>%   #filter by species
+#     filter(year_f %in%  year_h_c) %>%   #filter by species
+#     filter(add.date_f %in% date.added_h_c) %>%   #filter by species
+# 
+#     mutate(Study = paste0(authors, " (", year,")")) %>% 
+#     distinct(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, 
+#              design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, design.13,
+#              risk.1, risk.2, risk.3, risk.4, risk.5, risk.6) %>% 
+#     drop_na() %>% 
+#     pivot_longer(!c(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category),
+#                  names_to ="Criteria", 
+#                  values_to ="Score") %>%
+#     mutate(Score_f = factor(case_when(Score == 0 ~ "Inadequate",
+#                                       Score == 1 ~ "Adequate with Restrictions",
+#                                       Score == 2 ~ "Adequate"))) %>% 
+#     mutate(Category = case_when(Criteria == "particle.1" ~ "Particle Characteristics",
+#                                 Criteria == "particle.2" ~ "Particle Characteristics",
+#                                 Criteria == "particle.3" ~ "Particle Characteristics",
+#                                 Criteria == "particle.4" ~ "Particle Characteristics",
+#                                 Criteria == "particle.5" ~ "Particle Characteristics",
+#                                 Criteria == "particle.6" ~ "Particle Characteristics",
+#                                 Criteria == "particle.7" ~ "Particle Characteristics",
+#                                 Criteria == "design.1" ~ "Experimental Design",
+#                                 Criteria == "design.2" ~ "Experimental Design",
+#                                 Criteria == "design.3" ~ "Experimental Design",
+#                                 Criteria == "design.4" ~ "Experimental Design",
+#                                 Criteria == "design.5" ~ "Experimental Design",
+#                                 Criteria == "design.6" ~ "Experimental Design",
+#                                 Criteria == "design.7" ~ "Experimental Design",
+#                                 Criteria == "design.8" ~ "Experimental Design",
+#                                 Criteria == "design.9" ~ "Experimental Design",
+#                                 Criteria == "design.10" ~ "Experimental Design",
+#                                 Criteria == "design.11" ~ "Experimental Design",
+#                                 Criteria == "design.12" ~ "Experimental Design",
+#                                 Criteria == "design.13" ~ "Experimental Design",
+#                                 Criteria == "risk.1" ~ "Risk Assessment",
+#                                 Criteria == "risk.2" ~ "Risk Assessment",
+#                                 Criteria == "risk.3" ~ "Risk Assessment",
+#                                 Criteria == "risk.4" ~ "Risk Assessment",
+#                                 Criteria == "risk.5" ~ "Risk Assessment",
+#                                 Criteria == "risk.6" ~ "Risk Assessment")) %>%
+#     #Set order of categories so they plot in correct order
+#     mutate(Category_f = factor(Category, levels = c("Particle Characteristics","Experimental Design", "Risk Assessment"))) %>% 
+#     mutate(Criteria = case_when(Criteria == "particle.1" ~ "Particle Size*",
+#                                   Criteria == "particle.2" ~ "Particle Shape*",
+#                                   Criteria == "particle.3" ~ "Polymer Type*",
+#                                   Criteria == "particle.4" ~ "Particle Source*",
+#                                   Criteria == "particle.5" ~ "Surface Chemistry",
+#                                   Criteria == "particle.6" ~ "Chemical Purity",
+#                                   Criteria == "particle.7" ~ "Microbial Contamination",
+#                                   Criteria == "design.1" ~ "Concentration Units",
+#                                   Criteria == "design.2" ~ "Particle Stability",
+#                                   Criteria == "design.3" ~ "Test Vehicle*",
+#                                   Criteria == "design.4" ~ "Administered Dose*",
+#                                   Criteria == "design.5" ~ "Homogeneity of Exposure",
+#                                   Criteria == "design.6" ~ "Administration Route*",
+#                                   Criteria == "design.7" ~ "Test Species*",
+#                                   Criteria == "design.8" ~ "Feeding/Housing Conditions",
+#                                   Criteria == "design.9" ~ "Sample Size*",
+#                                   Criteria == "design.10" ~ "Frequency/Duration of Exposure*",
+#                                   Criteria == "design.11" ~ "Controls*",
+#                                   Criteria == "design.12" ~ "Replicates",
+#                                   Criteria == "design.13" ~ "Internal Dose Confirmation",
+#                                   Criteria == "risk.1" ~ "Statistical Analysis",
+#                                   Criteria == "risk.2" ~ "Endpoints*",
+#                                   Criteria == "risk.3" ~ "Dose-Response*",
+#                                   Criteria == "risk.4" ~ "Concentration Range",
+#                                   Criteria == "risk.5" ~ "Effect Thresholds*",
+#                                   Criteria == "risk.6" ~ "Test Particle Relevance")) %>% 
+#     #set order of criteria so theeeeey plot in correct order - they have to be in reverse here
+#     mutate(Criteria_f = factor(Criteria, levels = c("Test Particle Relevance","Effect Thresholds*","Concentration Range","Dose-Response*","Endpoints*","Statistical Analysis",
+#                                                     "Internal Dose Confirmation","Replicates","Controls*","Frequency/Duration of Exposure*","Sample Size*","Feeding/Housing Conditions",
+#                                                     "Test Species*","Administration Route*","Homogeneity of Exposure","Administered Dose*","Test Vehicle*","Particle Stability",
+#                                                     "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*"))) 
+#    
+# })
+#   
+# #Build Plotly
+# quality_plotly <- eventReactive(list(input$go_quality),{
+# 
+# #build ggplot from filtered dataset above
+# quality_filtered() %>%   
+#     ggplot(aes(Study, Criteria_f)) + 
+#     geom_tile(aes(fill = Score_f,
+#                   #define text for hover-over
+#                   text = paste("Study:", Study, "\n",
+#                                "Criteria:", Criteria_f, "\n",
+#                                "Category:", Category_f, "\n",
+#                                "Score:", Score_f, "\n",
+#                                "Organism:", genus, species, "\n",
+#                                "Life Stage:", life_h_f, "\n",
+#                                "Type:", vivo_h_f, "\n",
+#                                "Exposure:", exposure.category, "\n",
+#                                "DOI:", paste0(doi), "\n")),
+#                   color = "white", size = 0.25) +
+#     theme_ipsum() +
+#     scale_fill_manual(name = "Score",
+#                       values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
+#     labs(title = "Screening & Prioritization Scores (In Vivo, Ingestion Studies Only, Red Criteria Indicated by (*))") +
+#     coord_cartesian(clip = "off") + # This keeps the labels from disappearing
+#     theme_minimal(base_size = 14) +
+#     scale_y_discrete(labels = label_wrap(30)) +
+#     facet_grid(Category_f ~ ., scales = "free", space = "free") +
+#     theme(
+#       #axis.text.y = element_text(face = ifelse(RedCriteria_f == "Y", "bold", "plain")), #I want to make the red criteria bold but this won't work :(
+#           axis.title.x = element_blank(),
+#           axis.title.y = element_blank(),
+#           panel.grid.minor=element_blank(),
+#           panel.grid.major=element_blank(),
+#           axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
+#           plot.title = element_text(hjust = 0.5)) %>% 
+#     req(nrow(quality_filtered()) > 0) #suppresses warning message text
+# })
+# 
+# #Render Plotly
+# output$quality_plot <- renderPlotly({
+#   ggplotly(quality_plotly(), tooltip = c("text")) %>% 
+#     layout(legend = list(orientation = "h", #Displays legend horizontally
+#                          xanchor = "center", #Use the center of the legend as an anchor
+#                          x = 0.5, #Center the legend on the x axis
+#                          y = 1.022)) #Places the legend at the top of the plot
+# })
+# 
+# # Create "reset" button to revert all filters back to what they began as.
+# # Need to call all widgets individually by their ids.
+# # See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
+# observeEvent(input$reset_quality, {
+#   shinyjs::reset("lvl1_h_quality")
+#   shinyjs::reset("lvl2_h_quality")
+#   shinyjs::reset("bio_h_quality")
+#   shinyjs::reset("effect_h_quality")
+#   shinyjs::reset("life_h_quality")
+#   shinyjs::reset("poly_h_quality")
+#   shinyjs::reset("shape_h_quality")
+#   shinyjs::reset("size_h_quality")
+#   shinyjs::reset("species_h_quality")
+#   shinyjs::reset("red_criteria_quality")
+# 
+# }) #If we add more widgets, make sure they get added here.
   
 } #Server end
 
