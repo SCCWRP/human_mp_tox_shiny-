@@ -838,13 +838,19 @@ human_setup <- human_v1 %>% # start with original data set
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))  
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))
 
 #### Endpoint Category Setup ####
 
 human_endpoint <- human_setup %>% 
   group_by(vivo_h_f, lvl1_h_f,lvl2_h_f,lvl3_h_f,bio_h_f) %>% 
   summarise()
+
+#### Study Screening Setup ####
+
+human_quality <- human_setup %>% 
+  mutate(all_red_pass_f = factor(case_when(pass.all.red == "Y" ~ "'Red Criteria' Passed",
+                                           pass.all.red == "N" ~ "'Red Criteria' Failed")))
 
 #### User Interface ####
 
@@ -1141,7 +1147,7 @@ br(),
                                   # "Download Data" is the title that appears on the button
                                   
                                   column(width = 3,
-                                         actionButton("reset_input", "Reset Filters"))), # adds update button
+                                         actionButton("reset_input", "Reset Filters", class = "btn-primary"))), # adds update button
                            
                            # "Reset_input" is the internal name
                            # "Reset Filter" is the title that appears on the button  
@@ -1255,36 +1261,45 @@ tabPanel("5: Study Screening",
                               h4("Particle Characteristics")),
                        
                        column(width = 3,
-                              h4("Biological Factors"))),
-                
-                
+                              h4("Biological Factors")),
+                       
+                       column(width = 3,
+                              h4("Quality Criteria"))),
+
                 # widgets
                 column(width = 12,
                        
                        column(width = 3,
                               pickerInput(inputId = "lvl1_h_quality", # endpoint checklist
                                           label = "Broad Endpoint Category:", 
-                                          choices = levels(human_setup$lvl1_h_f),
-                                          selected = levels(human_setup$lvl1_h_f),
+                                          choices = levels(human_quality$lvl1_h_f),
+                                          selected = levels(human_quality$lvl1_h_f),
                                           options = list(`actions-box` = TRUE), # option to de/select all
                                           multiple = TRUE)), # allows for multiple inputs
                        column(width = 3,
                               pickerInput(inputId = "poly_h_quality", # polymer checklist
                                           label = "Polymer:", 
-                                          choices = levels(human_setup$poly_h_f),
-                                          selected = levels(human_setup$poly_h_f),
+                                          choices = levels(human_quality$poly_h_f),
+                                          selected = levels(human_quality$poly_h_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE)),
                        
                        column(width = 3,  
                               pickerInput(inputId = "species_h_quality", # polymer checklist
                                           label = "Species:", 
-                                          choices = levels(human_setup$species_h_f),
-                                          selected = levels(human_setup$species_h_f),
+                                          choices = levels(human_quality$species_h_f),
+                                          selected = levels(human_quality$species_h_f),
+                                          options = list(`actions-box` = TRUE), 
+                                          multiple = TRUE)),
+                       
+                       column(width = 3,  
+                              pickerInput(inputId = "red_criteria_quality", # polymer checklist
+                                          label = "Red Criteria:", 
+                                          choices = levels(human_quality$all_red_pass_f),
+                                          selected = levels(human_quality$all_red_pass_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE))),
-                
-                
+                       
                 # New row of widgets
                 column(width = 12,
                        
@@ -1294,43 +1309,43 @@ tabPanel("5: Study Screening",
                        column(width = 3,
                               pickerInput(inputId = "shape_h_quality", # shape checklist
                                           label = "Shape:", 
-                                          choices = levels(human_setup$shape_h_f),
-                                          selected = levels(human_setup$shape_h_f),
+                                          choices = levels(human_quality$shape_h_f),
+                                          selected = levels(human_quality$shape_h_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE)),
                        
                        column(width = 3,
                               pickerInput(inputId = "bio_h_quality", # bio org checklist
                                           label = "Level of Biological Organization", 
-                                          choices = levels(human_setup$bio_h_f),
-                                          selected = levels(human_setup$bio_h_f),
+                                          choices = levels(human_quality$bio_h_f),
+                                          selected = levels(human_quality$bio_h_f),
                                           options = list(`actions-box` = TRUE),
                                           multiple = TRUE))),
-                
+                       
                 # New row of widgets
                 column(width = 12,
                        
                        column(width = 3,
                               pickerInput(inputId = "effect_h_quality",  # Effect Yes/No widget
                                           label = "Effect:",
-                                          choices = levels(human_setup$effect_h_f),
-                                          selected = levels(human_setup$effect_h_f),
+                                          choices = levels(human_quality$effect_h_f),
+                                          selected = levels(human_quality$effect_h_f),
                                           options = list(`actions-box` = TRUE),
                                           multiple = TRUE)),
                        
                        column(width = 3,
                               pickerInput(inputId = "size_h_quality", # Environment checklist
                                           label = "Size Category:", 
-                                          choices = levels(human_setup$size_h_f),
-                                          selected = levels(human_setup$size_h_f),
+                                          choices = levels(human_quality$size_h_f),
+                                          selected = levels(human_quality$size_h_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE)),
                        
                        column(width = 3,
                               pickerInput(inputId = "life_h_quality", # life stage checklist
                                           label = "Life Stages:", 
-                                          choices = levels(human_setup$life_h_f),
-                                          selected = levels(human_setup$life_h_f),
+                                          choices = levels(human_quality$life_h_f),
+                                          selected = levels(human_quality$life_h_f),
                                           options = list(`actions-box` = TRUE), 
                                           multiple = TRUE))),
                 
@@ -1342,15 +1357,15 @@ tabPanel("5: Study Screening",
                               actionButton("go_quality", "Update Filters", class = "btn-success")),
                        
                        column(width = 3,
-                              actionButton("reset_quality", "Reset Filters"))),
+                              actionButton("reset_quality", "Reset Filters", class = "btn-primary"))),
                 
                 #Button Text
                 
                 column(width = 12,
-                       column(width=3,  
+                       column(width=2,  
                               strong(p("To Begin: Click the 'Update Filters' button above."))),
                        
-                       column(width=3,  
+                       column(width=2, offset = 1,  
                               strong(p("To Reset: Click the 'Reset Filters' button above, followed by the 'Update Filters' button to the left.")))),
                                           
                  
@@ -2083,14 +2098,14 @@ server <- function(input, output) {
                       rep("orchid", length(unique(paste(human_filter_endpoint()$vivo_h_f,human_filter_endpoint()$lvl1_h_f, human_filter_endpoint()$lvl2_h_f, human_filter_endpoint()$lvl3_h_f, human_filter_endpoint()$bio_h_f))))))
   })
   
-##### Quality Scores #####
+##### Study Screening S #####
   
   #Create dependent dropdown checklists: select lvl2 by lvl1.
   output$secondSelection_quality <- renderUI({
     
     lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
     
-    human_new <- human_setup %>% # take original dataset
+    human_new <- human_quality %>% # take original dataset
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
       mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
     
@@ -2103,29 +2118,30 @@ server <- function(input, output) {
   
 quality_filtered <- eventReactive(list(input$go_quality),{
   
-  # every selection widget should be represented as a new variable below
-  lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
-  lvl2_h_c <- input$lvl2_h_quality # assign lvl2 values to "lvl2_c"
-  bio_h_c <- input$bio_h_quality # assign bio values to "bio_c"
-  effect_h_c <- input$effect_h_quality # assign effect values to "effect_c"
-  life_h_c <- input$life_h_quality #assign values to "life_quality"
-  poly_h_c <- input$poly_h_quality # assign values to "poly_c"
-  shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
-  size_h_c <- input$size_h_quality # assign values to "size_c"
-  species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
+  #Assign widget inputs to new variable
+  lvl1_h_c <- input$lvl1_h_quality 
+  lvl2_h_c <- input$lvl2_h_quality
+  bio_h_c <- input$bio_h_quality 
+  effect_h_c <- input$effect_h_quality 
+  life_h_c <- input$life_h_quality 
+  poly_h_c <- input$poly_h_quality 
+  shape_h_c <- input$shape_h_quality
+  size_h_c <- input$size_h_quality 
+  species_h_c<-input$species_h_quality 
+  red_criteria_c<-input$red_criteria_quality
   
-  #make summary dataset to display in heatmap below
-  human_setup %>%
-    #only in vivo Ingestion studies are scored
-    filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-    filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
-    filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
-    filter(effect_h_f %in% effect_h_c) %>% #filter by effect
-    filter(life_h_f %in% life_h_c) %>% #filter by life stage
-    filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
-    filter(shape_h_f %in% shape_h_c) %>% #filter by shape
-    filter(size_h_f %in% size_h_c) %>% #filter by size class
-    filter(species_h_f %in% species_h_c) %>%   #filter by species
+  #Create new data set based on widget selections
+  human_quality %>%
+    filter(lvl1_h_f %in% lvl1_h_c) %>% 
+    filter(lvl2_h_f %in% lvl2_h_c) %>%  
+    filter(bio_h_f %in% bio_h_c) %>% 
+    filter(effect_h_f %in% effect_h_c) %>% 
+    filter(life_h_f %in% life_h_c) %>% 
+    filter(poly_h_f %in% poly_h_c) %>% 
+    filter(shape_h_f %in% shape_h_c) %>% 
+    filter(size_h_f %in% size_h_c) %>% 
+    filter(species_h_f %in% species_h_c) %>%   
+    filter(all_red_pass_f %in% red_criteria_c) %>% 
     mutate(Study = paste0(authors, " (", year,")")) %>% 
     distinct(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, 
              design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, design.13,
@@ -2195,38 +2211,11 @@ quality_filtered <- eventReactive(list(input$go_quality),{
     mutate(Criteria_f = factor(Criteria, levels = c("Test Particle Relevance","Effect Thresholds*","Concentration Range","Dose-Response*","Endpoints*","Statistical Analysis",
                                                     "Internal Dose Confirmation","Replicates","Controls*","Frequency/Duration of Exposure*","Sample Size*","Feeding/Housing Conditions",
                                                     "Test Species*","Administration Route*","Homogeneity of Exposure","Administered Dose*","Test Vehicle*","Particle Stability",
-                                                    "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*"))) %>% 
-    mutate(RedCriteria = case_when(Criteria == "particle.1" ~ "Y",
-                                   Criteria == "particle.2" ~ "Y",
-                                   Criteria == "particle.3" ~ "Y",
-                                   Criteria == "particle.4" ~ "Y",
-                                   Criteria == "particle.5" ~ "N",
-                                   Criteria == "particle.6" ~ "N",
-                                   Criteria == "particle.7" ~ "N",
-                                   Criteria == "design.1" ~ "N",
-                                   Criteria == "design.2" ~ "N",
-                                   Criteria == "design.3" ~ "Y",
-                                   Criteria == "design.4" ~ "Y",
-                                   Criteria == "design.5" ~ "N",
-                                   Criteria == "design.6" ~ "Y",
-                                   Criteria == "design.7" ~ "Y",
-                                   Criteria == "design.8" ~ "N",
-                                   Criteria == "design.9" ~ "Y",
-                                   Criteria == "design.10" ~ "Y",
-                                   Criteria == "design.11" ~ "Y",
-                                   Criteria == "design.12" ~ "N",
-                                   Criteria == "design.13" ~ "N",
-                                   Criteria == "risk.1" ~ "N",
-                                   Criteria == "risk.2" ~ "Y",
-                                   Criteria == "risk.3" ~ "Y",
-                                   Criteria == "risk.4" ~ "N",
-                                   Criteria == "risk.5" ~ "Y",
-                                   Criteria == "risk.6" ~ "N")) %>% 
-    mutate(RedCriteria_f = factor(RedCriteria, levels = c("Y","N")))
-
+                                                    "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*"))) 
+   
 })
   
-##### **Build Plotly -----
+#Build Plotly
 quality_plotly <- eventReactive(list(input$go_quality),{
 
 #build ggplot from filtered dataset above
@@ -2247,9 +2236,9 @@ quality_filtered() %>%
     theme_ipsum() +
     scale_fill_manual(name = "Score",
                       values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
-    labs(title = "Screening & Prioritization Scores (In Vivo, Ingestion Studies Only)") +
+    labs(title = "Screening & Prioritization Scores (In Vivo, Ingestion Studies Only, Red Criteria Indicated by (*))") +
     coord_cartesian(clip = "off") + # This keeps the labels from disappearing
-    theme_minimal(base_size = 12) +
+    theme_minimal(base_size = 14) +
     scale_y_discrete(labels = label_wrap(30)) +
     facet_grid(Category_f ~ ., scales = "free", space = "free") +
     theme(
@@ -2263,9 +2252,13 @@ quality_filtered() %>%
     req(nrow(quality_filtered()) > 0) #suppresses warning message text
 })
 
-##### **Render Plotly -----
+#Render Plotly
 output$quality_plot <- renderPlotly({
-  ggplotly(quality_plotly(), tooltip = c("text"))
+  ggplotly(quality_plotly(), tooltip = c("text")) %>% 
+    layout(legend = list(orientation = "h", #Displays legend horizontally
+                         xanchor = "center", #Use the center of the legend as an anchor
+                         x = 0.5, #Center the legend on the x axis
+                         y = 1.022)) #Places the legend at the top of the plot
 })
 
 # Create "reset" button to revert all filters back to what they began as.
@@ -2281,6 +2274,7 @@ observeEvent(input$reset_quality, {
   shinyjs::reset("shape_h_quality")
   shinyjs::reset("size_h_quality")
   shinyjs::reset("species_h_quality")
+  shinyjs::reset("red_criteria_quality")
 
 }) #If we add more widgets, make sure they get added here.
   
