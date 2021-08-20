@@ -38,9 +38,9 @@ overviewTheme <- function(){
     theme(text = element_text(size=17), plot.title = element_text(hjust = 0.5, face="bold",size=20),legend.position = "right",
           axis.text.x = element_text()) }
 #p.lot
- year_study.plot <- ggplot(allData_summary_year,aes(fill = DataType, y = studies, x = year)) +
+ year_study.plot <- ggplot(allData_summary_year,aes(fill = DataType, y = studies, x = as.numeric(year))) +
   geom_bar(position="stack", stat="identity") +
-   scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
+   scale_x_continuous(breaks = seq(from = 1993, to = 2021, by = 1 ))+ #show all dates
   #geom_text(aes(label= paste0(studies)), position = position_stack(vjust = 0.5),colour="black") +
   scale_fill_manual(values = cal_palette("superbloom2"), labels = c("Environment", "Human"))+
   ylab("Number of Studies") +
@@ -70,14 +70,14 @@ ggsave(year_study.plot,
        scale = 2)
 
 #plot measurements by study type
-year_measurement.plot <- ggplot(allData_summary_year,aes(fill = DataType, y = measurements, x = year)) +
+year_measurement.plot <- ggplot(allData_summary_year,aes(fill = DataType, y = measurements, x = as.numeric(year))) +
   geom_bar(position="stack", stat="identity") +
-  scale_x_continuous(breaks = seq(from = 1993, to = 2020, by = 1 ))+ #show all dates
+  scale_x_continuous(breaks = seq(from = 1993, to = 2021, by = 1 ))+ #show all dates
   #geom_text(aes(label= paste0(studies)), position = position_stack(vjust = 0.5),colour="black") +
   scale_fill_manual(values = cal_palette("superbloom2"), labels = c("Environment", "Human"))+
-  ylab("Number of Studies") +
+  ylab("Number of Measurements in Database") +
   labs(fill="Organism Model") +
-  ggtitle("Microplastics Toxicity Studies over Time")+
+  ggtitle("Microplastics Toxicity Measurements over Time")+
   guides(x = guide_axis(angle = 45))+
   dark_theme_minimal() +
   theme(text = element_text(size = 17),
@@ -119,6 +119,50 @@ ggsave(vitro_measurement.plot,
        height = 3,
        units = "in",
        device = "png",
+       dpi =320,
+       scale = 2)
+
+####plot by in vitro/in vivo (humans only)
+
+#summary table by invitroinvivo and year (humans only)
+human_summary_vitro <- allData %>% 
+  filter(DataType == "Human") %>% 
+  group_by(year, invitro.invivo) %>% 
+  summarize(measurements = n(), studies = n_distinct(doi))
+human_summary_vitro
+  
+
+
+year_study.plot.human <- ggplot(human_summary_vitro,aes(fill = invitro.invivo, y = studies, x = as.numeric(year))) +
+  geom_bar(position="stack", stat="identity") +
+  geom_text(aes(label= paste0(studies)), position = position_stack(vjust = 0.5),colour="black") +
+  scale_x_continuous(breaks = seq(from = 1993, to = 2021, by = 1 ))+ #show all dates
+  #geom_text(aes(label= paste0(studies)), position = position_stack(vjust = 0.5),colour="black") +
+  scale_fill_manual(values = cal_palette("superbloom2"), labels = c("in vitro", "in vivo"))+
+  ylab("Number of Studies") +
+  xlab("Year") +
+  labs(fill="Organism Model") +
+  ggtitle("Microplastics Mammalian Toxicity Studies over Time")+
+  guides(x = guide_axis(angle = 45))+
+  dark_theme_minimal() +
+  theme(text = element_text(size = 17),
+        legend.position = c(0.25, 0.85),
+        plot.title = element_text(hjust = 0.5, face="bold",size=20),
+        legend.title = element_blank(),
+        legend.text = element_text(size = 30),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.text = element_text(size = 16),
+        panel.background = element_rect(color = NULL))
+year_study.plot.human #print
+
+#save
+ggsave(year_study.plot.human,
+       filename = "plots/year_study.plot.human.jpeg",
+       width = 6,
+       height = 3,
+       units = "in",
+       device = "jpeg",
        dpi =320,
        scale = 2)
  
