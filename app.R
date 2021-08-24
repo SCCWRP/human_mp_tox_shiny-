@@ -162,7 +162,7 @@ lifefinal<- data.frame(cbind(lifef, studyli))%>%
 vivodf<-rowPerc(xtabs(~invitro.invivo +effect, human))
 vivof<-as.data.frame(vivodf)%>%
   mutate(effect = case_when(effect == "Y" ~ "Yes",
-                            effect == "N" ~ "No")) %>% 
+                            effect == "N" ~ "No")) %>%
   filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
   rename(Type= "invitro.invivo")%>%
   mutate_if(is.numeric, round,0)%>%
@@ -171,7 +171,7 @@ vivof<-as.data.frame(vivodf)%>%
     Type=="invivo"~"In Vivo",
     Type=="invitro"~"In Vitro"))
 study_v<-xtabs(~invitro.invivo +effect, human)
-vivofinal<- data.frame(cbind(vivof, study_v))%>% 
+vivofinal<- data.frame(cbind(vivof, study_v))%>%
   rename(Endpoints='Freq.1')%>%
   rename(category='invitro.invivo')%>%
   mutate(logEndpoints = log(Endpoints))%>%
@@ -990,56 +990,89 @@ tabItem(tabName = "Welcome",
         
 ),
 
-#### Overview Human UI ####
+#### Overview UI ####
                                       
-tabPanel("2: Overview", 
-br(), 
-h3("Overview of Toxicological Effects in Human Systems", align = "center"),
-br(),
-p("Each bar displays the total number of measured endpoints where a statistically signifcant effect was detected (Y) or where a measurement was made but a significant effect was not detected (N)."), 
-br(),
-p("Detailed descriptions of data categories may be found under the Resources tab."),
-br(),
-#Plot type widget
- selectInput(inputId = "overview.type", "Overview Type (currently only applies to in vitro/in vivo plot):",
-              list("measurements and types" = "measurementsAndTypes", "studies and types" = "studiesAndTypes", "measurements and years" = "measurementsAndYears", "studies and years" = "studiesAndYears")),
+tabItem(tabName = "Overview", 
+        
+        box(title = "Database Overview", status = "primary", width = 12, collapsible = TRUE,
+            
+            p("Select tabs below to explore the database. Each bar displays the total number of measured endpoints where a 
+          statistically signifcant effect was detected (Y) or where a measurement was made but a significant effect was not detected (N)."),
+            
+            br(),
+            
+            fluidRow(
+              tabBox(width = 12,
+                     tabPanel("Exposure Route", 
+                              plotOutput(outputId = "exposure_plot"),
+                     ),
+                     
+                     tabPanel(div(HTML("<i>In vitro</i> vs <i>In vivo</i>")),
+                              plotOutput(outputId = "vivo_plot"),
+                     ),
+                     
+                     tabPanel("Life Stage",
+                              plotOutput(outputId = "life_plot"),
+                     ),
+                     
+                     tabPanel("Endpoint Category",
+                              plotOutput(outputId = "lvl1_plot"),
+                     ),
+                     
+                     tabPanel("Polymer Type",
+                              plotOutput(outputId = "polymer_plot"),
+                     ),
+                     
+                     tabPanel("Particle Morphology",
+                              plotOutput(outputId = "shape_plot"),
+                     ),
+                     
+                     tabPanel("Particle Size",
+                              plotOutput(outputId = "size_plot"),
+                     )),
+              
+            ), #close fluid row
+        ), #close box
 
-column(width = 12,
-       column(width = 12,
-              plotOutput(outputId = "exposure_plot"),
-              br())), 
-
-column(width = 12,
-       column(width = 2,
-              tableOutput('studies'),
-              br()),
-
-       column(width = 2,
-              tableOutput('measurements'),
-              br())),
-
-column(width = 12,
-       column(width = 6,
-              plotOutput(outputId = "vivo_plot"),
-              br()), 
-       
-       column(width = 6,
-              plotOutput(outputId = "life_plot"),
-              br())), 
-
-column(width = 12,
-       
-       column(width = 4,
-              plotOutput(outputId = "polymer_plot"),
-              br()), 
-       
-       column(width = 4,
-              plotOutput(outputId = "shape_plot"),
-              br()), 
-
-       column(width = 4,
-              plotOutput(outputId = "size_plot"),
-              br()))),
+        box(title = "Biological Endpoint Catgorization", status = "primary", width = 12, collapsible = TRUE,
+            
+            br(),
+            p("This plot displays the categorization of measured endpoints in the database. Nodes correspond to the Broad Endpoint Category, 
+        the Specific Endpoint Category, Endpoints and the level of biological organization from left to right. The widget 
+        below may be used to select endpoints at various Biological Levels of Organization. Click nodes to expand and collapse the plot."),
+            br(),
+            
+            fluidRow(
+              
+              column(width = 12,
+                     
+                     column(width = 3,
+                            pickerInput(inputId = "bio_check_endpoint", # bio org checklist
+                                        label = "Level of Biological Organization", 
+                                        choices = levels(human_endpoint$bio_h_f),
+                                        selected = levels(human_endpoint$bio_h_f),
+                                        options = list(`actions-box` = TRUE),
+                                        multiple = TRUE)),
+              ), #closes out column
+              
+              column(width = 12,
+                     
+                     #Go button
+                     column(width = 3,
+                            actionButton("go_endpoint", "Plot Current Selection", icon("rocket"), style="color: #fff; background-color:  #117a65; border-color:  #0e6655")),
+                     
+              ), #closes out column
+              
+              column(width = 12,
+                     #collapsible tree plot
+                     collapsibleTree::collapsibleTreeOutput("plot", height = "400px"),
+                     
+              ), #closes out column
+              
+            ), #close fluid row
+        ), #close box
+        
+), #close tab
        
 #### Exploration Human UI ####
 
@@ -1269,40 +1302,6 @@ br(),
                                          plotOutput(outputId = "poly_h_plot_react", height = "600px"),
                                          br()))),
                                   
-#### Endpoint Category UI ####
-
-tabPanel("4: Endpoint Categorization", 
-         h3("Endpoint Categorization of Toxicological Effects", align = "center"),
-         br(),
-         p("This plot displays the categorization of measured endpoints in the database. Nodes correspond to endpoints assessed in vitro and in vivo (orange), the Broad Endpoint Category (blue), 
-         the Specific Endpoint Category (green), Endpoints (pink) and the level of biological organization (purple). Alternatively, the widget below may be used to select
-         endpoints at various Biological Levels of Organization. Click nodes to expand and collapse the plot."),
-         br(),
-         
-         column(width = 12,
-                
-                column(width = 3, 
-                       pickerInput(inputId = "bio_check_endpoint", # bio org checklist
-                                   label = "Level of Biological Organization", 
-                                   choices = levels(human_endpoint$bio_h_f),
-                                   selected = levels(human_endpoint$bio_h_f),
-                                   options = list(`actions-box` = TRUE),
-                                   multiple = TRUE)),
-         ), #closes out button column
-         
-         column(width = 12,
-                
-                #Go button
-                column(width = 3,
-                       actionButton("go_endpoint", "Update Filters", class = "btn-success")), # adds update action button
-                
-         ), #closes out button column
-         
-         #collapsible tree plot
-         collapsibleTreeOutput("plot", height = "800px"),
-         
-), #closes out tab
-
 #### Study Screening UI ####
 
 tabPanel("5: Study Screening", 
@@ -1499,100 +1498,100 @@ server <- function(input, output) {
 
 #Test code for reactive plots based on measurements or study types  
   
-  output$polymer_plot <- renderPlot({
-#make distinct plots for measurements or studies
-
-#make plot for studies
-if(input$overview.type == "studies"){
-  p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-    geom_bar(position="stack", stat="identity") +
-    geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-    scale_fill_manual(values = cal_palette("seagrass"))+
-    ylab("Number of Studies") +
-    labs(fill="Effect") +
-    ggtitle("Polymer Type") +
-    guides(x = guide_axis(angle = 45))+
-    overviewTheme()
-}
-
-    else{
-      # generate plot
-      p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("seagrass"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        ggtitle("Polymer Type") +
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-
-print(p)
-  })
-
-  #in vitro/in vivo plot
-  output$vivo_plot <- renderPlot({
-
-
-    #measurements and types
-    if(input$overview.type == "measurementsAndTypes"){
-      # generate plot
-      p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Effect") +
-        ggtitle("In Vitro or In Vivo")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-      }
-    #measurements and years
-    if(input$overview.type == "measurementsAndYears" ){
-      # generate plot
-      p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Endpoints Measured") +
-        labs(fill="Study Type") +
-        ggtitle("In Vitro or In Vivo Measurements by Year")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-      #currently displays years as a factor. can't decide if to switch to numeric or not
-      }
-
-    #studies and types
-    if(input$overview.type == "studiesAndTypes"){
-      p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Studies") +
-        labs(fill="Effect") +
-        ggtitle("In Vitro or In Vivo Studies by Type")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-
-    #studies and years
-    if(input$overview.type == "studiesAndYears" ){
-      # generate plot
-      p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= as.numeric(year), Percent=Percent)) +
-        geom_bar(position="stack", stat="identity") +
-        scale_x_continuous(breaks = seq(from = 1993, to = 2021, by = 1 ))+ #show all dates
-        geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
-        scale_fill_manual(values = cal_palette("lupinus"))+
-        ylab("Number of Studies") +
-        labs(fill="Study Type") +
-        ggtitle("In Vitro or In Vivo Studies by Year")+
-        guides(x = guide_axis(angle = 45))+
-        overviewTheme()
-    }
-
-    print(p)
-  })
+#   output$polymer_plot <- renderPlot({
+# #make distinct plots for measurements or studies
+# 
+# #make plot for studies
+# if(input$overview.type == "studies"){
+#   p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#     geom_bar(position="stack", stat="identity") +
+#     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#     scale_fill_manual(values = cal_palette("seagrass"))+
+#     ylab("Number of Studies") +
+#     labs(fill="Effect") +
+#     ggtitle("Polymer Type") +
+#     guides(x = guide_axis(angle = 45))+
+#     overviewTheme()
+# }
+# 
+#     else{
+#       # generate plot
+#       p <- ggplot(polyfinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("seagrass"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Effect") +
+#         ggtitle("Polymer Type") +
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+# 
+# print(p)
+#   })
+# 
+#   #in vitro/in vivo plot
+#   output$vivo_plot <- renderPlot({
+# 
+# 
+#     #measurements and types
+#     if(input$overview.type == "measurementsAndTypes"){
+#       # generate plot
+#       p <- ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Effect") +
+#         ggtitle("In Vitro or In Vivo")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#       }
+#     #measurements and years
+#     if(input$overview.type == "measurementsAndYears" ){
+#       # generate plot
+#       p <- ggplot(vivoFinal_year,aes(fill=Type, y= logEndpoints, x= year, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Endpoints Measured") +
+#         labs(fill="Study Type") +
+#         ggtitle("In Vitro or In Vivo Measurements by Year")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#       #currently displays years as a factor. can't decide if to switch to numeric or not
+#       }
+# 
+#     #studies and types
+#     if(input$overview.type == "studiesAndTypes"){
+#       p <- ggplot(vivoFinal_type_study,aes(fill=effect, y= Studies, x= Type, Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Studies") +
+#         labs(fill="Effect") +
+#         ggtitle("In Vitro or In Vivo Studies by Type")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+# 
+#     #studies and years
+#     if(input$overview.type == "studiesAndYears" ){
+#       # generate plot
+#       p <- ggplot(vivoFinal_year_study,aes(fill=Type, y= Studies, x= as.numeric(year), Percent=Percent)) +
+#         geom_bar(position="stack", stat="identity") +
+#         scale_x_continuous(breaks = seq(from = 1993, to = 2021, by = 1 ))+ #show all dates
+#         geom_text(aes(label= paste0(Studies)), position = position_stack(vjust = 0.5),colour="black") +
+#         scale_fill_manual(values = cal_palette("lupinus"))+
+#         ylab("Number of Studies") +
+#         labs(fill="Study Type") +
+#         ggtitle("In Vitro or In Vivo Studies by Year")+
+#         guides(x = guide_axis(angle = 45))+
+#         overviewTheme()
+#     }
+# 
+#     print(p)
+#   })
 
 
   #Polymer category plot
@@ -1606,37 +1605,56 @@ print(p)
       theme_classic() +
       ylab("Number of Endpoints Measured") +
       labs(fill="Effect") +
-      ggtitle("Polymer Type")+
       guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(text = element_text(size=17))+
       theme(legend.position = "right",
             axis.ticks= element_blank(),
             axis.text.x = element_text(),
             axis.text.y = element_blank(),
             axis.title.x = element_blank())
   })
+  
+  #Broad endpoint category plot
+  output$lvl1_plot <- renderPlot({
+    
+    # generate plot
+    ggplot(lvl1final,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+      scale_fill_manual(values = cal_palette("lupinus"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())+
+      scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 15))
+  })
 
   
-  # #In vivo in vitro plot
-  # output$vivo_plot <- renderPlot({
-  # 
-  #   # generate plot
-  #   ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
-  #     geom_bar(position="stack", stat="identity") +
-  #     geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
-  #     scale_fill_manual(values = cal_palette("lupinus"))+
-  #     theme_classic() +
-  #     ylab("Number of Endpoints Measured") +
-  #     labs(fill="Effect") +
-  #     ggtitle("In Vivo/In Vitro")+
-  #     guides(x = guide_axis(angle = 45))+
-  #     theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
-  #     theme(legend.position = "right",
-  #           axis.ticks= element_blank(),
-  #           axis.text.x = element_text(),
-  #           axis.text.y = element_blank(),
-  #           axis.title.x = element_blank())
-  # })
+  #In vivo in vitro plot
+  output$vivo_plot <- renderPlot({
+
+    # generate plot
+    ggplot(vivofinal,aes(fill=effect, y= logEndpoints, x= Type, Percent=Percent)) +
+      geom_bar(position="stack", stat="identity") +
+      geom_text(aes(label= paste0(Endpoints)), position = position_stack(vjust = 0.5),colour="black", size = 5) +
+      scale_fill_manual(values = cal_palette("kelp2"))+
+      theme_classic() +
+      ylab("Number of Endpoints Measured") +
+      labs(fill="Effect") +
+      guides(x = guide_axis(angle = 45))+
+      theme(text = element_text(size=17))+
+      theme(legend.position = "right",
+            axis.ticks= element_blank(),
+            axis.text.x = element_text(),
+            axis.text.y = element_blank(),
+            axis.title.x = element_blank())
+  })
 
   #Size category plot
   output$size_plot <- renderPlot({
@@ -1649,9 +1667,8 @@ print(p)
       theme_classic() +
       ylab("Number of Endpoints Measured") +
       labs(fill="Effect") +
-      ggtitle("Particle Size")+
       guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(text = element_text(size=17))+
       theme(legend.position = "right",
             axis.ticks= element_blank(),
             axis.text.x = element_text(),
@@ -1670,9 +1687,8 @@ print(p)
       theme_classic() +
       ylab("Number of Endpoints Measured") +
       labs(fill="Effect") +
-      ggtitle("Plastic Shapes")+
       guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(text = element_text(size=17))+
       theme(legend.position = "right",
             axis.ticks= element_blank(),
             axis.text.x = element_text(),
@@ -1690,10 +1706,9 @@ print(p)
       scale_fill_manual(values = cal_palette("lake"))+
       theme_classic() +
       ylab("Number of Endpoints Measured") +
-      ggtitle("Life Stage")+
       labs(fill="Effect") +
       guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(text = element_text(size=17))+
       theme(legend.position = "right",
             axis.ticks= element_blank(),
             axis.text.x = element_text(),
@@ -1712,14 +1727,31 @@ print(p)
       theme_classic() +
       ylab("Number of Endpoints Measured") +
       labs(fill="Effect") +
-      ggtitle("Exposure Route")+
       guides(x = guide_axis(angle = 45))+
-      theme(text = element_text(size=17),plot.title = element_text(hjust = 0.5, face="bold"))+
+      theme(text = element_text(size=17))+
       theme(legend.position = "right",
             axis.ticks= element_blank(),
             axis.text.x = element_text(),
             axis.text.y = element_blank(),
             axis.title.x = element_blank())
+  })
+  
+  #### Endpoint Category S ####
+  
+  human_filter_endpoint <- eventReactive(list(input$go_endpoint),{
+    
+    # biological organization widget
+    bio_c_endpoint <- input$bio_check_endpoint # assign bio values to "bio_c"
+    
+    human_endpoint %>% # take original dataset
+      filter(bio_h_f %in% bio_c_endpoint) #filter by bio organization
+    
+  })
+  
+  output$plot <- renderCollapsibleTree({
+    
+    collapsibleTree(human_filter_endpoint(), root = "Mammalian Database", hierarchy = c("vivo_h_f", "lvl1_h_f", "lvl2_h_f", "lvl3_h_f", "bio_h_f"),
+                    fontSize = 12, zoomable = FALSE)
   })
   
   #### Exploration Human S ####
@@ -2145,36 +2177,7 @@ print(p)
     
   }) #If we add more widgets, make sure they get added here.   
   
-  #### Endpoint Category S ####
-  
-  human_filter_endpoint <- eventReactive(list(input$go_endpoint),{
-    
-    # biological organization widget
-    bio_c_endpoint <- input$bio_check_endpoint # assign bio values to "bio_c"
-    
-    human_endpoint %>% # take original dataset
-      filter(bio_h_f %in% bio_c_endpoint) #filter by bio organization
-    
-  })
-  
-  output$plot <- renderCollapsibleTree({
-    
-    collapsibleTree(human_filter_endpoint(), root = "Mammalian Database", hierarchy = c("vivo_h_f", "lvl1_h_f", "lvl2_h_f", "lvl3_h_f", "bio_h_f"),
-                    fontSize = 16, zoomable = FALSE,    
-                    fill = c(
-                      # The root
-                      "seashell",
-                      # vivo
-                      rep("orange", length(unique(human_filter_endpoint()$vivo_h_f))),
-                      # lvl1
-                      rep("turquoise", length(unique(paste(human_filter_endpoint()$vivo_h_f, human_filter_endpoint()$lvl1_h_f)))),
-                      # lvl2
-                      rep("palegreen", length(unique(paste(human_filter_endpoint()$vivo_h_f,human_filter_endpoint()$lvl1_h_f, human_filter_endpoint()$lvl2_h_f)))),
-                      # lvl3
-                      rep("hotpink", length(unique(paste(human_filter_endpoint()$vivo_h_f, human_filter_endpoint()$lvl1_h_f, human_filter_endpoint()$lvl2_h_f, human_filter_endpoint()$lvl3_h_f)))),
-                      # bio org
-                      rep("orchid", length(unique(paste(human_filter_endpoint()$vivo_h_f,human_filter_endpoint()$lvl1_h_f, human_filter_endpoint()$lvl2_h_f, human_filter_endpoint()$lvl3_h_f, human_filter_endpoint()$bio_h_f))))))
-  })
+
   
 ##### Study Screening S #####
   
