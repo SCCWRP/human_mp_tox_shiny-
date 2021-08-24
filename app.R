@@ -16,7 +16,6 @@ library(shinythemes) #Shiny theme for the page
 library(shinyWidgets) #Widgets
 library(scales) #SSD - Use the percent format
 library(reshape2) #Overview tab - melts bars together
-library(ssdtools) #SSD package
 library(DT) #Build HTML data tables
 library(plotly) #Make plots interactive
 library(viridis) #Colors
@@ -25,7 +24,10 @@ library(shinyjs) #Exploration tab - reset button
 library(tigerstats) #row percent values 
 library(ggbeeswarm) #plot all points nicely
 library(collapsibleTree) #plot type for endpoint category tree
-library(hrbrthemes) #theme for screening plot
+library(ggdark) #dark mode ggplot
+library(ggsci) #color palettes
+library(RColorBrewer) #color palette
+library(viridis) #Colors
 
 # Load finalized dataset.
 
@@ -844,19 +846,61 @@ human_setup <- human_v1 %>% # start with original data set
                                                exposure.route == "gavage" ~ "Gavage",
                                                exposure.route == "gestation" ~ "Gestation",
                                                exposure.route == "gestation,lactation" ~ "Gestation & Lactation",
-                                               exposure.route ==  "Not Applicable"~"Not Applicable (in vitro)")))%>% #Renames for widget - only categories included under 
-                                                                                                                      #ingestion and in vitro are included (we don't want other 
-                                                                                                                      #routes of exposure plotted in exploration because there is so little data)
+                                               exposure.route == "Not Applicable"~"In Vitro",
+                                               exposure.route == "iv.injection" ~ "IV Injection",
+                                               exposure.route == "inhalation" ~ "Inhalation",
+                                               exposure.route == "intratracheal.instillation" ~ "Intratracheal Instillation")))%>%
   mutate(species_h_f = factor(case_when(species == "aries"~"(Sheep) Ovis aries",
                                         species == "sapiens"~"(Human) Homo sapiens",
                                         species == "musculus"~"(Mouse) Mus musculus",
                                         species == "cuniculus"~"(Rabbit) Oryctolagus cuniculus",
                                         species == "domesticus" ~ "(Pig) Sus domesticus",
-                                        species == "norvegicus"~"(Rat) Rattus norvegicus")))   
-  # mutate(year_numeric = as.numeric(year)) %>% 
-  # mutate(year_f = factor(year_numeric)) %>% 
-  # replace_na(list(add.date = "Not Recorded")) %>% 
-  # mutate(add.date_f = factor(add.date))
+                                        species == "norvegicus"~"(Rat) Rattus norvegicus"))) %>% 
+  #Make factor for experiment type
+  mutate(exp_type_f = factor(if_else(is.na(chem), "Particle Only", "Chemical Co-Exposure"))) %>% 
+  
+  #Mass
+  mutate(dose.ug.mL.master = dose.mg.mL.master/1000) %>% 
+  
+  #Particles
+  mutate(dose.particles.mL.master = dose.particles.L.master/1000) %>% 
+  
+  #Volume
+  mutate(dose.um3.mL.master = (particle.volume.um * dose.particles.L.master)/1000) %>%  #calculate volume/mL
+  
+  # #Surface Area
+  # mutate(dose.um2.mL.master = as.numeric(particle.surface.area.um2) * dose.particles.mL.master) %>% 
+  # 
+  # #Specific Surface Area
+  # mutate(dose.um2.ug.mL.master = dose.um2.mL.master / (mass.per.particle.mg / 1000)) %>% #correct mg to ug
+  
+  #Additional tidying for nicer values
+  mutate(authors = gsub(".", " & ", as.character(authors), fixed = TRUE)) %>% 
+  mutate(exposure.media = gsub(".", " ", as.character(exposure.media), fixed = TRUE)) %>%
+  mutate(detergent = gsub(".", " ", as.character(detergent), fixed = TRUE)) %>%
+  mutate(chem = gsub(".", " ", as.character(chem), fixed = TRUE)) %>%
+  mutate(exposure.route = gsub(".", " ", as.character(exposure.route), fixed = TRUE)) %>% 
+  mutate(sol.rinse = gsub(".", " ", as.character(sol.rinse), fixed = TRUE)) %>%
+  mutate(sol.rinse = if_else(sol.rinse == "N", "No", sol.rinse)) %>% 
+  mutate(clean.method = gsub(".", " ", as.character(clean.method), fixed = TRUE)) %>% 
+  mutate(clean.method = if_else(clean.method == "N", "Not Cleaned", clean.method)) %>% 
+  mutate(particle.behavior = gsub(".", " ", as.character(particle.behavior), fixed = TRUE)) %>% 
+  mutate(particle.behavior = if_else(particle.behavior == "N", "Not Evaluated", particle.behavior)) %>%
+  mutate(tissue.distribution = gsub(".", " ", as.character(tissue.distribution), fixed = TRUE)) %>%   
+  
+  #Create factors for red criteria screening
+  mutate(particle_red_criteria = factor(case_when(
+    is.na(particle.1) ~ "Scoring Not Available",
+    particle.1 == 0|particle.2 == 0|particle.3 == 0|particle.4 == 0 ~ "Fail",
+    particle.1 != 0 & particle.2 != 0 & particle.3 != 0 & particle.4 != 0 ~ "Pass"))) %>%
+  mutate(design_red_criteria = factor(case_when(
+    is.na(design.1) ~ "Scoring Not Available",
+    design.3 == 0|design.4 == 0|design.6 == 0|design.7 == 0|design.9 == 0|design.10 == 0|design.11 == 0 ~ "Fail",
+    design.3 != 0 & design.4 != 0 & design.6 != 0 & design.7 != 0 & design.9 != 0 & design.10 != 0 & design.11 != 0 ~ "Pass"))) %>% 
+  mutate(risk_red_criteria = factor(case_when(
+    is.na(risk.1) ~ "Scoring Not Available",
+    risk.2 == 0|risk.3 == 0|risk.5 == 0 ~ "Fail",
+    risk.2 != 0 & risk.3 != 0 & risk.5 != 0 ~ "Pass")))  
 
 #### Endpoint Category Setup ####
 
@@ -1074,233 +1118,340 @@ tabItem(tabName = "Overview",
         
 ), #close tab
        
-#### Exploration Human UI ####
+#### Exploration UI ####
 
-tabPanel("3: Exploration",
+tabItem(tabName = "Exploration",
                                                
-shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
-id = "heili-tab", # adds ID for resetting Heili's tab's filters
+        box(title = "Data Selection", status = "primary", width = 12, collapsible = TRUE,
+            
+            # shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
+            # id = "exploration", # adds ID for resetting filters
+            
+            fluidRow(
+              tabBox(width = 12,
+                     
+                     tabPanel("Data Type",
+                              
+                              fluidRow(
+                                #Data type selection
+                                column(width = 4,
+                                       pickerInput(inputId = "exp_type_check",
+                                                   label = "Data Type:",
+                                                   choices = levels(human_setup$exp_type_f),
+                                                   selected = levels(human_setup$exp_type_f),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)))
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Effect", 
+                              
+                              fluidRow(
+                                #Broad endpoint selection
+                                column(width = 4,
+                                       pickerInput(inputId = "lvl1_h_check", 
+                                                   label = "Broad Endpoint Category:", 
+                                                   choices = levels(human_setup$lvl1_h_f),
+                                                   selected = levels(human_setup$lvl1_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE)), 
+                                
+                                #Specific endpoint selection
+                                column(width = 4,
+                                       pickerInput(inputId = "lvl2_h_check", 
+                                                   label = "Specific Endpoint Category:", 
+                                                   choices = levels(human_setup$lvl2_h_f),
+                                                   selected = levels(human_setup$lvl2_h_f),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                                
+                                #Effect y/n selection
+                                column(width = 4,
+                                       pickerInput(inputId = "effect_h_check",  
+                                                   label = "Effect:",
+                                                   choices = levels(human_setup$effect_h_f),
+                                                   selected = levels(human_setup$effect_h_f),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE))),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Biology", 
+                              
+                              fluidRow(
+                                
+                                #species selection
+                                column(width = 4,
+                                       pickerInput(inputId = "species_h_check", 
+                                                   label = "Species:", 
+                                                   choices = levels(human_setup$species_h_f),
+                                                   selected = levels(human_setup$species_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE),
+                                       
+                                       #biological organization selection
+                                       pickerInput(inputId = "bio_h_check", 
+                                                   label = "Level of Biological Organization", 
+                                                   choices = levels(human_setup$bio_h_f),
+                                                   selected = levels(human_setup$bio_h_f),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                                
+                                #life stage selection
+                                column(width = 4,
+                                       pickerInput(inputId = "life_h_check", 
+                                                   label = "Life Stages:", 
+                                                   choices = levels(human_setup$life_h_f),
+                                                   selected = levels(human_setup$life_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE),     
+                                       
+                                       #exposure duration
+                                       pickerInput(inputId = "exposure_route_h_check", 
+                                                   label = "Exposure Route:", 
+                                                   choices = levels(human_setup$exposure_route_h_f),
+                                                   selected = levels(human_setup$exposure_route_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE))),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Particles", 
+                              
+                              fluidRow(
+                                #polymer selection
+                                column(width = 4,
+                                       pickerInput(inputId = "poly_h_check", 
+                                                   label = "Polymer:", 
+                                                   choices = levels(human_setup$poly_h_f),
+                                                   selected = levels(human_setup$poly_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE)),
+                                
+                                #shape selection
+                                column(width = 4,
+                                       pickerInput(inputId = "shape_h_check", 
+                                                   label = "Shape:", 
+                                                   choices = levels(human_setup$shape_h_f),
+                                                   selected = levels(human_setup$shape_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE)),
+                                
+                                #size category selection
+                                column(width = 4,
+                                       pickerInput(inputId = "size_h_check", # Environment checklist
+                                                   label = "Size Category:", 
+                                                   choices = levels(human_setup$size_h_f),
+                                                   selected = levels(human_setup$size_h_f),
+                                                   options = list(`actions-box` = TRUE), 
+                                                   multiple = TRUE))),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Study Screening", 
+                              
+                              fluidRow(    
+                                column(width = 12,
+                                       p("Only in vivo data are included in the study screening dataset.")), 
+                                
+                                #particle red criteria
+                                column(width = 4,
+                                       pickerInput(inputId = "particle_criteria_check",
+                                                   label = "Particle Criteria:",
+                                                   choices = levels(human_setup$particle_red_criteria),
+                                                   selected = levels(human_setup$particle_red_criteria),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                                
+                                #design red criteria
+                                column(width = 4,
+                                       pickerInput(inputId = "design_criteria_check",
+                                                   label = "Design Criteria:",
+                                                   choices = levels(human_setup$design_red_criteria),
+                                                   selected = levels(human_setup$design_red_criteria),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                                
+                                #risk red criteria
+                                column(width = 4,
+                                       pickerInput(inputId = "risk_criteria_check",
+                                                   label = "Risk Assessment Criteria:",
+                                                   choices = levels(human_setup$risk_red_criteria),
+                                                   selected = levels(human_setup$risk_red_criteria),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE))),
+
+                     ), #close tabpanel
+                     
+                     tabPanel("Dose Metric",
+                              
+                              fluidRow(
+                                column(width = 4,
+                                       radioButtons(inputId = "dose_check", # dosing units
+                                                  label = "Dose Metric:",
+                                                  choices = c("Particles/mL", "µg/mL", "µm3/mL"),
+                                                  selected = "µg/mL")),
+
+                                column(width = 4,
+                                       radioButtons(inputId = "Rep_Con_rad",
+                                                    label = "Do you want to use just the reported, just the converted, or all exposure concentrations?",
+                                                    choices = c("reported", "converted", "all"),
+                                                    selected = "all"))),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Aesthetics", 
+                              
+                               fluidRow(
+                                column(width = 4,
+                                       selectInput(inputId = "plot.type", "Plot Type:",
+                                                   list(boxplot = "boxplot", violin = "violin", beeswarm = "beeswarm"))),
+
+                                column(width = 4,
+                                       selectInput(inputId = "theme.type_exp", "Dark or Light Mode:",
+                                                   list(light = "light", dark = "dark"))),
+
+                                column(width = 4,
+                                       selectInput(inputId = "color.type_exp", "Color Theme:",
+                                                   list(default = "default", viridis = "viridis", brewer = "brewer", tron = "tron", locusZoom = "locusZoom", d3 = "d3", Nature = "Nature", JAMA = "JAMA")))),
+
+                     ) #close tabpanel
+                     
+              ), #close tab box
+            ), #close fluid row
+            
+            column(width = 3,
+                   actionButton("go", "Plot Current Selection", icon("rocket"), style="color: #fff; background-color:  #117a65; border-color:  #0e6655")),
+            
+            column(width = 3,
+                   actionButton("reset_input", "Reset Filters", icon("redo"), style="color: #fff; background-color: #f39c12; border-color: #d68910")), 
+            
+            column(width = 3,
+                   downloadButton("downloadData", "Download Data (Excel File)", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+            
+        ), #close box
                                                
-h3("Exploration of Toxicological Effects in Mammalian Systems", align = "center"),
-br(), 
-p("Each figure displays a different metric along the y-axis - broad endpoint category, specific endpoint category, size, shape, and polymer, respectively.
-  The values in the parentheses represent the number of measurements and studies, respectively, of each metric along the y-axis."),
-br(),
-p("The data displayed in these figures only display data from in vitro studies or in vivo studies where the initial exopsure route was ingestion and doses were reported as mass or counts per volume - other dosing units (e.g., particle mass/food mass) 
-   are not displayed but are available in the complete database file."),
-br(),
-p("Filter the data: The data may be filtered using the drop-down menus located below. Then, click the 'Update Filters' button to refresh the data displayed according to your selections."),
-br(),
-p(strong("The data may be filtered by 'red criteria' for particle characterization, experimental design and applicability for risk assessment. More information about quality screening may be found in the Resources tab. ")),
-br(), 
-p("Change the plot type: The data may be visualized as a boxplot, violin plot or beeswarm plot using the drop-down menu below. Users may also visualize all individual data points by using the checkbox."),
-br(), 
-p("Download the data: Click the 'Download Data' button to retrieve the selected dataset as a '.csv' file."),
-br(),
-                                               
-                           
-                           # widget headers
-                           column(width=12,
-                                  
-                                  column(width = 3,
-                                         h4("Effects")),
-                                  
-                                  column(width = 3,
-                                         h4("Particle Characteristics")),
-                                  
-                                  column(width = 3,
-                                         h4("Biological Factors"))),
-                                 
-                                 
-                           # widgets
-                           column(width = 12,
-                                  
-                                  column(width = 3,
-                                         pickerInput(inputId = "lvl1_h_check", # endpoint checklist
-                                                     label = "Broad Endpoint Category:", 
-                                                     choices = levels(human_setup$lvl1_h_f),
-                                                     selected = levels(human_setup$lvl1_h_f),
-                                                     options = list(`actions-box` = TRUE), # option to de/select all
-                                                     multiple = TRUE)), # allows for multiple inputs
-                                  column(width = 3,
-                                         pickerInput(inputId = "poly_h_check", # polymer checklist
-                                                     label = "Polymer:", 
-                                                     choices = levels(human_setup$poly_h_f),
-                                                     selected = levels(human_setup$poly_h_f),
-                                                     options = list(`actions-box` = TRUE), 
-                                                     multiple = TRUE)),
-                                  
-                                  column(width = 3,
-                                         pickerInput(inputId = "exposure_route_h_check", # polymer checklist
-                                                     label = "Exposure Route:", 
-                                                     choices = levels(human_setup$exposure_route_h_f),
-                                                     selected = levels(human_setup$exposure_route_h_f),
-                                                     options = list(`actions-box` = TRUE), 
-                                                     multiple = TRUE))),
-                                  
-                                  
-                           # New row of widgets
-                           column(width = 12,
-                                  
-                                  column(width = 3,
-                                         htmlOutput("secondSelection")), # dependent endpoint checklist
-                                  
-                                  column(width = 3,
-                                         pickerInput(inputId = "shape_h_check", # shape checklist
-                                                     label = "Shape:", 
-                                                     choices = levels(human_setup$shape_h_f),
-                                                     selected = levels(human_setup$shape_h_f),
-                                                     options = list(`actions-box` = TRUE), 
-                                                     multiple = TRUE)),
-                           
-                                 column(width = 3,
-                                        pickerInput(inputId = "bio_h_check", # bio org checklist
-                                                    label = "Level of Biological Organization", 
-                                                    choices = levels(human_setup$bio_h_f),
-                                                    selected = levels(human_setup$bio_h_f),
-                                                    options = list(`actions-box` = TRUE),
-                                                    multiple = TRUE))),
-                                 
-                           # New row of widgets
-                           column(width = 12,
-                                  
-                                  column(width = 3,
-                                         pickerInput(inputId = "effect_h_check",  # Effect Yes/No widget
-                                                     label = "Effect:",
-                                                     choices = levels(human_setup$effect_h_f),
-                                                     selected = levels(human_setup$effect_h_f),
-                                                     options = list(`actions-box` = TRUE),
-                                                     multiple = TRUE)),
-                                  
-                                  column(width = 3,
-                                         pickerInput(inputId = "size_h_check", # Environment checklist
-                                                     label = "Size Category:", 
-                                                     choices = levels(human_setup$size_h_f),
-                                                     selected = levels(human_setup$size_h_f),
-                                                     options = list(`actions-box` = TRUE), 
-                                                     multiple = TRUE)),
-                                  
-                                  column(width = 3,
-                                         pickerInput(inputId = "life_h_check", # life stage checklist
-                                                     label = "Life Stages:", 
-                                                     choices = levels(human_setup$life_h_f),
-                                                     selected = levels(human_setup$life_h_f),
-                                                     options = list(`actions-box` = TRUE), 
-                                                     multiple = TRUE))),
-                                  
-                            column(width = 12,
-       
-                                  column(width = 3, offset = 6, 
-                                         pickerInput(inputId = "species_h_check", # polymer checklist
-                                                     label = "Species:", 
-                                                     choices = levels(human_setup$species_h_f),
-                                                     selected = levels(human_setup$species_h_f),
-                                                     options = list(`actions-box` = TRUE), 
-                                                     multiple = TRUE))),
-                           
-                           # New row of widgets
-                           #column(width=12,
-                                  
-                                  #column(width = 3),
-                                  
-                                  #Slider Widget - commented out for now
-                                  #column(width = 3,
-                                  #sliderInput("range", # Allows for max input
-                                  #label = "Particle Size (µm):", #Labels widget
-                                  #min = 0, max = 4000, value = 4000)),
-
-                                radioButtons(inputId = "dose_check", # dosing units
-                                             label = "Particles/L or mg/mL:",
-                                             choices = c("Particles/L", "mg/mL"),
-                                             selected = "mg/mL"),
+        box(title = "Data Visualization", status = "primary", width = 12,
+            
+            fluidRow(
+              tabBox(width = 12,
+                     
+                     tabPanel("Exposure Route",
+                              
+                              fluidRow(
+                                column(width = 12,      
+                                       plotOutput(outputId = "exposure_route_h_plot_react", height = "600px")),
                                 
-                                p("Concentrations may be reported in mass/volume or particle #/volume (or sometimes both). Using methods described in", a(href ="https://pubs.acs.org/doi/10.1021/acs.est.0c02982", "Koelmans et. al (2020)"), " units have been converted."),
+                                column(width = 3,
+                                       downloadButton("downloadexploration_exproute", "Download Plot", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))),
+                              
+                     ),#closes tab panel
+                     
+                     
+                     tabPanel("Broad Endpoint Category",
+                              
+                              fluidRow(
+                                column(width = 12,      
+                                       plotOutput(outputId = "lvl_h_plot_react", height = "600px")),
                                 
-                                radioButtons(inputId = "Rep_Con_rad",
-                                             label = "Do you want to use just the reported, just the converted, or all exposure concentrations?",
-                                             choices = c("reported", "converted", "all"),
-                                             selected = "all"),
-                                selectInput(inputId = "plot.type", "Plot Type:", 
-                                            list(boxplot = "boxplot", violin = "violin", beeswarm = "beeswarm") #need to fix, just comment out for now
-                                            ),
-                                checkboxInput(inputId = "show.points", "Show All Points", FALSE),
-
-
-                           # New row of widgets
-                           column(width=12,
-                                  column(width = 3,
-                                         actionButton("go", "Update Filters", class = "btn-success")), # adds update action button
-                                  # "go" is the internal name to refer to the button
-                                  # "Update Filters" is the title that appears on the app
-                                  
-                                  column(width = 3,
-                                         downloadButton("downloadData", "Download Data", class = "btn-info")), # adds download button
-                                  
-                                  # "downloadData" is the internal name
-                                  # "Download Data" is the title that appears on the button
-                                  
-                                  column(width = 3,
-                                         actionButton("reset_input", "Reset Filters", class = "btn-primary"))), # adds update button
-                           
-                           # "Reset_input" is the internal name
-                           # "Reset Filter" is the title that appears on the button  
-                           
-                           # New row
-                           column(width=12,  
-                                  column(width = 3,
-                                         br(),
-                                         strong(p("To Begin: Click the 'Update Filters' button above.")),
-                                         br()),
-                                  column(width = 3),
-                                  column(width = 3,
-                                         br(),
-                                         strong(p("To Reset: Click the 'Reset Filters' button above, followed by the 'Update Filters' button to the left.")),
-                                         br())), 
-                           
-                           # New row
-                           column(width = 12,
-                                  hr()), # adds divider
-                           
-                           #column(width = 12,
-                           #plotOutput(outputId = "organism_plot_react"),
-                           #br())), 
-                           
-                           column(width = 12,
-                                  
-                                  column(width = 12,
-                                         plotOutput(outputId = "lvl_h_plot_react", height = "600px"),
-                                         br())), 
+                                column(width = 3,
+                                       downloadButton("downloadexploration_lvl1", "Download Plot", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))),
+                              
+                     ),#closes tab panel
+                     
+                     tabPanel("Specific Endpoint Category", 
+                              
+                              fluidRow(  
+                                column(width = 12,
+                                       plotOutput(outputId = "lvl2_h_plot_react", height = "auto")),
                                 
+                                column(width = 3,
+                                       downloadButton("downloadexploration_lvl2", "Download Plot", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))),
+                              
+                     ),#closes tab panel
+                     
+                     tabPanel("Size",
+                              
+                              fluidRow(
+                                column(width = 12,      
+                                       plotOutput(outputId = "size_h_plot_react", height = "600px")),
                                 
-                           column(width = 12,
-                                  
-                                  column(width = 12,
-                                         plotOutput(outputId = "lvl2_h_plot_react", height = "600px"),
-                                         br())), 
-                                  
-                           column(width = 12,
-                                  
-                                  column(width = 12,
-                                         plotOutput(outputId = "exposure_route_h_plot_react", height = "600px"),
-                                         br())), 
-                             
-                           column(width = 12,
-                                  
-                                  column(width = 12,
-                                         plotOutput(outputId = "size_h_plot_react", height = "600px"),
-                                         br())), 
-                                 
-                           column(width = 12,
-                                  
-                                  column(width = 12,
-                                         plotOutput(outputId = "shape_h_plot_react", height = "600px"),
-                                         br())), 
-
-                           column(width = 12,
-                                  
-                                  column(width = 12,
-                                         plotOutput(outputId = "poly_h_plot_react", height = "600px"),
-                                         br()))),
+                                column(width = 3,
+                                       downloadButton("downloadexploration_size", "Download Plot", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))),
+                              
+                     ),#closes tab panel
+                     
+                     tabPanel("Shape",
+                              
+                              fluidRow(
+                                column(width = 12,      
+                                       plotOutput(outputId = "shape_h_plot_react", height = "600px")),
+                                
+                                column(width = 3,
+                                       downloadButton("downloadexploration_shape", "Download Plot", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))),
+                              
+                     ),#closes tab panel
+                     
+                     tabPanel("Polymer",
+                              
+                              fluidRow(
+                                column(width = 12,      
+                                       plotOutput(outputId = "poly_h_plot_react", height = "600px")),
+                                
+                                column(width = 3,
+                                       downloadButton("downloadexploration_poly", "Download Plot", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4"))),
+                              
+                     ),#closes tab panel
+                     br(),       
+                     p("Data labels on the far right of each plot represent the number of measurements and studies, respectively.")
+                     
+              ), #closes tab box
+            ), #closes fluid tab
+        ), #closes box
+                
+                           
+                          
+                           # #column(width = 12,
+                           # #plotOutput(outputId = "organism_plot_react"),
+                           # #br())), 
+                           # 
+                           # column(width = 12,
+                           #        
+                           #        column(width = 12,
+                           #               plotOutput(outputId = "lvl_h_plot_react", height = "600px"),
+                           #               br())), 
+                           #      
+                           #      
+                           # column(width = 12,
+                           #        
+                           #        column(width = 12,
+                           #               plotOutput(outputId = "lvl2_h_plot_react", height = "600px"),
+                           #               br())), 
+                           #        
+                           # column(width = 12,
+                           #        
+                           #        column(width = 12,
+                           #               plotOutput(outputId = "exposure_route_h_plot_react", height = "600px"),
+                           #               br())), 
+                           #   
+                           # column(width = 12,
+                           #        
+                           #        column(width = 12,
+                           #               plotOutput(outputId = "size_h_plot_react", height = "600px"),
+                           #               br())), 
+                           #       
+                           # column(width = 12,
+                           #        
+                           #        column(width = 12,
+                           #               plotOutput(outputId = "shape_h_plot_react", height = "600px"),
+                           #               br())), 
+                           # 
+                           # column(width = 12,
+                           #        
+                           #        column(width = 12,
+                           #               plotOutput(outputId = "poly_h_plot_react", height = "600px"),
+                           #               br()))
+), #close tab
                                   
 #### Study Screening UI ####
 
@@ -1736,7 +1887,7 @@ server <- function(input, output) {
             axis.title.x = element_blank())
   })
   
-  #### Endpoint Category S ####
+  # Endpoint Category Plot
   
   human_filter_endpoint <- eventReactive(list(input$go_endpoint),{
     
@@ -1756,72 +1907,73 @@ server <- function(input, output) {
   
   #### Exploration Human S ####
   
- #Create dependent dropdown checklists: select lvl2 by lvl1.
-  output$secondSelection <- renderUI({
-    
-    lvl1_h_c <- input$lvl1_h_check # assign level values to "lvl1_c"
-    
-    human_new <- human_setup %>% # take original dataset
-      filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-      mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
-    
-    pickerInput(inputId = "lvl2_h_check", 
-                label = "Specific Endpoint within Broad Category:", 
-                choices = levels(human_new$lvl2_f_new),
-                selected = levels(human_new$lvl2_f_new),
-                options = list(`actions-box` = TRUE),
-                multiple = TRUE)})
-  
   # Create new dataset based on widget filtering and adjusted to reflect the presence of the "update" button.
   human_filter <- eventReactive(list(input$go),{
     # eventReactive explicitly delays activity until you press the button
     # use the inputs to create a new dataset that will be fed into the renderPlot calls below
     
     # every selection widget should be represented as a new variable below
-    lvl1_h_c <- input$lvl1_h_check # assign level values to "lvl1_c"
-    lvl2_h_c <- input$lvl2_h_check # assign lvl2 values to "lvl2_c"
-    bio_h_c <- input$bio_h_check # assign bio values to "bio_c"
-    effect_h_c <- input$effect_h_check # assign effect values to "effect_c"
-    life_h_c <- input$life_h_check #assign values to "life_check"
-    poly_h_c <- input$poly_h_check # assign values to "poly_c"
-    shape_h_c <- input$shape_h_check # assign values to "shape_c" 
-    size_h_c <- input$size_h_check # assign values to "size_c"
-    exposure_route_h_c<-input$exposure_route_h_check#assign values to exposure
-    species_h_c<-input$species_h_check #assign values to "species_h_c"
-    dose_check <- input$dose_check #renames selection from radio button
-    Rep_Con_rad <- input$Rep_Con_rad #use nominal or calculated exposure concentrations. Options are TRUE (calculated) or FALSE (reported)
+    lvl1_h_c <- input$lvl1_h_check 
+    lvl2_h_c <- input$lvl2_h_check 
+    bio_h_c <- input$bio_h_check 
+    effect_h_c <- input$effect_h_check 
+    life_h_c <- input$life_h_check 
+    poly_h_c <- input$poly_h_check 
+    shape_h_c <- input$shape_h_check 
+    size_h_c <- input$size_h_check 
+    exposure_route_h_c<-input$exposure_route_h_check
+    species_h_c<-input$species_h_check 
+    dose_check <- input$dose_check 
+    Rep_Con_rad <- input$Rep_Con_rad 
+    exp_type_c <- input$exp_type_check
+    particle_criteria_c <- input$particle_criteria_check
+    design_criteria_c <- input$design_criteria_check
+    risk_criteria_c <- input$risk_criteria_check
     
-    #filter out reported, calcualted, or all based on checkbox and make new variable based on mg/L or particles/mL
-    if(Rep_Con_rad == "reported" & dose_check == "mg/mL"){
+    #filter out reported, calculated, or all based on checkbox and make new variable based on mg/L or particles/mL
+    if(Rep_Con_rad == "reported" & dose_check == "µg/mL"){
       human_setup <- human_setup %>% 
         filter(dose.mg.mL.master.reported.converted == "reported") %>% 
-        mutate(dose_new = dose.mg.mL.master)}
+        mutate(dose_new = dose.ug.mL.master)}
     
-    if(Rep_Con_rad == "converted" & dose_check == "mg/mL"){
+    if(Rep_Con_rad == "converted" & dose_check == "µg/mL"){
       human_setup <- human_setup %>%
         filter(dose.mg.mL.master.reported.converted == "converted") %>% 
-        mutate(dose_new = dose.mg.mL.master)}
+        mutate(dose_new = dose.ug.mL.master)}
     
-    if(Rep_Con_rad == "all" & dose_check == "mg/mL"){
+    if(Rep_Con_rad == "all" & dose_check == "µg/mL"){
       human_setup <- human_setup %>%
-        mutate(dose_new = dose.mg.mL.master)}
+        mutate(dose_new = dose.ug.mL.master)}
     
-    if(Rep_Con_rad == "reported" & dose_check == "Particles/L"){
+    if(Rep_Con_rad == "reported" & dose_check == "Particles/mL"){
       human_setup <- human_setup %>%
         filter(dose.particles.L.master.reported.converted == "reported") %>% 
-        mutate(dose_new = dose.particles.L.master)}
+        mutate(dose_new = dose.particles.mL.master)}
     
-    if(Rep_Con_rad == "converted" & dose_check == "Particles/L"){
+    if(Rep_Con_rad == "converted" & dose_check == "Particles/mL"){
       human_setup <- human_setup %>%
         filter(dose.particles.L.master.reported.converted == "converted") %>% 
-        mutate(dose_new = dose.particles.L.master)} 
+        mutate(dose_new = dose.particles.mL.master)} 
     
-    if(Rep_Con_rad == "all" & dose_check == "Particles/L"){
+    if(Rep_Con_rad == "all" & dose_check == "Particles/mL"){
       human_setup <- human_setup %>%
-        mutate(dose_new = dose.particles.L.master)}
+        mutate(dose_new = dose.particles.mL.master)}
+    
+    if(Rep_Con_rad == "reported" & dose_check == "µm3/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "reported") %>% 
+        mutate(dose_new = dose.um3.mL.master)}
+    
+    if(Rep_Con_rad == "converted" & dose_check == "µm3/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "converted") %>% 
+        mutate(dose_new = dose.um3.mL.master)} 
+    
+    if(Rep_Con_rad == "all" & dose_check == "µm3/mL"){
+      human_setup <- human_setup %>%
+        mutate(dose_new = dose.um3.mL.master)}
     
     human_setup %>% # take original dataset
-      #filter(vivo_h_f %in% vivo_h_c) %>% #filter by invivo or invitro
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
       filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs 
       filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
@@ -1831,10 +1983,11 @@ server <- function(input, output) {
       filter(shape_h_f %in% shape_h_c) %>% #filter by shape
       filter(size_h_f %in% size_h_c) %>% #filter by size class
       filter(exposure_route_h_f %in% exposure_route_h_c)%>% #filter by exposure route
-      filter(species_h_f %in% species_h_c)  #filter by species
-      
-      #filter(size.length.um.used.for.conversions <= range_n) #For size slider widget - currently commented out
-    
+      filter(species_h_f %in% species_h_c) %>%   #filter by species
+      filter(exp_type_f %in% exp_type_c) %>% 
+      filter(particle_red_criteria %in% particle_criteria_c) %>% 
+      filter(design_red_criteria %in% design_criteria_c) %>%
+      filter(risk_red_criteria %in% risk_criteria_c) 
   })
   
   output$caption<-renderText({ #rename plot types in UI
@@ -1847,16 +2000,41 @@ server <- function(input, output) {
   
   # Use newly created dataset from above to generate plots for size, shape, polymer, and endpoint plots on four different rows.
   
-  
   # Size Plot
-  output$size_h_plot_react <- renderPlot({
-    
+  size_h_plot_react <- eventReactive(list(input$go),{
+  
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2) #groupOnX specifies groups on y axis
-                        )
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), 
+                                                    method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis
+    
+    #Theme type
+    theme.type<-switch(input$theme.type_exp,
+                       "light" 	= theme_classic(),
+                       "dark" = dark_theme_bw()) 
+    #color selection
+    fill.type <- switch(input$color.type_exp,
+                        "default" =  scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")),
+                        "viridis" = scale_fill_viridis(discrete = TRUE),
+                        "brewer" =  scale_fill_brewer(palette = "Paired"),
+                        "tron" = scale_fill_tron(),
+                        "locusZoom" = scale_fill_locuszoom(),
+                        "d3" = scale_fill_d3(),
+                        "Nature" = scale_fill_npg(),
+                        "JAMA" = scale_fill_jama())
+    #color selection
+    color.type <- switch(input$color.type_exp,
+                         "default" =  scale_color_manual(values = c("#A1CAF6", "#4C6FA1")),
+                         "viridis" = scale_color_viridis(discrete = TRUE),
+                         "brewer" =  scale_color_brewer(palette = "Paired"),
+                         "tron" = scale_color_tron(),
+                         "locusZoom" = scale_color_locuszoom(),
+                         "d3" = scale_color_d3(),
+                         "Nature" = scale_color_npg(),
+                         "JAMA" = scale_color_jama())
+    
     #Create new dataset to gather number of studies and measurements by size
     human_size1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1866,47 +2044,77 @@ server <- function(input, output) {
                 studies = n_distinct(article))
       
     #Render reactive plot
-      p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f, fill = effect_h_f)) + #define base ggplot
-        plot.type + #adds user-defined geom()
-        scale_x_log10() +
-        scale_color_manual(values = c("#A1CAF6", "#4C6FA1")) +
-        scale_fill_manual(values = c("#A1CAF6", "#4C6FA1")) +
-        geom_label_repel(data = human_size1, 
-                         aes(label = paste("(",measurements,",",studies,")")),
-                         hjust = 0,
-                         direction = "y", 
-                         nudge_x = 1000000000,
-                         segment.colour = NA, size = 3.5, show.legend = FALSE) +
-        theme_classic() +
+      p <- ggplot(human_filter(), aes(x = dose_new, y = size_h_f, fill = effect_h_f)) + 
+        plot.type + 
+        coord_trans(x = "log10") +
+        scale_x_continuous(breaks = scales::trans_breaks("log10", function(x) 10^x, n = 10),
+                           labels = trans_format("log10", scales::math_format(10^.x))) +
+        scale_y_discrete(limits=rev)+
+        color.type +
+        fill.type +
+        geom_text(data = human_size1, 
+                  aes(label = paste("(",measurements,",",studies,")"),
+                      y = size_h_f,
+                      x = Inf,
+                      hjust = 1),
+                  position = position_dodge(.9),
+                  size = 4.5, color = "black")+
+        theme.type +
         theme(text = element_text(size=18), 
               legend.position = "right") +
+        facet_wrap(~vivo_h_f)+
         labs(x = input$dose_check,
              y = "Size",
              color = "Effect?",
              fill = "Effect?",
-             caption = (input$Rep_Con_rad))+
-        facet_wrap(~vivo_h_f)%>%
-        req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+             caption = (input$Rep_Con_rad))%>%
+        req(nrow(human_filter()) > 0)
       
-      if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-        p<-p+geom_point(aes(color = effect_h_f), alpha=0.8, position = 'jitter')
-      }
-      
-    else {
-    p
-    }
     print(p)
+  
+    })
+  
+  output$size_h_plot_react <- renderPlot({
+    
+    size_h_plot_react()
+    
   })
   
   # Shape Plot
   
-  output$shape_h_plot_react <- renderPlot({
+  shape_h_plot_react <- eventReactive(list(input$go),{
     
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
-                     "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), 
+                                                    method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis
+    
+    #Theme type
+    theme.type<-switch(input$theme.type_exp,
+                       "light" 	= theme_classic(),
+                       "dark" = dark_theme_bw()) 
+    #color selection
+    fill.type <- switch(input$color.type_exp,
+                        "default" =  scale_fill_manual(values = c("#C7EAE5","#35978F")),
+                        "viridis" = scale_fill_viridis(discrete = TRUE),
+                        "brewer" =  scale_fill_brewer(palette = "Paired"),
+                        "tron" = scale_fill_tron(),
+                        "locusZoom" = scale_fill_locuszoom(),
+                        "d3" = scale_fill_d3(),
+                        "Nature" = scale_fill_npg(),
+                        "JAMA" = scale_fill_jama())
+    #color selection
+    color.type <- switch(input$color.type_exp,
+                         "default" =  scale_color_manual(values = c("#C7EAE5","#35978F")),
+                         "viridis" = scale_color_viridis(discrete = TRUE),
+                         "brewer" =  scale_color_brewer(palette = "Paired"),
+                         "tron" = scale_color_tron(),
+                         "locusZoom" = scale_color_locuszoom(),
+                         "d3" = scale_color_d3(),
+                         "Nature" = scale_color_npg(),
+                         "JAMA" = scale_color_jama())
     
     human_shape1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -1914,98 +2122,159 @@ server <- function(input, output) {
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
-    #build plot
-    p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f, fill = effect_h_f)) +
-      scale_x_log10() +
-      plot.type + #adds user-defined geom()
-      scale_color_manual(values = c("#C7EAE5","#35978F")) +
-      scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
-      geom_label_repel(data = human_shape1, 
-                       aes(label = paste("(",measurements,",",studies,")")),
-                       hjust = 0,
-                       direction = "y", 
-                       nudge_x = 1000000000,
-                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
-      theme_classic() +
+    
+    #Render reactive plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = shape_h_f, fill = effect_h_f)) + 
+      plot.type + 
+      coord_trans(x = "log10") +
+      scale_x_continuous(breaks = scales::trans_breaks("log10", function(x) 10^x, n = 10),
+                         labels = trans_format("log10", scales::math_format(10^.x))) +
+      scale_y_discrete(limits=rev)+
+      color.type +
+      fill.type +
+      geom_text(data = human_shape1, 
+                aes(label = paste("(",measurements,",",studies,")"),
+                    y = shape_h_f,
+                    x = Inf,
+                    hjust = 1),
+                position = position_dodge(.9),
+                size = 4.5, color = "black")+
+      theme.type +
       theme(text = element_text(size=18), 
             legend.position = "right") +
+      facet_wrap(~vivo_h_f)+
       labs(x = input$dose_check,
            y = "Shape",
            color = "Effect?",
            fill = "Effect?",
-           caption = (input$Rep_Con_rad))+
-      facet_wrap(~vivo_h_f)%>%
-      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+           caption = (input$Rep_Con_rad))%>%
+      req(nrow(human_filter()) > 0)
     
-    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
-    }
-    
-    else {
-      p
-    }
     print(p)
+    
+  })
+  
+  output$shape_h_plot_react <- renderPlot({
+    
+    shape_h_plot_react()
     
   })
   
   # Polymer Plot
   
-  output$poly_h_plot_react <- renderPlot({
+  poly_h_plot_react <- eventReactive(list(input$go),{
     
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), 
+                                                    method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis
+    
+    #Theme type
+    theme.type<-switch(input$theme.type_exp,
+                       "light" 	= theme_classic(),
+                       "dark" = dark_theme_bw()) 
+    #color selection
+    fill.type <- switch(input$color.type_exp,
+                        "default" =  scale_fill_manual(values = c("#FAB455", "#A5683C")),
+                        "viridis" = scale_fill_viridis(discrete = TRUE),
+                        "brewer" =  scale_fill_brewer(palette = "Paired"),
+                        "tron" = scale_fill_tron(),
+                        "locusZoom" = scale_fill_locuszoom(),
+                        "d3" = scale_fill_d3(),
+                        "Nature" = scale_fill_npg(),
+                        "JAMA" = scale_fill_jama())
+    #color selection
+    color.type <- switch(input$color.type_exp,
+                         "default" =  scale_color_manual(values = c("#FAB455", "#A5683C")),
+                         "viridis" = scale_color_viridis(discrete = TRUE),
+                         "brewer" =  scale_color_brewer(palette = "Paired"),
+                         "tron" = scale_color_tron(),
+                         "locusZoom" = scale_color_locuszoom(),
+                         "d3" = scale_color_d3(),
+                         "Nature" = scale_color_npg(),
+                         "JAMA" = scale_color_jama())
+    
     human_poly1 <- human_filter() %>%
       drop_na(dose_new) %>%
       group_by(poly_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
                 measurements = n(),
                 studies = n_distinct(article))
-    #build plot
-    p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f, fill = effect_h_f)) +
-      scale_x_log10() +
-      plot.type + #adds user-defined geom()
-      scale_color_manual(values = c("#FAB455", "#A5683C")) +
-      scale_fill_manual(values = c("#FAB455", "#A5683C")) +
-      geom_label_repel(data = human_poly1, 
-                       aes(label = paste("(",measurements,",",studies,")")),
-                       hjust = 0,
-                       direction = "y", 
-                       nudge_x = 1000000000,
-                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
-      theme_classic() +
-      theme(text = element_text(size=18),
+    
+    #Render reactive plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = poly_h_f, fill = effect_h_f)) + 
+      plot.type + 
+      coord_trans(x = "log10") +
+      scale_x_continuous(breaks = scales::trans_breaks("log10", function(x) 10^x, n = 10),
+                         labels = trans_format("log10", scales::math_format(10^.x))) +
+      scale_y_discrete(limits=rev)+
+      color.type +
+      fill.type +
+      geom_text(data = human_poly1, 
+                aes(label = paste("(",measurements,",",studies,")"),
+                    y = poly_h_f,
+                    x = Inf,
+                    hjust = 1),
+                position = position_dodge(.9),
+                size = 4.5, color = "black")+
+      theme.type +
+      theme(text = element_text(size=18), 
             legend.position = "right") +
+      facet_wrap(~vivo_h_f)+
       labs(x = input$dose_check,
            y = "Polymer",
            color = "Effect?",
            fill = "Effect?",
-           caption = (input$Rep_Con_rad))+
-      facet_wrap(~vivo_h_f)%>%
-      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+           caption = (input$Rep_Con_rad))%>%
+      req(nrow(human_filter()) > 0)
     
-    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
-    }
-    
-    else {
-      p
-    }
     print(p)
+    
+  })
+  
+  output$poly_h_plot_react <- renderPlot({
+    
+    poly_h_plot_react()
+    
   })
   
   # Endpoint Plot
   
-  output$lvl_h_plot_react <- renderPlot({
+  lvl_h_plot_react <- eventReactive(list(input$go),{
     
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
-    #build plot 
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), 
+                                                    method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis
+    #Theme type
+    theme.type<-switch(input$theme.type_exp,
+                       "light" 	= theme_classic(),
+                       "dark" = dark_theme_bw()) 
+    #color selection
+    fill.type <- switch(input$color.type_exp,
+                        "default" =  scale_fill_manual(values = c("#A99CD9", "#6C568C")),
+                        "viridis" = scale_fill_viridis(discrete = TRUE),
+                        "brewer" =  scale_fill_brewer(palette = "Paired"),
+                        "tron" = scale_fill_tron(),
+                        "locusZoom" = scale_fill_locuszoom(),
+                        "d3" = scale_fill_d3(),
+                        "Nature" = scale_fill_npg(),
+                        "JAMA" = scale_fill_jama())
+    #color selection
+    color.type <- switch(input$color.type_exp,
+                         "default" =  scale_color_manual(values = c("#A99CD9", "#6C568C")),
+                         "viridis" = scale_color_viridis(discrete = TRUE),
+                         "brewer" =  scale_color_brewer(palette = "Paired"),
+                         "tron" = scale_color_tron(),
+                         "locusZoom" = scale_color_locuszoom(),
+                         "d3" = scale_color_d3(),
+                         "Nature" = scale_color_npg(),
+                         "JAMA" = scale_color_jama())
+    
     human_lvl1 <- human_filter() %>%
     drop_na(dose_new) %>%
       group_by(lvl1_h_f, vivo_h_f, effect_h_f) %>% 
@@ -2013,49 +2282,80 @@ server <- function(input, output) {
                 measurements = n(),
                 studies = n_distinct(article))
     
-    p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f, fill = effect_h_f)) +
-      scale_x_log10() +
-      plot.type + #adds user-defined geom()
-      scale_color_manual(values = c("#A99CD9", "#6C568C")) +
-      scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
-      geom_label_repel(data = human_lvl1, 
-                       aes(label = paste("(",measurements,",",studies,")")),
-                       hjust = 0,
-                       direction = "y", 
-                       nudge_x = 1000000000,
-                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
-      theme_classic() +
-      theme(text = element_text(size=18),
+    #Render reactive plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = lvl1_h_f, fill = effect_h_f)) + 
+      plot.type + 
+      coord_trans(x = "log10") +
+      scale_x_continuous(breaks = scales::trans_breaks("log10", function(x) 10^x, n = 10),
+                         labels = trans_format("log10", scales::math_format(10^.x))) +
+      scale_y_discrete(limits=rev)+
+      color.type +
+      fill.type +
+      geom_text(data = human_lvl1, 
+                aes(label = paste("(",measurements,",",studies,")"),
+                    y = lvl1_h_f,
+                    x = Inf,
+                    hjust = 1),
+                position = position_dodge(.9),
+                size = 4.5, color = "black")+
+      theme.type +
+      theme(text = element_text(size=18), 
             legend.position = "right") +
+      facet_wrap(~vivo_h_f)+
       labs(x = input$dose_check,
-           y = "Endpoint",
+           y = "Broad Endpoint Category",
            color = "Effect?",
            fill = "Effect?",
-           caption = (input$Rep_Con_rad))+
-      facet_wrap(~vivo_h_f)%>%
-      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+           caption = (input$Rep_Con_rad))%>%
+      req(nrow(human_filter()) > 0)
     
-    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
-    }
-    
-    else {
-      p
-    }
     print(p)
+    
+  })
+  
+  output$lvl_h_plot_react <- renderPlot({
+    
+    lvl_h_plot_react()
     
   })
   
   #Lvl2 Plot 
   
-  output$lvl2_h_plot_react <- renderPlot({
+  lvl2_h_plot_react <- eventReactive(list(input$go),{
+    
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), 
+                                                    method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis
     
-    human_lvl21 <- human_filter() %>%
+    #Theme type
+    theme.type<-switch(input$theme.type_exp,
+                       "light" 	= theme_classic(),
+                       "dark" = dark_theme_bw()) 
+    #color selection
+    fill.type <- switch(input$color.type_exp,
+                        "default" =  scale_fill_manual(values = c("#A99CD9", "#6C568C")),
+                        "viridis" = scale_fill_viridis(discrete = TRUE),
+                        "brewer" =  scale_fill_brewer(palette = "Paired"),
+                        "tron" = scale_fill_tron(),
+                        "locusZoom" = scale_fill_locuszoom(),
+                        "d3" = scale_fill_d3(),
+                        "Nature" = scale_fill_npg(),
+                        "JAMA" = scale_fill_jama())
+    #color selection
+    color.type <- switch(input$color.type_exp,
+                         "default" =  scale_color_manual(values = c("#A99CD9", "#6C568C")),
+                         "viridis" = scale_color_viridis(discrete = TRUE),
+                         "brewer" =  scale_color_brewer(palette = "Paired"),
+                         "tron" = scale_color_tron(),
+                         "locusZoom" = scale_color_locuszoom(),
+                         "d3" = scale_color_d3(),
+                         "Nature" = scale_color_npg(),
+                         "JAMA" = scale_color_jama())
+    
+    human_lvl2 <- human_filter() %>%
       drop_na(dose_new) %>%
       group_by(lvl2_h_f, vivo_h_f, effect_h_f) %>% 
       summarize(dose_new = quantile(dose_new, .1),
@@ -2063,48 +2363,84 @@ server <- function(input, output) {
                 studies = n_distinct(article))
     
     
-    #build plot
-   p<-  ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f, fill = effect_h_f)) +
-      scale_x_log10() +
-      plot.type + #adds user-defined geom()
-      scale_color_manual(values = c("#A99CD9", "#6C568C")) +
-      scale_fill_manual(values = c("#A99CD9", "#6C568C")) +
-     geom_label_repel(data = human_lvl21, 
-                      aes(label = paste("(",measurements,",",studies,")")),
-                      hjust = 0,
-                      direction = "y", 
-                      nudge_x = 1000000000,
-                      segment.colour = NA, size = 3.5, show.legend = FALSE) +
-      theme_classic() +
-      theme(text = element_text(size=18),
+    #Render reactive plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = lvl2_h_f, fill = effect_h_f)) + 
+      plot.type + 
+      coord_trans(x = "log10") +
+      scale_x_continuous(breaks = scales::trans_breaks("log10", function(x) 10^x, n = 10),
+                         labels = trans_format("log10", scales::math_format(10^.x))) +
+      scale_y_discrete(limits=rev)+
+      color.type +
+      fill.type +
+      geom_text(data = human_lvl2, 
+                aes(label = paste("(",measurements,",",studies,")"),
+                    y = lvl2_h_f,
+                    x = Inf,
+                    hjust = 1),
+                position = position_dodge(.9),
+                size = 4.5, color = "black")+
+      theme.type +
+      theme(text = element_text(size=18), 
             legend.position = "right") +
+      facet_wrap(~vivo_h_f)+
       labs(x = input$dose_check,
-           y = "Specific Endpoint",
+           y = "Specific Endpoint Category",
            color = "Effect?",
            fill = "Effect?",
-           caption = (input$Rep_Con_rad))+
-      facet_wrap(~vivo_h_f)%>%
-      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
-   
-   if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-     p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
-   }
-   
-   else {
-     p
-   }
-   print(p)
+           caption = (input$Rep_Con_rad))%>%
+      req(nrow(human_filter()) > 0)
+    
+    print(p)
+    
   })
   
+  output$lvl2_h_plot_react <- renderPlot(
+    
+    #dynamic plot height based on widget input
+    height = function()if_else(600 < n_distinct(input$lvl2_h_check)*40, n_distinct(input$lvl2_h_check)*40, 600),
+    
+    {
+      
+      lvl2_h_plot_react()
+      
+    })
   
-  #exposure route 
   
-  output$exposure_route_h_plot_react <- renderPlot({
+  #exposure route
+  
+  exposure_route_h_plot_react <- eventReactive(list(input$go),{
+    
     #plot types
     plot.type<-switch(input$plot.type,
                       "boxplot" 	= geom_boxplot(alpha = 0.8, aes(color = effect_h_f)),
                       "violin" = geom_violin(alpha = 0.8, aes(color = effect_h_f)),
-                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis)
+                      "beeswarm" = geom_quasirandom(alpha = 0.8, aes(color = effect_h_f), 
+                                                    method = "smiley", groupOnX = FALSE, cex = 2)) #groupOnX specifies groups on y axis
+    
+    #Theme type
+    theme.type<-switch(input$theme.type_exp,
+                       "light" 	= theme_classic(),
+                       "dark" = dark_theme_bw()) 
+    #color selection
+    fill.type <- switch(input$color.type_exp,
+                        "default" =  scale_fill_manual(values = c("#C7EAE5","#35978F")),
+                        "viridis" = scale_fill_viridis(discrete = TRUE),
+                        "brewer" =  scale_fill_brewer(palette = "Paired"),
+                        "tron" = scale_fill_tron(),
+                        "locusZoom" = scale_fill_locuszoom(),
+                        "d3" = scale_fill_d3(),
+                        "Nature" = scale_fill_npg(),
+                        "JAMA" = scale_fill_jama())
+    #color selection
+    color.type <- switch(input$color.type_exp,
+                         "default" =  scale_color_manual(values = c("#C7EAE5","#35978F")),
+                         "viridis" = scale_color_viridis(discrete = TRUE),
+                         "brewer" =  scale_color_brewer(palette = "Paired"),
+                         "tron" = scale_color_tron(),
+                         "locusZoom" = scale_color_locuszoom(),
+                         "d3" = scale_color_d3(),
+                         "Nature" = scale_color_npg(),
+                         "JAMA" = scale_color_jama())
     
     human_exposure1 <- human_filter() %>%
       drop_na(dose_new) %>%
@@ -2113,38 +2449,107 @@ server <- function(input, output) {
                 measurements = n(),
                 studies = n_distinct(article))
     
-    #build plot
-    p<- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f, fill = effect_h_f)) +
-      scale_x_log10() +
-      plot.type + #adds user-defined geom()
-      scale_color_manual(values = c("#C7EAE5","#35978F")) +
-      scale_fill_manual(values = c("#C7EAE5", "#35978F")) +
-      geom_label_repel(data = human_exposure1, 
-                       aes(label = paste("(",measurements,",",studies,")")),
-                       hjust = 0,
-                       direction = "y", 
-                       nudge_x = 1000000000,
-                       segment.colour = NA, size = 3.5, show.legend = FALSE) +
-      theme_classic() +
+    #Render reactive plot
+    p <- ggplot(human_filter(), aes(x = dose_new, y = exposure_route_h_f, fill = effect_h_f)) + 
+      plot.type + 
+      coord_trans(x = "log10") +
+      scale_x_continuous(breaks = scales::trans_breaks("log10", function(x) 10^x, n = 10),
+                         labels = trans_format("log10", scales::math_format(10^.x))) +
+      scale_y_discrete(limits=rev)+
+      color.type +
+      fill.type +
+      geom_text(data = human_exposure1, 
+                aes(label = paste("(",measurements,",",studies,")"),
+                    y = exposure_route_h_f,
+                    x = Inf,
+                    hjust = 1),
+                position = position_dodge(.9),
+                size = 4.5, color = "black")+
+      theme.type +
       theme(text = element_text(size=18), 
             legend.position = "right") +
+      facet_wrap(~vivo_h_f)+
       labs(x = input$dose_check,
            y = "Exposure Route",
            color = "Effect?",
            fill = "Effect?",
-           caption = (input$Rep_Con_rad))+
-      facet_wrap(~vivo_h_f)%>%
-      req(nrow(human_filter()) > 0) #Suppresses facet_wrap error message
+           caption = (input$Rep_Con_rad))%>%
+      req(nrow(human_filter()) > 0)
     
-    if(input$show.points==TRUE & (input$plot.type == "boxplot" || input$plot.type == "violin")){
-      p<-p+geom_point(aes(color = effect_h_f), alpha=0.5, position = 'jitter')
-    }
-    
-    else {
-      p
-    }
     print(p)
+    
   })
+  
+  output$exposure_route_h_plot_react <- renderPlot({
+    
+    exposure_route_h_plot_react()
+    
+  })
+  
+  # Create downloadable png for exploration plots
+  
+  #exposure route
+  output$downloadexploration_exproute <- downloadHandler(
+    
+    filename = function() {
+      paste('Exposure_Route', Sys.Date(), '.png', sep='')
+    },
+    content = function(file) {
+      ggsave(file, plot = exposure_route_h_plot_react(), width = 16, height = 8, device = 'png')
+    })
+  
+  #size
+  output$downloadexploration_size <- downloadHandler(
+    
+    filename = function() {
+      paste('Size', Sys.Date(), '.png', sep='')
+    },
+    content = function(file) {
+      ggsave(file, plot = size_h_plot_react(), width = 16, height = 8, device = 'png')
+    })
+  
+  #shape
+  output$downloadexploration_shape <- downloadHandler(
+    
+    filename = function() {
+      paste('Shape', Sys.Date(), '.png', sep='')
+    },
+    content = function(file) {
+      ggsave(file, plot = shape_h_plot_react(), width = 16, height = 8, device = 'png')
+    })
+  
+  #polymer
+  output$downloadexploration_poly <- downloadHandler(
+    
+    filename = function() {
+      paste('Polymer', Sys.Date(), '.png', sep='')
+    },
+    content = function(file) {
+      ggsave(file, plot = poly_h_plot_react(), width = 16, height = 8, device = 'png')
+    })
+  
+  #lvl1
+  output$downloadexploration_lvl1 <- downloadHandler(
+    
+    filename = function() {
+      paste('Broad_Endpoint', Sys.Date(), '.png', sep='')
+    },
+    content = function(file) {
+      ggsave(file, plot = lvl_h_plot_react(), width = 16, height = 8, device = 'png')
+    })
+  
+  #lvl2
+  output$downloadexploration_lvl2 <- downloadHandler(
+    
+    filename = function() {
+      paste('Specific_Endpoint', Sys.Date(), '.png', sep='')
+    },
+    content = function(file) {
+      
+      ggsave(file, plot = lvl2_h_plot_react(), width = 30, height = 20, device = 'png')
+    })
+  
+  
   
   # Create downloadable csv of filtered dataset.
   # Removed columns created above so the dataset matches Leah's original dataset.
@@ -2174,6 +2579,12 @@ server <- function(input, output) {
     shinyjs::reset("vivo_h_check")
     shinyjs::reset("exposure_route_h_check")
     shinyjs::reset("species_h_check")
+    shinyjs::reset("exp_type_check")
+    shinyjs::reset("Rep_Con_rad")
+    shinyjs::reset("dose_check")
+    shinyjs::reset("particle_criteria_check")
+    shinyjs::reset("design_criteria_check")
+    shinyjs::reset("risk_criteria_check")
     
   }) #If we add more widgets, make sure they get added here.   
   
