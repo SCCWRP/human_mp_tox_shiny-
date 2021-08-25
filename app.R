@@ -908,11 +908,118 @@ human_endpoint <- human_setup %>%
   group_by(vivo_h_f, lvl1_h_f,lvl2_h_f,lvl3_h_f,bio_h_f) %>% 
   summarise()
 
+#### Search Setup ####
+
+human_search <- human_setup %>%
+  #general
+  dplyr::select(doi, authors, year, particle_red_criteria, design_red_criteria, risk_red_criteria, species_h_f, life_h_f, vivo_h_f, sex,
+                #experimental parameters
+                exp_type_f, exposure_route_h_f, mix, negative.control, reference.material, exposure.media, solvent, detergent,
+                media.ph, media.sal, media.temp, media.temp.min, media.temp.max, exposure.duration.d, 
+                treatment, replicates, sample.size, dosing.frequency, chem, chem.dose.ug.L.nominal, chem.dose.ug.L.measured, 
+                chem.dose.umol.kg.bw.day, chem.dose.uM, 
+                #reported doses
+                dose.ug.g.food.nominal, dose.uM.nominal, dose.ug.cm2.nominal, dose.particles.day.nominal, dose.particles.kg.bw.nominal,
+                dose.mg.day.nominal, dose.particles.L.nominal, dose.mg.L.air.nominal, dose.mg.kg.day.bw.nominal, 
+                dose.cm2.mL.nominal, 
+                dose.ug.g.food.measured, dose.uM.measured, dose.ug.cm2.measured, dose.particles.day.measured, 
+                dose.mg.day.measured, dose.particles.L.measured, dose.mg.L.air.measured, dose.mg.kg.day.bw.measured, 
+                dose.cm2.mL.measured,
+                #master doses
+                dose.particles.mL.master, dose.particles.L.master.reported.converted, dose.ug.mL.master, dose.mg.mL.master.reported.converted,
+                dose.um3.mL.master, 
+                #biological effects
+                effect_h_f, direction, lvl1_h_f, lvl2_h_f, lvl3_h_f, bio_h_f, target.organelle.cell.tissue, 
+                #particle characteristics
+                poly_h_f, shape_h_f, density.g.cm3, density.reported.estimated, charge, zetapotential, zeta.potential.media, functional.group,
+                size.length.um.used.for.conversion, size_h_f, particle.volume.um,
+                mass.per.particle.mg, weathered.biofouled,
+                #quality
+                size.valid, polymer.valid, shape.valid, particle.source, sodium.azide, contaminant.screen, clean.method, sol.rinse, background.plastics,
+                con.valid, particle.behavior, uptake.valid, tissue.distribution, fed) %>%  
+  #rename 'master' dose columns so they don't get pivoted
+  rename("particles/mL (master)" = dose.particles.mL.master, "particles/mL (master), reported or converted" = dose.particles.L.master.reported.converted,
+         "μg/mL (master)" = dose.ug.mL.master, "μg/mL (master), reported or converted" = dose.mg.mL.master.reported.converted,
+         "μm^3/mL (master)" = dose.um3.mL.master) %>% 
+  #pivot non-master dose columns
+  pivot_longer(cols = starts_with("dose"),
+               names_to = "Original Dose Units",
+               values_to = "Original Concentration") %>%  
+  mutate(`Original Dose Units Nominal or Measured` = case_when(grepl("nominal", `Original Dose Units`) ~ "nominal",
+                                                               grepl("measured", `Original Dose Units`) ~ "measured")) %>%   
+  mutate(`Original Dose Units` = case_when(grepl("dose.ug.g.food", `Original Dose Units`) ~ "μg/g (food)",
+                                           grepl("dose.uM", `Original Dose Units`) ~ "uM",
+                                           grepl("dose.ug.cm2", `Original Dose Units`) ~ "μg/cm^2",
+                                           grepl("dose.particles.day", `Original Dose Units`) ~ "particles/day",
+                                           grepl("dose.particles.kg.bw", `Original Dose Units`) ~ "particles/kg (body weight)",
+                                           grepl("dose.mg.day", `Original Dose Units`) ~ "mg/day",
+                                           grepl("dose.particles.L", `Original Dose Units`) ~ "particles/L",
+                                           grepl("dose.mg.L.air", `Original Dose Units`) ~ "mg/L (air)",
+                                           grepl("dose.mg.kg.day.bw", `Original Dose Units`) ~ "mg/kg (body weight)/day",
+                                           grepl("dose.cm2.mL", `Original Dose Units`) ~ "cm^2/mL"))   
+#Turn all character strings into factors if they aren't already so they are searchable via dropdown
+human_search[sapply(human_search, is.character)] <- lapply(human_search[sapply(human_search, is.character)], as.factor)
+
 #### Study Screening Setup ####
 
 human_quality <- human_setup %>%
-  mutate(all_red_pass_f = factor(case_when(pass.all.red == "Y" ~ "'Red Criteria' Passed",
-                                           pass.all.red == "N" ~ "'Red Criteria' Failed")))
+  filter(particle_red_criteria != "Scoring Not Available") %>% 
+  filter(design_red_criteria != "Scoring Not Available") %>% 
+  filter(risk_red_criteria != "Scoring Not Available") %>% 
+  mutate(Study = paste0(authors, " (", year,")")) %>%
+  mutate(Study_plus = as.factor(paste0(authors, " (", year,")", " (",doi,")"))) %>%  
+  distinct(Study, Study_plus, doi, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7,
+           design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, 
+           design.12, design.13, risk.1, risk.2, risk.3, risk.4, risk.5, risk.6,
+           lvl1_h_f, lvl2_h_f, bio_h_f, effect_h_f, life_h_f, poly_h_f, shape_h_f, size_h_f, species_h_f, exposure_route_h_f, 
+           particle_red_criteria, design_red_criteria, risk_red_criteria) %>%     
+  
+  pivot_longer(!c(Study, Study_plus, doi, lvl1_h_f, lvl2_h_f, bio_h_f, effect_h_f, life_h_f, poly_h_f, shape_h_f, size_h_f, species_h_f, exposure_route_h_f,
+                  particle_red_criteria, design_red_criteria, risk_red_criteria),
+               names_to ="Criteria", 
+               values_to ="Score") %>% 
+  #Assign descriptions to numerical scores
+  mutate(Score_f = factor(case_when(Score == 0 ~ "Inadequate",
+                                    Score == 1 ~ "Adequate with Restrictions",
+                                    Score == 2 ~ "Adequate"))) %>%
+  #Assign each criteria to appropriate category
+  mutate(Category = case_when(grepl("particle", Criteria) ~ "Particle Characterization",
+                              grepl("design", Criteria) ~ "Experimental Design",
+                              grepl("risk", Criteria) ~ "Risk Assessment")) %>%  
+  #Set order of categories so they plot in correct order
+  mutate(Category_f = factor(Category, levels = c("Particle Characterization", "Experimental Design", "Risk Assessment"))) %>%   
+  #Assign descriptions to each criteria
+mutate(Criteria = case_when(Criteria == "particle.1" ~ "Particle Size*",
+                            Criteria == "particle.2" ~ "Particle Shape*",
+                            Criteria == "particle.3" ~ "Polymer Type*",
+                            Criteria == "particle.4" ~ "Particle Source*",
+                            Criteria == "particle.5" ~ "Surface Chemistry",
+                            Criteria == "particle.6" ~ "Chemical Purity",
+                            Criteria == "particle.7" ~ "Microbial Contamination",
+                            Criteria == "design.1" ~ "Concentration Units",
+                            Criteria == "design.2" ~ "Particle Stability",
+                            Criteria == "design.3" ~ "Test Vehicle*",
+                            Criteria == "design.4" ~ "Administered Dose*",
+                            Criteria == "design.5" ~ "Homogeneity of Exposure",
+                            Criteria == "design.6" ~ "Administration Route*",
+                            Criteria == "design.7" ~ "Test Species*",
+                            Criteria == "design.8" ~ "Feeding/Housing Conditions",
+                            Criteria == "design.9" ~ "Sample Size*",
+                            Criteria == "design.10" ~ "Frequency/Duration of Exposure*",
+                            Criteria == "design.11" ~ "Controls*",
+                            Criteria == "design.12" ~ "Replicates",
+                            Criteria == "design.13" ~ "Internal Dose Confirmation",
+                            Criteria == "risk.1" ~ "Statistical Analysis",
+                            Criteria == "risk.2" ~ "Endpoints*",
+                            Criteria == "risk.3" ~ "Dose-Response*",
+                            Criteria == "risk.4" ~ "Concentration Range",
+                            Criteria == "risk.5" ~ "Effect Thresholds*",
+                            Criteria == "risk.6" ~ "Test Particle Relevance")) %>%
+  mutate(Criteria_f = factor(Criteria, levels = c("Test Particle Relevance","Effect Thresholds*","Concentration Range","Dose-Response*","Endpoints*","Statistical Analysis",
+                                                  "Internal Dose Confirmation","Replicates","Controls*","Frequency/Duration of Exposure*","Sample Size*","Feeding/Housing Conditions",
+                                                  "Test Species*","Administration Route*","Homogeneity of Exposure","Administered Dose*","Test Vehicle*","Particle Stability",
+                                                  "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*")))
+                                                     
 
 #### User Interface ####
 
@@ -1003,24 +1110,47 @@ tabItem(tabName = "Welcome",
             
             p(align = "center", a(href = "https://www.sccwrp.org/about/staff/leah-thornton-hampton/", 'Dr. Leah Thornton Hampton'),", Southern California Coastal Water Research Project ", 
               tags$a(href="https://twitter.com/DrLeahTH", icon("twitter")), tags$a(href="https://github.com/leahth", icon("github"))),
-            p(align = "center", a(href = "https://agency.calepa.ca.gov/staffdirectory/detail.asp?UID=69294&BDO=7&VW=DET&SL=S", 'Dr. Scott Coffin'),", California State Water Resources Control Board", 
-              tags$a(href="https://twitter.com/DrSCoffin", icon("twitter")), tags$a(href="https://github.com/ScottCoffin", icon("github"))),
+            
             p(align = "center", "Heili Lowman, Southern California Coastal Water Research Project ",
               tags$a(href="https://twitter.com/heili_lowman", icon("twitter")), tags$a(href="https://github.com/hlowman", icon("github"))), 
-            p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", Aquatic Science Center"),
-            p(align = "center", a(href = "https://rochmanlab.com/people/", 'Dr. Ludovic Hermabessiere'),", University of Toronto", 
-              tags$a(href="https://twitter.com/HermabessiereL", icon("twitter"))),
-            p(align = "center", a(href = "https://rochmanlab.com/people/", 'Hannah De Frond'),", University of Toronto", 
-              tags$a(href="https://twitter.com/HanDefrond", icon("twitter"))),
+            
+            p(align = "center", a(href = "https://agency.calepa.ca.gov/staffdirectory/detail.asp?UID=69294&BDO=7&VW=DET&SL=S", 'Dr. Scott Coffin'),", California State Water Resources Control Board", 
+              tags$a(href="https://twitter.com/DrSCoffin", icon("twitter")), tags$a(href="https://github.com/ScottCoffin", icon("github"))),
+            
             p(align = "center", "Emily Darin, Southern California Coastal Water Research Project",
               tags$a(href="https://github.com/EmilyDarin", icon("github"))),
-            p(align = "center", "Syd Kotar, Southern California Coastal Water Research Project"),
-            p(align = "center", "Sarah Khan, Southern California Coastal Water Research Project"),
+            
+            p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", Aquatic Science Center"),
+            
+            p(align = "center", a(href = "https://rochmanlab.com/people/", 'Dr. Ludovic Hermabessiere'),", University of Toronto", 
+              tags$a(href="https://twitter.com/HermabessiereL", icon("twitter"))),
+            
+            p(align = "center", a(href = "https://rochmanlab.com/people/", 'Hannah De Frond'),", University of Toronto", 
+              tags$a(href="https://twitter.com/HanDefrond", icon("twitter"))),
+            
+            p(align = "center", "Vera de Ruitjer, Wageningen University"),
+            
+            p(align = "center", "Samreen Siddiqui, Oregon State University"),
+            
+            p(align = "center", "Andrea Faltynkova, Norwegian University of Science and Technology"),
+            
+            p(align = "center", "Johannes Völker, Norwegian University of Science and Technology"),
+            
+            p(align = "center", "Laura Monclús Anglada, Norwegian University of Science and Technology"),
+            
+            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/syd-kotar/", "Sydney Kotar"),", Southern California Coastal Water Research Project"),
+            
+            p(align = "center", a(href = "https://www.ntnu.edu/employees/martin.wagner", 'Dr. Martin Wagner'),", Norwegian University of Science and Technology",
+              tags$a(href="https://twitter.com/martiwag", icon("twitter"))),
+            
             p(align = "center", a(href = "https://www.wur.nl/en/Persons/Bart-prof.dr.-AA-Bart-Koelmans.htm", 'Dr. Bart Koelmans'),", Wageningen University",
               tags$a(href="https://twitter.com/MicroplasticLab", icon("twitter"))),
+            
             p(align = "center", a(href = "https://rochmanlab.com/", 'Dr. Chelsea Rochman'),", University of Toronto",
               tags$a(href="https://twitter.com/ChelseaRochman", icon("twitter"))),
-            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/alvina-mehinto/", 'Dr. Alvine Mehinto'),", Southern California Coastal Water Research Project"), 
+            
+            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/alvina-mehinto/", 'Dr. Alvine Mehinto'),", Southern California Coastal Water Research Project"),
+            
             p(align = "center", a(href = "https://www.sccwrp.org/about/staff/steve-weisberg/", 'Dr. Steve Weisberg'),", Southern California Coastal Water Research Project")), 
         
         #Logos with links to organizations
@@ -1118,6 +1248,20 @@ tabItem(tabName = "Overview",
         
 ), #close tab
        
+#### Search UI ####
+
+tabItem(tabName = "Search",
+        
+        box(title = "Search Database", status = "primary", width = 12,
+            
+            column(width = 12, 
+                   dataTableOutput("databaseDataTable", height = "200px"))   
+            
+            
+        ), #close box
+        
+),#close search tab
+
 #### Exploration UI ####
 
 tabItem(tabName = "Exploration",
@@ -1408,230 +1552,249 @@ tabItem(tabName = "Exploration",
               ), #closes tab box
             ), #closes fluid tab
         ), #closes box
-                
-                           
-                          
-                           # #column(width = 12,
-                           # #plotOutput(outputId = "organism_plot_react"),
-                           # #br())), 
-                           # 
-                           # column(width = 12,
-                           #        
-                           #        column(width = 12,
-                           #               plotOutput(outputId = "lvl_h_plot_react", height = "600px"),
-                           #               br())), 
-                           #      
-                           #      
-                           # column(width = 12,
-                           #        
-                           #        column(width = 12,
-                           #               plotOutput(outputId = "lvl2_h_plot_react", height = "600px"),
-                           #               br())), 
-                           #        
-                           # column(width = 12,
-                           #        
-                           #        column(width = 12,
-                           #               plotOutput(outputId = "exposure_route_h_plot_react", height = "600px"),
-                           #               br())), 
-                           #   
-                           # column(width = 12,
-                           #        
-                           #        column(width = 12,
-                           #               plotOutput(outputId = "size_h_plot_react", height = "600px"),
-                           #               br())), 
-                           #       
-                           # column(width = 12,
-                           #        
-                           #        column(width = 12,
-                           #               plotOutput(outputId = "shape_h_plot_react", height = "600px"),
-                           #               br())), 
-                           # 
-                           # column(width = 12,
-                           #        
-                           #        column(width = 12,
-                           #               plotOutput(outputId = "poly_h_plot_react", height = "600px"),
-                           #               br()))
+
 ), #close tab
                                   
-#### Study Screening UI ####
+#### Screening UI ####
 
-tabPanel("5: Study Screening", 
-         h3("Study Screening Results for In Vivo Ingestion Studies", align = "center"),
-         br(),
-         p("This plot displays scores from the", a(href ="https://tger.co.uk/research", 'study prioritization screening tool', .noOWs = "outside"), "developed by Gouin et al. (In prep). For more information, including the scoring rubric used, see the document 'Study Screening Scoring Criteria' under the Resources tab."),
-         br(),
-         column(width = 12,
-                # widget headers
-                column(width=12,
-                       
-                       column(width = 3,
-                              h4("Effects")),
-                       
-                       column(width = 3,
-                              h4("Particle Characteristics")),
-                       
-                       column(width = 3,
-                              h4("Biological Factors")),
-                       
-                       column(width = 3,
-                              h4("Quality Criteria"))),
-
-                # widgets
-                column(width = 12,
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "lvl1_h_quality", # endpoint checklist
-                                          label = "Broad Endpoint Category:", 
-                                          choices = levels(human_quality$lvl1_h_f),
-                                          selected = levels(human_quality$lvl1_h_f),
-                                          options = list(`actions-box` = TRUE), # option to de/select all
-                                          multiple = TRUE)), # allows for multiple inputs
-                       column(width = 3,
-                              pickerInput(inputId = "poly_h_quality", # polymer checklist
-                                          label = "Polymer:", 
-                                          choices = levels(human_quality$poly_h_f),
-                                          selected = levels(human_quality$poly_h_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE)),
-                       
-                       column(width = 3,  
-                              pickerInput(inputId = "species_h_quality", # polymer checklist
-                                          label = "Species:", 
-                                          choices = levels(human_quality$species_h_f),
-                                          selected = levels(human_quality$species_h_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE)),
-                       
-                       column(width = 3,  
-                              pickerInput(inputId = "red_criteria_quality", # polymer checklist
-                                          label = "Red Criteria:", 
-                                          choices = levels(human_quality$all_red_pass_f),
-                                          selected = levels(human_quality$all_red_pass_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE))),
-                       
-                # New row of widgets
-                column(width = 12,
-                       
-                       column(width = 3,
-                              htmlOutput("secondSelection_quality")), # dependent endpoint checklist
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "shape_h_quality", # shape checklist
-                                          label = "Shape:", 
-                                          choices = levels(human_quality$shape_h_f),
-                                          selected = levels(human_quality$shape_h_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE)),
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "bio_h_quality", # bio org checklist
-                                          label = "Level of Biological Organization", 
-                                          choices = levels(human_quality$bio_h_f),
-                                          selected = levels(human_quality$bio_h_f),
-                                          options = list(`actions-box` = TRUE),
-                                          multiple = TRUE))),
-                       
-                # New row of widgets
-                column(width = 12,
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "effect_h_quality",  # Effect Yes/No widget
-                                          label = "Effect:",
-                                          choices = levels(human_quality$effect_h_f),
-                                          selected = levels(human_quality$effect_h_f),
-                                          options = list(`actions-box` = TRUE),
-                                          multiple = TRUE)),
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "size_h_quality", # Environment checklist
-                                          label = "Size Category:", 
-                                          choices = levels(human_quality$size_h_f),
-                                          selected = levels(human_quality$size_h_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE)),
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "life_h_quality", # life stage checklist
-                                          label = "Life Stages:", 
-                                          choices = levels(human_quality$life_h_f),
-                                          selected = levels(human_quality$life_h_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE))),
-                # new row of widgets
-                column(width = 12,
-                       
-                       column(width = 3,
-                              pickerInput(inputId = "year_h_quality",
-                                          label = "Study Year(s):",
-                                          choices = levels(human_setup$year_f),
-                                          selected = levels(human_setup$year_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE)),
-                       # date added column. COMMENT OUT WHEN NOT NEEDED!
-                       column(width = 3,
-                              pickerInput(inputId = "date.added_h_quality",
-                                          label = "Date Added to Database:",
-                                          choices = levels(human_setup$add.date_f),
-                                          selected = levels(human_setup$add.date_f),
-                                          options = list(`actions-box` = TRUE), 
-                                          multiple = TRUE))),
-                
-                #Go Button and Reset Button
-                
-                column(width = 12,
-                       br(),
-                       column(width = 3,
-                              actionButton("go_quality", "Update Filters", class = "btn-success")),
-                       
-                       column(width = 3,
-                              actionButton("reset_quality", "Reset Filters", class = "btn-primary"))),
-                
-                #Button Text
-                
-                column(width = 12,
-                       column(width=2,  
-                              strong(p("To Begin: Click the 'Update Filters' button above."))),
-                       
-                       column(width=2, offset = 1,  
-                              strong(p("To Reset: Click the 'Reset Filters' button above, followed by the 'Update Filters' button to the left.")))),
-                                          
-                 
-         ), #closes out button column
-         br(),
-         # build plotly
-         
-         fluidRow(
-           column(12,plotlyOutput("quality_plot", height = "1500px")),
-         
-         ) # closes out fluidRow
-         
-         
-         #This is the new tab for the quality screening figure
-         
+tabItem(tabName = "Screening",
+        
+        box(title = "Data Selection", status = "primary", width = 12, collapsible = TRUE,
+            
+            shinyjs::useShinyjs(), # requires package for "reset" button, DO NOT DELETE - make sure to add any new widget to the reset_input in the server
+            id = "screen", # adds ID for resetting filters
+            
+            p("This plot displays scores from the", a(href ="https://tger.co.uk/research", 'study prioritization screening tool', .noOWs = "outside"), "developed by Gouin et al. (2021).
+            For more information, including the scoring rubric used, see Resources."),
+            
+            fluidRow(
+              tabBox(width = 12, height = "200px",
+                     
+                     tabPanel("Data Type",
+                              
+                              "Only in vivo ingestion data are included in the study screening dataset."          
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Effect", 
+                              
+                              #Broad endpoint selection
+                              column(width = 4,
+                                     pickerInput(inputId = "lvl1_h_quality", # endpoint checklist
+                                                 label = "Broad Endpoint Category:",
+                                                 choices = levels(human_quality$lvl1_h_f),
+                                                 selected = levels(human_quality$lvl1_h_f),
+                                                 options = list(`actions-box` = TRUE), # option to de/select all
+                                                 multiple = TRUE)), # allows for multiple inputs
+                              
+                              #Specific endpoint selection
+                              column(width = 4, #Specific endpoint selection
+                                     pickerInput(inputId = "lvl2_h_quality", 
+                                                 label = "Specific Endpoint Category:", 
+                                                 choices = levels(human_quality$lvl2_h_f),
+                                                 selected = levels(human_quality$lvl2_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                              #Effect y/n selection
+                              column(width = 4,
+                                     pickerInput(inputId = "effect_h_quality", 
+                                                 label = "Effect:",
+                                                 choices = levels(human_quality$effect_h_f),
+                                                 selected = levels(human_quality$effect_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Biology", 
+                           
+                              #species selection
+                              column(width = 4,
+                                     pickerInput(inputId = "species_h_quality", 
+                                                 label = "Species:", 
+                                                 choices = levels(human_quality$species_h_f),
+                                                 selected = levels(human_quality$species_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE), 
+                                     
+                                     #biological organization selection
+                                     pickerInput(inputId = "bio_h_quality", 
+                                                 label = "Biological Organization:",
+                                                 choices = levels(human_quality$bio_h_f),
+                                                 selected = levels(human_quality$bio_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                              #life stage selection
+                              column(width = 4,
+                                     pickerInput(inputId = "life_h_quality", 
+                                                 label = "Life Stages:",
+                                                 choices = levels(human_quality$life_h_f),
+                                                 selected = levels(human_quality$life_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE),     
+                                     
+                                     #exposure duration
+                                     pickerInput(inputId = "exposure_route_h_quality", 
+                                                 label = "Exposure Route:",
+                                                 choices = levels(human_quality$exposure_route_h_f),
+                                                 selected = levels(human_quality$exposure_route_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Particles", 
+                              
+                              #polymer selection
+                              column(width = 4,
+                                     pickerInput(inputId = "poly_h_quality", 
+                                                 label = "Polymer:",
+                                                 choices = levels(human_quality$poly_h_f),
+                                                 selected = levels(human_quality$poly_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                              #shape selection
+                              column(width = 4,
+                                     pickerInput(inputId = "shape_h_quality", 
+                                                 label = "Shape:",
+                                                 choices = levels(human_quality$shape_h_f),
+                                                 selected = levels(human_quality$shape_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                              #size category selection
+                              column(width = 4,
+                                     pickerInput(inputId = "size_h_quality", 
+                                                 label = "Size Category:",
+                                                 choices = levels(human_quality$size_h_f),
+                                                 selected = levels(human_quality$size_h_f),
+                                                 options = list(`actions-box` = TRUE),
+                                                 multiple = TRUE)),
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Study Screening", 
+                              
+                              fluidRow(    
+                                
+                                #particle red criteria
+                                column(width = 3,
+                                       pickerInput(inputId = "particle_criteria_quality",
+                                                   label = "Particle Criteria:",
+                                                   choices = levels(human_setup$particle_red_criteria),
+                                                   selected = levels(human_setup$particle_red_criteria),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                                
+                                #design red criteria
+                                column(width = 3,
+                                       pickerInput(inputId = "design_criteria_quality",
+                                                   label = "Design Criteria:",
+                                                   choices = levels(human_setup$design_red_criteria),
+                                                   selected = levels(human_setup$design_red_criteria),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                                
+                                #risk red criteria
+                                column(width = 3,
+                                       pickerInput(inputId = "risk_criteria_quality",
+                                                   label = "Risk Assessment Criteria:",
+                                                   choices = levels(human_setup$risk_red_criteria),
+                                                   selected = levels(human_setup$risk_red_criteria),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE)),
+                              
+                                #specfic study
+                                column(width = 3,
+                                       pickerInput(inputId = "study_plus_quality", 
+                                                   label = "Study:",
+                                                   choices = levels(human_quality$Study_plus),
+                                                   selected = levels(human_quality$Study_plus),
+                                                   options = list(`actions-box` = TRUE),
+                                                   multiple = TRUE))),
+                              
+                     ) #close tabpanel
+                     
+              ), #close tab box
+            ), #close fluid row
+            
+            column(width = 3,
+                   actionButton("go_quality", "Plot Current Selection", icon("rocket"), style="color: #fff; background-color:  #117a65; border-color:  #0e6655")),
+            
+            column(width = 3,
+                   actionButton("reset_quality", "Reset Filters", icon("redo"), style="color: #fff; background-color: #f39c12; border-color: #d68910")), 
+            
+        ), #close box
+        
+        box(title = "Visualize Data", status = "primary", width = 12,
+            
+            p("Use the cursor to zoom and hover over the plot to view additional information about each study. Some studies are not visible until zoomed in. 
+              Alternatively, specific studies may be selected using the filter in the 'Study Screening' tab above."),
+            br(),
+            p("'Red Criteria' are indicated by (*). Scores of 0, 1, and 2 are respresented by red, grey, and blue tiles respectively."),
+            br(),
+            
+            fluidRow(
+              tabBox(width = 12,
+                     
+                     tabPanel("Particle Characterization",
+                              
+                              fluidRow(
+                                
+                                plotlyOutput("particle_plotly", height = "600px")), 
+                              
+                     ), #close tabpanel
+                     
+                     tabPanel("Experimental Design",
+                              
+                              fluidRow(
+                                
+                                plotlyOutput("design_plotly", height = "600px")), 
+                                
+                              ), #close tabpanel
+                              
+                    tabPanel("Risk Assessment",
+                             
+                             fluidRow(
+                               
+                               plotlyOutput("risk_plotly", height = "600px")),
+                               
+                             ) #close tabpanel
+              ) #close tabbox
+            ) #close fluidrow
+          ), #close box
+        
 ), #closes out tab
-                  
+
 #### Resources UI ####
 
-tabPanel("6: Resources", 
-         br(),     
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
-         br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EcJuT9TQeP1LkWAO81pE1DgBTxem_6m_gEh0DPXRexHHhA?e=LucgNJ", 'Study Screening Scoring Criteria')),
-         br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ER4Blg_W9LtDi-2vJGUK6kcBOdZ-GTgA-HZV4swPwD4bJQ?e=WPHXdZ", 'Human Health Study List')),
-         br(),
-         h3(align = "center", a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXf0crCKDPVHo5xBEdw4PQwBxA8cnu0x4WY477CuEzZcPw?e=qs00V3", 'Dose Conversion Methods'))),
-         
+tabItem(tabName = "Resources", 
+        
+        
+        box(title = "Resources", width = 6, status = "primary",     
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
+            br(),
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EcJuT9TQeP1LkWAO81pE1DgBTxem_6m_gEh0DPXRexHHhA?e=LucgNJ", 'Study Screening Rubric')),
+            br(),
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ER4Blg_W9LtDi-2vJGUK6kcBOdZ-GTgA-HZV4swPwD4bJQ?e=WPHXdZ", 'Human Health Study List')),
+            br(),
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXf0crCKDPVHo5xBEdw4PQwBxA8cnu0x4WY477CuEzZcPw?e=qs00V3", 'Dose Conversion Methods'))),
+        
+), #close tab
+
 #### Contact UI ####
 
-tabPanel("7: Contact", 
-         br(),
-         h4("For scientific questions or access to the complete database, please contact Dr. Leah Thornton Hampton (leahth@sccwrp.org)."),
-         br(),
-         h4("If you encounter technical problems with the web application, please contact Emily Darin (Emily.Darin@student.csulb.edu)."),
-         
-         verbatimTextOutput(outputId = "Leah3"))
+tabItem(tabName = "Contact", 
+        
+        box(title = "Contact", width = 6, status = "primary",
+            p("For scientific questions, please contact Dr. Leah Thornton Hampton (leahth@sccwrp.org)."),
+            br(),
+            p("If you encounter technical problems with the web application, please contact Emily Darin (emilyd@sccwrp.org).")),
+        
+)#closes tab
 
 #following three parentheses close out UI. Do not delete. 
 )))   
@@ -1904,6 +2067,39 @@ server <- function(input, output) {
     collapsibleTree(human_filter_endpoint(), root = "Mammalian Database", hierarchy = c("vivo_h_f", "lvl1_h_f", "lvl2_h_f", "lvl3_h_f", "bio_h_f"),
                     fontSize = 12, zoomable = FALSE)
   })
+  
+  #### Search S ####
+  
+  output$databaseDataTable <- DT::renderDataTable(
+    human_search,
+    filter = "top",
+    rownames = FALSE,
+    extensions = c('Buttons'),
+    options = list(
+      pageLength = 25,
+      dom = 'Brtip',
+      buttons = list(I('colvis'), c('copy', 'csv', 'excel')),
+      scrollY = 600,
+      scrollX = TRUE,
+      paging = TRUE,
+      columnDefs = list(list(width = '100px', targets = "_all"))),
+    colnames = c('DOI', 'Authors', 'Year', 'Particle Characterization "Red Criteria"', 'Experimental Design "Red Criteria"', 
+                 'Risk Assessment "Red Criteria"','Species', 'Life Stage', 'In vitro/in vivo',
+                 'Sex', 'Experiment Type', 'Exposure Route', 'Particle Mix?', 'Negative Control', 'Reference Particle', 'Exposure Media',
+                 'Solvent', 'Detergent', 'pH', 'Salinity (ppt)', 'Temperature (Avg)', 'Temperature (Min)',
+                 'Temperature (Max)', 'Exposure Duration (days)', 'Number of Doses', 'Replicates',
+                 'Sample Size', 'Dosing Frequency', 'Chemicals Added', 'Added Chemical Dose μg/L (nominal)',
+                 'Added Chemical Dose μg/L (measured)', 'Added Chemical Dose μmol/kg (body weight)/day', 'Added Chemical Dose uM',
+                 'particles/mL (master)', 'particles/mL (master), reported or converted',
+                 'μg/mL (master)', 'μg/mL (master), reported or converted', 'μm^3/mL (master)', 
+                 'Effect', 'Direction', 'Broad Endpoint Category', 'Specific Endpoint Category',
+                 'Endpoint', 'Level of Biological Organization', 'Target Organelle, Cell, or Tissue',
+                 'Polymer', 'Shape', 'Density (g/cm^3)', 'Density, reported or estimated', 'Charge',
+                 'Zeta Potential (mV)', 'Zeta Potential Media', 'Functional Group', 'Particle Length (μm)', 'Size Category',
+                 'Particle Volume (μm^3)', 'Particle Mass (mg)',
+                 'Weathered or Biofouled?', 'Size Validated?', 'Polymer Validated?', 'Shape Validated', 'Particle Source','Sodium Azide Present?',
+                 'Screened for Chemical Contamination?', 'Particle Cleaning?', 'Solvent Rinse', 'Background Contamination Monitored?',
+                 'Concentration Validated?', 'Particle Behavior', 'Uptake Validated?', 'Tissue Distribution', 'Organisms Fed?', 'Original Dose Units', 'Original Concentration', 'Original Dose Units Nominal or Measured'))
   
   #### Exploration Human S ####
   
@@ -2549,8 +2745,6 @@ server <- function(input, output) {
       ggsave(file, plot = lvl2_h_plot_react(), width = 30, height = 20, device = 'png')
     })
   
-  
-  
   # Create downloadable csv of filtered dataset.
   # Removed columns created above so the dataset matches Leah's original dataset.
   output$downloadData <- downloadHandler(
@@ -2559,8 +2753,50 @@ server <- function(input, output) {
     },
     content = function(file) {
       write.csv(human_filter() %>%
-                  select(-c(effect_h_f, size_h_f, shape_h_f, poly_h_f, lvl1_h_f, lvl2_h_f, bio_h_f, vivo_h_f, life_h_f, exposure_route_h_f, species_h_f)), 
+                  #Select columns
+                  dplyr::select(c(doi, authors, year, species_h_f, life_h_f, vivo_h_f, sex,
+                                  #experimental parameters
+                                  exp_type_f, exposure_route_h_f, mix, negative.control, reference.material, exposure.media, solvent, detergent,
+                                  media.ph, media.sal, media.temp, media.temp.min, media.temp.max, exposure.duration.d, 
+                                  treatment, replicates, sample.size, dosing.frequency, chem,  
+                                  #selected dose
+                                  dose_new,
+                                  #biological effects
+                                  effect_h_f, direction, lvl1_h_f, lvl2_h_f, lvl3_h_f, bio_h_f, target.organelle.cell.tissue, 
+                                  #particle characteristics
+                                  poly_h_f, shape_h_f, density.g.cm3, density.reported.estimated, charge, zetapotential, zeta.potential.media, functional.group,
+                                  size.length.um.used.for.conversion, size_h_f, particle.volume.um,
+                                  mass.per.particle.mg, weathered.biofouled,
+                                  #quality
+                                  size.valid, polymer.valid, shape.valid, particle.source, sodium.azide, contaminant.screen, clean.method, sol.rinse, background.plastics,
+                                  con.valid, particle.behavior, uptake.valid, tissue.distribution, fed)) %>%  
+                  #Rename columns
+                  dplyr::rename(c("DOI" = doi, "Authors" = authors, "Year" = year, "Species" = species_h_f, 
+                                  "Life Stage" = life_h_f, "In vitro/in vivo" = vivo_h_f, "Sex" = sex,
+                                  #experimental parameters
+                                  "Experiment Type" = exp_type_f, "Exposure Route" = exposure_route_h_f, "Particle Mix?" = mix, "Negative Control" = negative.control,
+                                  "Reference Particle" = reference.material, "Exposure Media" = exposure.media, "Solvent" = solvent, "Detergent" = detergent,
+                                  "pH" = media.ph, "Salinity (ppt)" = media.sal, "Temperature (Avg)" = media.temp, "Temperature (Min)"= media.temp.min,
+                                  "Temperature (Max)" = media.temp.max, "Exposure Duration (days)" = exposure.duration.d, "Number of Doses" = treatment, "Replicates" = replicates, "Sample Size" = sample.size, "Dosing Frequency" = dosing.frequency,
+                                  "Chemicals Added" = chem, 
+                                  #selected dose
+                                  "Selected Dose" = dose_new,
+                                  #biological effects
+                                  "Effect" = effect_h_f, "Direction" = direction, "Broad Endpoint Category" = lvl1_h_f, "Specific Endpoint Category" = lvl2_h_f,
+                                  "Endpoint" = lvl3_h_f, "Level of Biological Organization" = bio_h_f, "Target Organelle, Cell, or Tissue" = target.organelle.cell.tissue,
+                                  #particle characteristics
+                                  "Polymer" = poly_h_f, "Shape" = shape_h_f, "Density (g/cm^3)" = density.g.cm3, "Density, reported or estimated" = density.reported.estimated,
+                                  "Charge" = charge, "Zeta Potential (mV)" = zetapotential, "Zeta Potential Media" = zeta.potential.media, "Functional Group" = functional.group,
+                                  "Particle Length (μm)" = size.length.um.used.for.conversion, "Size Category" = size_h_f, "Particle Volume (μm^3)" = particle.volume.um,
+                                  "Particle Mass (mg)" = mass.per.particle.mg, "Weathered or Biofouled?" = weathered.biofouled,
+                                  #quality
+                                  "Size Validated?" = size.valid, "Polymer Validated?" = polymer.valid, "Shape Validated" = shape.valid, "Particle Source" = particle.source,
+                                  "Sodium Azide Present?" = sodium.azide, "Screened for Chemical Contamination?" = contaminant.screen, "Particle Cleaning?" = clean.method,
+                                  "Solvent Rinse" = sol.rinse, "Background Contamination Monitored?" = background.plastics,
+                                  "Concentration Validated?"  = con.valid, "Particle Behavior" = particle.behavior, "Uptake Validated?" = uptake.valid,
+                                  "Tissue Distribution" = tissue.distribution, "Organisms Fed?" = fed)),
                 file, row.names = FALSE)
+    
     }
   )
   
@@ -2592,187 +2828,215 @@ server <- function(input, output) {
   
 ##### Study Screening S #####
   
-#   #Create dependent dropdown checklists: select lvl2 by lvl1.
-#   output$secondSelection_quality <- renderUI({
-#     
-#     lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
-#     
-#     human_new <- human_quality %>% # take original dataset
-#       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-#       mutate(lvl2_f_new = factor(as.character(lvl2_h_f))) # new subset of factors
-#     
-#     pickerInput(inputId = "lvl2_h_quality", 
-#                 label = "Specific Endpoint within Broad Category:", 
-#                 choices = levels(human_new$lvl2_f_new),
-#                 selected = levels(human_new$lvl2_f_new),
-#                 options = list(`actions-box` = TRUE),
-#                 multiple = TRUE)})
-#   
-# quality_filtered <- eventReactive(list(input$go_quality),{
-#   
-#   # every selection widget should be represented as a new variable below
-#   lvl1_h_c <- input$lvl1_h_quality # assign level values to "lvl1_c"
-#   lvl2_h_c <- input$lvl2_h_quality # assign lvl2 values to "lvl2_c"
-#   bio_h_c <- input$bio_h_quality # assign bio values to "bio_c"
-#   effect_h_c <- input$effect_h_quality # assign effect values to "effect_c"
-#   life_h_c <- input$life_h_quality #assign values to "life_quality"
-#   poly_h_c <- input$poly_h_quality # assign values to "poly_c"
-#   shape_h_c <- input$shape_h_quality # assign values to "shape_c" 
-#   size_h_c <- input$size_h_quality # assign values to "size_c"
-#   species_h_c<-input$species_h_quality #assign values to "species_h_c"#assign values to "species_h_c"
-#   year_h_c <- input$year_h_quality #year of study
-#   date.added_h_c <- input$date.added_h_quality #COMMENT OUT WHEN NOT NEEDED
-#   
-#   #make summary dataset to display in heatmap below
-#   human_setup %>%
-#     #only in vivo Ingestion studies are scored
-#     filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
-#     filter(lvl2_h_f %in% lvl2_h_c) %>% #filter by level 2 inputs
-#     filter(bio_h_f %in% bio_h_c) %>% #filter by bio organization
-#     filter(effect_h_f %in% effect_h_c) %>% #filter by effect
-#     filter(life_h_f %in% life_h_c) %>% #filter by life stage
-#     filter(poly_h_f %in% poly_h_c) %>% #filter by polymer
-#     filter(shape_h_f %in% shape_h_c) %>% #filter by shape
-#     filter(size_h_f %in% size_h_c) %>% #filter by size class
-#     filter(species_h_f %in% species_h_c) %>%   #filter by species
-#     filter(year_f %in%  year_h_c) %>%   #filter by species
-#     filter(add.date_f %in% date.added_h_c) %>%   #filter by species
-# 
-#     mutate(Study = paste0(authors, " (", year,")")) %>% 
-#     distinct(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category, particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7, 
-#              design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8, design.9, design.10, design.11, design.12, design.13,
-#              risk.1, risk.2, risk.3, risk.4, risk.5, risk.6) %>% 
-#     drop_na() %>% 
-#     pivot_longer(!c(Study, doi, genus, species, life_h_f, vivo_h_f, exposure.category),
-#                  names_to ="Criteria", 
-#                  values_to ="Score") %>%
-#     mutate(Score_f = factor(case_when(Score == 0 ~ "Inadequate",
-#                                       Score == 1 ~ "Adequate with Restrictions",
-#                                       Score == 2 ~ "Adequate"))) %>% 
-#     mutate(Category = case_when(Criteria == "particle.1" ~ "Particle Characteristics",
-#                                 Criteria == "particle.2" ~ "Particle Characteristics",
-#                                 Criteria == "particle.3" ~ "Particle Characteristics",
-#                                 Criteria == "particle.4" ~ "Particle Characteristics",
-#                                 Criteria == "particle.5" ~ "Particle Characteristics",
-#                                 Criteria == "particle.6" ~ "Particle Characteristics",
-#                                 Criteria == "particle.7" ~ "Particle Characteristics",
-#                                 Criteria == "design.1" ~ "Experimental Design",
-#                                 Criteria == "design.2" ~ "Experimental Design",
-#                                 Criteria == "design.3" ~ "Experimental Design",
-#                                 Criteria == "design.4" ~ "Experimental Design",
-#                                 Criteria == "design.5" ~ "Experimental Design",
-#                                 Criteria == "design.6" ~ "Experimental Design",
-#                                 Criteria == "design.7" ~ "Experimental Design",
-#                                 Criteria == "design.8" ~ "Experimental Design",
-#                                 Criteria == "design.9" ~ "Experimental Design",
-#                                 Criteria == "design.10" ~ "Experimental Design",
-#                                 Criteria == "design.11" ~ "Experimental Design",
-#                                 Criteria == "design.12" ~ "Experimental Design",
-#                                 Criteria == "design.13" ~ "Experimental Design",
-#                                 Criteria == "risk.1" ~ "Risk Assessment",
-#                                 Criteria == "risk.2" ~ "Risk Assessment",
-#                                 Criteria == "risk.3" ~ "Risk Assessment",
-#                                 Criteria == "risk.4" ~ "Risk Assessment",
-#                                 Criteria == "risk.5" ~ "Risk Assessment",
-#                                 Criteria == "risk.6" ~ "Risk Assessment")) %>%
-#     #Set order of categories so they plot in correct order
-#     mutate(Category_f = factor(Category, levels = c("Particle Characteristics","Experimental Design", "Risk Assessment"))) %>% 
-#     mutate(Criteria = case_when(Criteria == "particle.1" ~ "Particle Size*",
-#                                   Criteria == "particle.2" ~ "Particle Shape*",
-#                                   Criteria == "particle.3" ~ "Polymer Type*",
-#                                   Criteria == "particle.4" ~ "Particle Source*",
-#                                   Criteria == "particle.5" ~ "Surface Chemistry",
-#                                   Criteria == "particle.6" ~ "Chemical Purity",
-#                                   Criteria == "particle.7" ~ "Microbial Contamination",
-#                                   Criteria == "design.1" ~ "Concentration Units",
-#                                   Criteria == "design.2" ~ "Particle Stability",
-#                                   Criteria == "design.3" ~ "Test Vehicle*",
-#                                   Criteria == "design.4" ~ "Administered Dose*",
-#                                   Criteria == "design.5" ~ "Homogeneity of Exposure",
-#                                   Criteria == "design.6" ~ "Administration Route*",
-#                                   Criteria == "design.7" ~ "Test Species*",
-#                                   Criteria == "design.8" ~ "Feeding/Housing Conditions",
-#                                   Criteria == "design.9" ~ "Sample Size*",
-#                                   Criteria == "design.10" ~ "Frequency/Duration of Exposure*",
-#                                   Criteria == "design.11" ~ "Controls*",
-#                                   Criteria == "design.12" ~ "Replicates",
-#                                   Criteria == "design.13" ~ "Internal Dose Confirmation",
-#                                   Criteria == "risk.1" ~ "Statistical Analysis",
-#                                   Criteria == "risk.2" ~ "Endpoints*",
-#                                   Criteria == "risk.3" ~ "Dose-Response*",
-#                                   Criteria == "risk.4" ~ "Concentration Range",
-#                                   Criteria == "risk.5" ~ "Effect Thresholds*",
-#                                   Criteria == "risk.6" ~ "Test Particle Relevance")) %>% 
-#     #set order of criteria so theeeeey plot in correct order - they have to be in reverse here
-#     mutate(Criteria_f = factor(Criteria, levels = c("Test Particle Relevance","Effect Thresholds*","Concentration Range","Dose-Response*","Endpoints*","Statistical Analysis",
-#                                                     "Internal Dose Confirmation","Replicates","Controls*","Frequency/Duration of Exposure*","Sample Size*","Feeding/Housing Conditions",
-#                                                     "Test Species*","Administration Route*","Homogeneity of Exposure","Administered Dose*","Test Vehicle*","Particle Stability",
-#                                                     "Concentration Units","Microbial Contamination","Chemical Purity","Surface Chemistry","Particle Source*","Polymer Type*","Particle Shape*","Particle Size*"))) 
-#    
-# })
-#   
-# #Build Plotly
-# quality_plotly <- eventReactive(list(input$go_quality),{
-# 
-# #build ggplot from filtered dataset above
-# quality_filtered() %>%   
-#     ggplot(aes(Study, Criteria_f)) + 
-#     geom_tile(aes(fill = Score_f,
-#                   #define text for hover-over
-#                   text = paste("Study:", Study, "\n",
-#                                "Criteria:", Criteria_f, "\n",
-#                                "Category:", Category_f, "\n",
-#                                "Score:", Score_f, "\n",
-#                                "Organism:", genus, species, "\n",
-#                                "Life Stage:", life_h_f, "\n",
-#                                "Type:", vivo_h_f, "\n",
-#                                "Exposure:", exposure.category, "\n",
-#                                "DOI:", paste0(doi), "\n")),
-#                   color = "white", size = 0.25) +
-#     theme_ipsum() +
-#     scale_fill_manual(name = "Score",
-#                       values = c("dodgerblue4","deepskyblue1","#ebcccd")) +
-#     labs(title = "Screening & Prioritization Scores (In Vivo, Ingestion Studies Only, Red Criteria Indicated by (*))") +
-#     coord_cartesian(clip = "off") + # This keeps the labels from disappearing
-#     theme_minimal(base_size = 14) +
-#     scale_y_discrete(labels = label_wrap(30)) +
-#     facet_grid(Category_f ~ ., scales = "free", space = "free") +
-#     theme(
-#       #axis.text.y = element_text(face = ifelse(RedCriteria_f == "Y", "bold", "plain")), #I want to make the red criteria bold but this won't work :(
-#           axis.title.x = element_blank(),
-#           axis.title.y = element_blank(),
-#           panel.grid.minor=element_blank(),
-#           panel.grid.major=element_blank(),
-#           axis.text.x = element_text(angle = 60, vjust = 0.5, hjust = .5),
-#           plot.title = element_text(hjust = 0.5)) %>% 
-#     req(nrow(quality_filtered()) > 0) #suppresses warning message text
-# })
-# 
-# #Render Plotly
-# output$quality_plot <- renderPlotly({
-#   ggplotly(quality_plotly(), tooltip = c("text")) %>% 
-#     layout(legend = list(orientation = "h", #Displays legend horizontally
-#                          xanchor = "center", #Use the center of the legend as an anchor
-#                          x = 0.5, #Center the legend on the x axis
-#                          y = 1.022)) #Places the legend at the top of the plot
-# })
-# 
-# # Create "reset" button to revert all filters back to what they began as.
-# # Need to call all widgets individually by their ids.
-# # See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
-# observeEvent(input$reset_quality, {
-#   shinyjs::reset("lvl1_h_quality")
-#   shinyjs::reset("lvl2_h_quality")
-#   shinyjs::reset("bio_h_quality")
-#   shinyjs::reset("effect_h_quality")
-#   shinyjs::reset("life_h_quality")
-#   shinyjs::reset("poly_h_quality")
-#   shinyjs::reset("shape_h_quality")
-#   shinyjs::reset("size_h_quality")
-#   shinyjs::reset("species_h_quality")
-#   shinyjs::reset("red_criteria_quality")
-# 
-# }) #If we add more widgets, make sure they get added here.
+quality_filtered <- eventReactive(list(input$go_quality),{
+
+  # every selection widget should be represented as a new variable below
+  lvl1_h_c <- input$lvl1_h_quality
+  lvl2_h_c <- input$lvl2_h_quality
+  bio_h_c <- input$bio_h_quality
+  effect_h_c <- input$effect_h_quality
+  life_h_c <- input$life_h_quality
+  poly_h_c <- input$poly_h_quality
+  shape_h_c <- input$shape_h_quality
+  size_h_c <- input$size_h_quality
+  species_h_c<-input$species_h_quality
+  particle_criteria_c <- input$particle_criteria_quality
+  design_criteria_c <- input$design_criteria_quality
+  risk_criteria_c <- input$risk_criteria_quality
+  study_plus_c <- input$study_plus_quality
+  exposure_route_h_c<-input$exposure_route_h_quality
+ 
+  #make summary dataset to display in heatmap below
+  human_quality %>%
+    filter(lvl1_h_f %in% lvl1_h_c) %>% 
+    filter(lvl2_h_f %in% lvl2_h_c) %>% 
+    filter(bio_h_f %in% bio_h_c) %>% 
+    filter(effect_h_f %in% effect_h_c) %>% 
+    filter(life_h_f %in% life_h_c) %>% 
+    filter(poly_h_f %in% poly_h_c) %>% 
+    filter(shape_h_f %in% shape_h_c) %>% 
+    filter(size_h_f %in% size_h_c) %>% 
+    filter(species_h_f %in% species_h_c) %>%  
+    filter(particle_red_criteria %in% particle_criteria_c) %>% 
+    filter(design_red_criteria %in% design_criteria_c) %>%
+    filter(risk_red_criteria %in% risk_criteria_c) %>%
+    filter(Study_plus %in% study_plus_c) %>%
+    filter(exposure_route_h_f %in% exposure_route_h_c)
+
+})
+  
+  #Create plot for quality screening scores from quality_filtered data
+  particle_plotly <- eventReactive(list(input$go_quality),{
+    
+    #Technical
+    particle <- quality_filtered() %>%
+      filter(Category_f == "Particle Characterization") %>%  
+      #summarize data for plotly
+      group_by(Study_plus, Criteria_f, Score) %>%  
+      summarise() %>%
+      ungroup() %>%
+      pivot_wider(names_from = Study_plus, 
+                  values_from = Score) %>%   
+      column_to_rownames(var="Criteria_f")  
+    
+    colnames(particle)<- gsub(" \\(10.*", "",colnames(particle))
+    colnames(particle)<- gsub(" \\(doi.*", "",colnames(particle))
+    
+    particle <- particle %>% 
+      as.matrix()
+    
+    #make plotly
+    particle_p <- plot_ly(x=colnames(particle), y=rownames(particle), z = particle, type = "heatmap",
+                      ygap = .4, xgap = .4,
+                      colors = c("tomato", "ivory3", "dodgerblue"),
+                      hoverinfo = 'text',
+                      showscale = FALSE,
+                      hovertemplate = paste(" Study:  %{x}<br>",
+                                            "Criteria:  %{y}<br>",
+                                            "Score:  %{z}<extra></extra>")) 
+    
+    particle_p <- particle_p %>% layout(
+      title = 'Particle Characterization Criteria',
+      xaxis = list(
+        type = 'category',
+        list(fixedrange = TRUE),
+        tickfont = list(size = 10)),
+      yaxis = list(tickfont = list(size = 10)))
+    
+    #print plot
+    print(particle_p)
+    
+    
+  })
+  
+  #Render plotly
+  output$particle_plotly <- renderPlotly({
+    
+    particle_plotly()
+    
+  })
+  
+  #Create plot for quality screening scores from quality_filtered data
+  design_plotly <- eventReactive(list(input$go_quality),{
+    
+    #Technical
+    design <- quality_filtered() %>%
+      filter(Category_f == "Experimental Design") %>%  
+      #summarize data for plotly
+      group_by(Study_plus, Criteria_f, Score) %>%  
+      summarise() %>%
+      ungroup() %>%
+      pivot_wider(names_from = Study_plus, 
+                  values_from = Score) %>%   
+      column_to_rownames(var="Criteria_f")  
+    
+    colnames(design)<- gsub(" \\(10.*", "",colnames(design))
+    colnames(design)<- gsub(" \\(doi.*", "",colnames(design))
+    
+    design <- design %>% 
+      as.matrix()
+    
+    #make plotly
+    design_p <- plot_ly(x=colnames(design), y=rownames(design), z = design, type = "heatmap",
+                          ygap = .4, xgap = .4,
+                          colors = c("tomato", "ivory3", "dodgerblue"),
+                          hoverinfo = 'text',
+                          showscale = FALSE,
+                          hovertemplate = paste(" Study:  %{x}<br>",
+                                                "Criteria:  %{y}<br>",
+                                                "Score:  %{z}<extra></extra>")) 
+    
+    design_p <- design_p %>% layout(
+      title = 'Experimental Design Criteria',
+      xaxis = list(
+        type = 'category',
+        list(fixedrange = TRUE),
+        tickfont = list(size = 10)),
+      yaxis = list(tickfont = list(size = 10)))
+    
+    #print plot
+    print(design_p)
+    
+    
+  })
+  
+  #Render plotly
+  output$design_plotly <- renderPlotly({
+    
+    design_plotly()
+    
+  })
+  
+  #Create plot for quality screening scores from quality_filtered data
+  risk_plotly <- eventReactive(list(input$go_quality),{
+    
+    #Risk Assessment
+    risk <- quality_filtered() %>%
+      filter(Category_f == "Risk Assessment") %>%  
+      #summarize data for plotly
+      group_by(Study_plus, Criteria_f, Score) %>%  
+      summarise() %>%
+      ungroup() %>%  
+      pivot_wider(names_from = Study_plus, 
+                  values_from = Score) %>%   
+      column_to_rownames(var="Criteria_f") 
+    
+    colnames(risk)<- gsub(" \\(10.*", "",colnames(risk))
+    colnames(risk)<- gsub(" \\(doi.*", "",colnames(risk))
+    
+    risk <- risk %>% 
+      as.matrix()
+    
+    #make plotly
+    risk_p <- plot_ly(x=colnames(risk), y=rownames(risk), z = risk, type = "heatmap",
+                      ygap = .4, xgap = .4,
+                      colors = c("tomato", "ivory3", "dodgerblue"),
+                      hoverinfo = 'text',
+                      showscale = FALSE,
+                      hovertemplate = paste(" Study:  %{x}<br>",
+                                            "Criteria:  %{y}<br>",
+                                            "Score:  %{z}<extra></extra>")) 
+    
+    risk_p <- risk_p %>% layout(
+      title = 'Risk Assessment Criteria',
+      xaxis = list(
+        type = 'category',
+        list(fixedrange = TRUE),
+        tickfont = list(size = 10)),
+      yaxis = list(tickfont = list(size = 10)))
+    
+    #print plots
+    print(risk_p)
+    
+  })
+  
+  #Render plotly
+  output$risk_plotly <- renderPlotly({
+    
+    risk_plotly()
+    
+  })
+
+# Create "reset" button to revert all filters back to what they began as.
+# Need to call all widgets individually by their ids.
+# See https://stackoverflow.com/questions/44779775/reset-inputs-with-reactive-app-in-shiny for more information.
+observeEvent(input$reset_quality, {
+  shinyjs::reset("lvl1_h_quality")
+  shinyjs::reset("lvl2_h_quality")
+  shinyjs::reset("bio_h_quality")
+  shinyjs::reset("effect_h_quality")
+  shinyjs::reset("life_h_quality")
+  shinyjs::reset("poly_h_quality")
+  shinyjs::reset("shape_h_quality")
+  shinyjs::reset("size_h_quality")
+  shinyjs::reset("species_h_quality")
+  shinyjs::reset("particle_criteria_quality")
+  shinyjs::reset("design_criteria_quality")
+  shinyjs::reset("risk_criteria_quality")
+  shinyjs::reset("study_plus_quality")
+  shinyjs::reset("exposure_route_h_quality")
+  
+}) #If we add more widgets, make sure they get added here.
   
 } #Server end
 
