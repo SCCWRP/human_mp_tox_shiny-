@@ -1,37 +1,33 @@
-# aq_mp_tox_shiny
+***Toxicity of Microplastics Explorer: Human Health***
 
-**Repository for Shiny application for Aquatic Microplastics Toxicology Review project**
+The Toxicity of Microplastics Explorer (ToMEx) is a database and data visualization tool for microplastics toxicity data pertaining to human health. This tool was created to facilitate the activties of the California Microplastics Health Effects Workshop. 
 
-*Southern California Coastal Water Research Project*
+The web application is built using a variety of R packages including shiny, shinydashboard, tidyverse, ggplot, and plotly.
 
-Contributors: Heili Lowman, Leah Thornton Hampton, Scott Coffin, Emily Darin
+Application deployed at: https://sccwrp.shinyapps.io/human_mp_tox_shiny-/
 
-Primary data contact: Leah Thornton Hampton (leahth@sccwrp.org)
+**Contributors**
 
-Primary coding contact: Heili Lowman (heilil@sccwrp.org)
+Leah Thornton Hampton, Southern California Coastal Water Research Project
+Heili Lowman, University of Nevada, Reno
+Scott Coffin, State Water Resources Control Board of California
+Emily Darin, Southern California Coastal Water Research Project
+Ezra Miller, San Francisco Estuary Institute
+Ludovic Hermabessiere, University of Toronto
+Hannah de Frond, University of Toronto
+Vera de Ruitjer, Wageningen University
+Samreen Siddiqui, Oregon State University
+Andrea Faltynkova, Norwegian University of Science and Technology
+Johannes Völker, Norwegian University of Science and Technology
+Laura Monclús Anglada, Norwegian University of Science and Technology
+Sydney Kotar, Southern California Coastal Water Research Project
+Susanne Brander, Oregon State University
+Martin Wagner, Norwegian University of Science and Technology
+Bart Koelmans, Wageningen University
+Chelsea Rochman, University of Toronto
+Alvine Mehinto, Southern California Coastal Water Research Project
+Steve Weisberg, Southern California Coastal Water Research Project
 
-Dataset created in the [MPToxReview repository](https://github.com/ScottCoffin/MPToxReview). 
+**Primary Contact**
 
-Application deployed at https://sccwrp.shinyapps.io/aq_mp_tox_shiny/.
-
-## Additional Resources Tab
-
-https://rshiny.lifewatch.be/ng-ocean-plastic-challenge/
-
-https://wincowger.shinyapps.io/OpenSpecy/
-
-
-## To-do List
-
-**Scott**
-Add bmdModelling tab
-
-https://www.rivm.nl/documenten/proast-manual-menu-version
-https://efsa.openanalytics.eu/app/bmd
-https://github.com/alfcrisci/bmdModeling
-
-**Leah**
-
-*Leah* Effect metrics. Add type of effect threshold concentration metric as a categorial variable, but also add a column of assessment factors; ‘AF_dose descriptor’. This would allow users to align thresholds.
-
-*Leah* Add rescaling methods to align threshold effect concentrations assessed for particle of different size, assuming food dilution as a ‘baseline toxicity’ mode of action for plastic.
+Leah Thornton Hampton, Southern California Coastal Water Research Project (leahth@sccwrp.org)

@@ -1117,7 +1117,7 @@ tabItem(tabName = "Welcome",
             p(align = "center", a(href = "https://agency.calepa.ca.gov/staffdirectory/detail.asp?UID=69294&BDO=7&VW=DET&SL=S", 'Dr. Scott Coffin'),", California State Water Resources Control Board", 
               tags$a(href="https://twitter.com/DrSCoffin", icon("twitter")), tags$a(href="https://github.com/ScottCoffin", icon("github"))),
             
-            p(align = "center", "Emily Darin, Southern California Coastal Water Research Project",
+            p(align = "center", a(href = "https://www.sccwrp.org/about/staff/emily-darin/", 'Emily Darin'),", Southern California Coastal Water Research Project",
               tags$a(href="https://github.com/EmilyDarin", icon("github"))),
             
             p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", Aquatic Science Center"),
@@ -1139,6 +1139,9 @@ tabItem(tabName = "Welcome",
             p(align = "center", "Laura Monclús Anglada, Norwegian University of Science and Technology"),
             
             p(align = "center", a(href = "https://www.sccwrp.org/about/staff/syd-kotar/", "Sydney Kotar"),", Southern California Coastal Water Research Project"),
+            
+            p(align = "center", a(href = "https://branderlab.net/", 'Dr. Susanne Brander'),", Oregon State University",
+              tags$a(href="https://twitter.com/smbrander", icon("twitter"))),
             
             p(align = "center", a(href = "https://www.ntnu.edu/employees/martin.wagner", 'Dr. Martin Wagner'),", Norwegian University of Science and Technology",
               tags$a(href="https://twitter.com/martiwag", icon("twitter"))),
