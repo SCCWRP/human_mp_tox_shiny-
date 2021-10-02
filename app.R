@@ -1111,7 +1111,7 @@ tabItem(tabName = "Welcome",
             p(align = "center", a(href = "https://www.sccwrp.org/about/staff/leah-thornton-hampton/", 'Dr. Leah Thornton Hampton'),", Southern California Coastal Water Research Project ", 
               tags$a(href="https://twitter.com/DrLeahTH", icon("twitter")), tags$a(href="https://github.com/leahth", icon("github"))),
             
-            p(align = "center", "Heili Lowman, Southern California Coastal Water Research Project ",
+            p(align = "center", a(href = "https://www.heililowman.com/", 'Dr. Heili Lowman'),", University of Nevada Reno ", 
               tags$a(href="https://twitter.com/heili_lowman", icon("twitter")), tags$a(href="https://github.com/hlowman", icon("github"))), 
             
             p(align = "center", a(href = "https://agency.calepa.ca.gov/staffdirectory/detail.asp?UID=69294&BDO=7&VW=DET&SL=S", 'Dr. Scott Coffin'),", California State Water Resources Control Board", 
@@ -1120,7 +1120,7 @@ tabItem(tabName = "Welcome",
             p(align = "center", a(href = "https://www.sccwrp.org/about/staff/emily-darin/", 'Emily Darin'),", Southern California Coastal Water Research Project",
               tags$a(href="https://github.com/EmilyDarin", icon("github"))),
             
-            p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", Aquatic Science Center"),
+            p(align = "center", a(href = "https://www.sfei.org/users/liz-miller", 'Dr. Ezra Miller'),", San Franciso Estuary Institute"),
             
             p(align = "center", a(href = "https://rochmanlab.com/people/", 'Dr. Ludovic Hermabessiere'),", University of Toronto", 
               tags$a(href="https://twitter.com/HermabessiereL", icon("twitter"))),
@@ -1130,7 +1130,7 @@ tabItem(tabName = "Welcome",
             
             p(align = "center", "Vera de Ruitjer, Wageningen University"),
             
-            p(align = "center", "Samreen Siddiqui, Oregon State University"),
+            p(align = "center", "Dr. Samreen Siddiqui, Oregon State University"),
             
             p(align = "center", "Andrea Faltynkova, Norwegian University of Science and Technology"),
             
