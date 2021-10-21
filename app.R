@@ -936,7 +936,12 @@ human_search <- human_setup %>%
                 mass.per.particle.mg, weathered.biofouled,
                 #quality
                 size.valid, polymer.valid, shape.valid, particle.source, sodium.azide, contaminant.screen, clean.method, sol.rinse, background.plastics,
-                con.valid, particle.behavior, uptake.valid, tissue.distribution, fed) %>%  
+                con.valid, particle.behavior, uptake.valid, tissue.distribution, fed,
+                #scores
+                particle.1, particle.2, particle.3, particle.4, particle.5, particle.6, particle.7,
+                design.1, design.2, design.3, design.4, design.5, design.6, design.7, design.8,
+                design.9, design.10, design.11, design.12, design.13,
+                risk.1, risk.2, risk.3, risk.4, risk.5, risk.6) %>%  
   #rename 'master' dose columns so they don't get pivoted
   rename("particles/mL (master)" = dose.particles.mL.master, "particles/mL (master), reported or converted" = dose.particles.L.master.reported.converted,
          "μg/mL (master)" = dose.ug.mL.master, "μg/mL (master), reported or converted" = dose.mg.mL.master.reported.converted,
@@ -959,6 +964,37 @@ human_search <- human_setup %>%
                                            grepl("dose.cm2.mL", `Original Dose Units`) ~ "cm^2/mL"))   
 #Turn all character strings into factors if they aren't already so they are searchable via dropdown
 human_search[sapply(human_search, is.character)] <- lapply(human_search[sapply(human_search, is.character)], as.factor)
+
+human_search <- human_search %>% 
+  rename("DOI" = doi, "Authors" = authors, "Year" = year, "Particle Red Criteria" = particle_red_criteria,
+         "Design Red Criteria" = design_red_criteria, "Risk Red Criteria" = risk_red_criteria, "Species" = species_h_f,
+         "Life Stage" = life_h_f, "In vitro/In vivo" = vivo_h_f, "Sex" = sex, "Experiment Type" = exp_type_f,
+         "Exposure Route" = exposure_route_h_f, "Particle Mixture?" = mix, "Negative Control" = negative.control,
+         "Reference Paritcle" = reference.material, "Exposure Media" = exposure.media, "Solvent" = solvent,
+         "Detergent" = detergent, "Media pH" = media.ph, "Media Salinity (ppt)" = media.sal, "Media Temperature (Avg)" = media.temp,
+         "Media Temperature (Min)" = media.temp.min, "Media Temperature (Max)" = media.temp.max, "Exposure Duration (days)" = exposure.duration.d,
+         "Number of Treatment Groups" = treatment, "Replicates" = replicates, "Sample Size" = sample.size, "Dosing Frequency" = dosing.frequency,
+         "Chemical Co-Exposure" = chem, "Chemical Dose (ug/L), nominal" = chem.dose.ug.L.nominal, "Chemical Dose (ug/L), measured" = chem.dose.ug.L.measured,
+         "Chemical Dose (umol/kg body weight/day)" = chem.dose.umol.kg.bw.day, "Chemical Dose (uM)" = chem.dose.uM,
+         "Effect" = effect_h_f, "Direction" = direction, "Broad Endpoint Category" = lvl1_h_f, "Specific Endpoint Category" = lvl2_h_f,
+         "Endpoint" = lvl3_h_f, "Biological Level of Organization" = bio_h_f, "Target Organelle/Cell/Tissue" = target.organelle.cell.tissue,
+         "Polymer" = poly_h_f, "Shape" = shape_h_f, "Density (g/cm^3)" = density.g.cm3, "Density (Reported/Estimated)" = density.reported.estimated, 
+         "Charge" = charge, "Zeta Potential" = zetapotential, "Zeta Potential Media" = zeta.potential.media, 
+         "Functional Group" = functional.group, "Size (um)" =size.length.um.used.for.conversion, "Size Category" = size_h_f,
+         "Particle Volume (um^3)" = particle.volume.um, "Particle Mass (mg)" = mass.per.particle.mg, "Weathered/Biofouled?" = weathered.biofouled, 
+         "Size Validated?" = size.valid, "Polymer Validated?" = polymer.valid, "Shape Validated?" = shape.valid,
+         "Particle Source" = particle.source, "Sodium Azide?" = sodium.azide, "Contaminant Screen?" = contaminant.screen,
+         "Cleaning Method" = clean.method, "Solvent Rinse?" = sol.rinse, "Background Plastics?" = background.plastics,
+         "Concentration Validated?" = con.valid, "Particle Behavior" = particle.behavior, "Uptake Validated?" = uptake.valid,
+         "Tissue Distribution" = tissue.distribution, "Fed?" = fed, "Particle Size Score" = particle.1, 
+         "Particle Shape Score" = particle.2, "Polymer Type Score" = particle.3, "Particle Source Score" = particle.4, 
+         "Surface Chemistry Score" = particle.5, "Chemical Purity Score" = particle.6, "Microbial Contamination Score" = particle.7,
+         "Concentrtaion Units Score" = design.1, "Particle Stability Score" = design.2, "Test Vehicle Score" = design.3, "Administered Dose Score" = design.4,
+         "Homogeneity of Exposure Score" = design.5, "Administration Route Score" = design.6, "Test Species Score" = design.7, 
+         "Feeding/Housing Conditions Score" = design.8, "Sample Size Score" = design.9, "Frequency/Duration of Exposure Score" = design.10,
+         "Controls Score" = design.11, "Replicates Score" = design.12, "Internal Dose Confirmation Score" = design.13,
+         "Statistical Analysis Score" = risk.1, "Endpoints Score" = risk.2, "Dose-Response Score" = risk.3,
+         "Concentration Range Score" = risk.4, "Effect Thresholds Score" = risk.5, "Test Particle Relevance Score" = risk.6)
 
 #### Study Screening Setup ####
 
@@ -2085,24 +2121,8 @@ server <- function(input, output) {
       scrollY = 600,
       scrollX = TRUE,
       paging = TRUE,
-      columnDefs = list(list(width = '100px', targets = "_all"))),
-    colnames = c('DOI', 'Authors', 'Year', 'Particle Characterization "Red Criteria"', 'Experimental Design "Red Criteria"', 
-                 'Risk Assessment "Red Criteria"','Species', 'Life Stage', 'In vitro/in vivo',
-                 'Sex', 'Experiment Type', 'Exposure Route', 'Particle Mix?', 'Negative Control', 'Reference Particle', 'Exposure Media',
-                 'Solvent', 'Detergent', 'pH', 'Salinity (ppt)', 'Temperature (Avg)', 'Temperature (Min)',
-                 'Temperature (Max)', 'Exposure Duration (days)', 'Number of Doses', 'Replicates',
-                 'Sample Size', 'Dosing Frequency', 'Chemicals Added', 'Added Chemical Dose μg/L (nominal)',
-                 'Added Chemical Dose μg/L (measured)', 'Added Chemical Dose μmol/kg (body weight)/day', 'Added Chemical Dose uM',
-                 'particles/mL (master)', 'particles/mL (master), reported or converted',
-                 'μg/mL (master)', 'μg/mL (master), reported or converted', 'μm^3/mL (master)', 
-                 'Effect', 'Direction', 'Broad Endpoint Category', 'Specific Endpoint Category',
-                 'Endpoint', 'Level of Biological Organization', 'Target Organelle, Cell, or Tissue',
-                 'Polymer', 'Shape', 'Density (g/cm^3)', 'Density, reported or estimated', 'Charge',
-                 'Zeta Potential (mV)', 'Zeta Potential Media', 'Functional Group', 'Particle Length (μm)', 'Size Category',
-                 'Particle Volume (μm^3)', 'Particle Mass (mg)',
-                 'Weathered or Biofouled?', 'Size Validated?', 'Polymer Validated?', 'Shape Validated', 'Particle Source','Sodium Azide Present?',
-                 'Screened for Chemical Contamination?', 'Particle Cleaning?', 'Solvent Rinse', 'Background Contamination Monitored?',
-                 'Concentration Validated?', 'Particle Behavior', 'Uptake Validated?', 'Tissue Distribution', 'Organisms Fed?', 'Original Dose Units', 'Original Concentration', 'Original Dose Units Nominal or Measured'))
+      columnDefs = list(list(width = '100px', targets = "_all"))))
+    
   
   #### Exploration Human S ####
   
