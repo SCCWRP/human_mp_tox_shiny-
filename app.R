@@ -251,6 +251,7 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
 #           axis.text.y = element_blank(),
 #           axis.title.x = element_blank() ) }
 
+
 #### User Interface ####
 
 ui <- dashboardPage(
@@ -1315,24 +1316,8 @@ server <- function(input, output) {
       scrollY = 600,
       scrollX = TRUE,
       paging = TRUE,
-      columnDefs = list(list(width = '100px', targets = "_all"))),
-    colnames = c('DOI', 'Authors', 'Year', 'Particle Characterization "Red Criteria"', 'Experimental Design "Red Criteria"', 
-                 'Risk Assessment "Red Criteria"','Species', 'Life Stage', 'In vitro/in vivo',
-                 'Sex', 'Experiment Type', 'Exposure Route', 'Particle Mix?', 'Negative Control', 'Reference Particle', 'Exposure Media',
-                 'Solvent', 'Detergent', 'pH', 'Salinity (ppt)', 'Temperature (Avg)', 'Temperature (Min)',
-                 'Temperature (Max)', 'Exposure Duration (days)', 'Number of Doses', 'Replicates',
-                 'Sample Size', 'Dosing Frequency', 'Chemicals Added', 'Added Chemical Dose μg/L (nominal)',
-                 'Added Chemical Dose μg/L (measured)', 'Added Chemical Dose μmol/kg (body weight)/day', 'Added Chemical Dose uM',
-                 'particles/mL (master)', 'particles/mL (master), reported or converted',
-                 'μg/mL (master)', 'μg/mL (master), reported or converted', 'μm^3/mL (master)', 
-                 'Effect', 'Direction', 'Broad Endpoint Category', 'Specific Endpoint Category',
-                 'Endpoint', 'Level of Biological Organization', 'Target Organelle, Cell, or Tissue',
-                 'Polymer', 'Shape', 'Density (g/cm^3)', 'Density, reported or estimated', 'Charge',
-                 'Zeta Potential (mV)', 'Zeta Potential Media', 'Functional Group', 'Particle Length (μm)', 'Size Category',
-                 'Particle Volume (μm^3)', 'Particle Mass (mg)',
-                 'Weathered or Biofouled?', 'Size Validated?', 'Polymer Validated?', 'Shape Validated', 'Particle Source','Sodium Azide Present?',
-                 'Screened for Chemical Contamination?', 'Particle Cleaning?', 'Solvent Rinse', 'Background Contamination Monitored?',
-                 'Concentration Validated?', 'Particle Behavior', 'Uptake Validated?', 'Tissue Distribution', 'Organisms Fed?', 'Original Dose Units', 'Original Concentration', 'Original Dose Units Nominal or Measured'))
+      columnDefs = list(list(width = '100px', targets = "_all"))))
+    
   
   #### Exploration Human S ####
   
