@@ -1009,14 +1009,12 @@ tabItem(tabName = "Resources",
         
         
         box(title = "Resources", width = 6, status = "primary",     
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYUFX1dOfSdGuHSfrUDcnewBxgttfTCOwom90hrt5nx1FA?e=jFXEyQ", 'Data Category Descriptions')),
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EeyE7n7JZdJPi_EYUD_D-dsBxNv5qlBtzwihmr9SbxH_Og?e=88hiV8", 'Data Category Descriptions')),
             br(),
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EcJuT9TQeP1LkWAO81pE1DgBTxem_6m_gEh0DPXRexHHhA?e=LucgNJ", 'Study Screening Rubric')),
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EQ2GRL8-CB9NnYjqkB7_avABMy-gxRtMSsxD19VUe-0Rsg?e=nESD3x", 'Study Screening Rubric')),
             br(),
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ER4Blg_W9LtDi-2vJGUK6kcBOdZ-GTgA-HZV4swPwD4bJQ?e=WPHXdZ", 'Human Health Study List')),
-            br(),
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXf0crCKDPVHo5xBEdw4PQwBxA8cnu0x4WY477CuEzZcPw?e=qs00V3", 'Dose Conversion Methods'))),
-        
+            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXz5dUQtgKVMuB79N6YcwasBhKYwO1uhRAQRqumnRqSQuQ?e=OhOO6L", 'Human Health Study List')),
+        )           
 ), #close tab
 
 #### Contact UI ####
