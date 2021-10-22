@@ -9,7 +9,7 @@ source("functions.R") # necessary for surface area, volume calculations
 human <- read_csv("Humans_Clean_Final.csv", guess_max = 10000) %>% 
   #make new variables with names to match aquatic
   mutate(particle.volume.um3 = particle.volume.um) %>%  
-  mutate(size.length.um.used.for.conversions = size.length.um.used.for.conversion) %>% 
+  mutate(size.length.um.used.for.conversions = size.length.um.used.for.conversion) %>%   
   mutate(dose.particles.mL.master = dose.particles.L.master/1000)
 
 #### Welcome Setup ####
@@ -633,8 +633,8 @@ human_setup <- human_v1 %>% # start with original data set
   
   
   #### Recalculation of surface area and volume based on shape ####
-#calculate surface area based on shape
-#calculate surface area based on shape
+
+#calculate particle surface area based on shape
 mutate(particle.surface.area.um2 = case_when(shape == "sphere" ~ SAfnx(a = size.length.um.used.for.conversions,
                                                                        b = size.length.um.used.for.conversions,
                                                                        c = size.length.um.used.for.conversions),
@@ -643,13 +643,21 @@ mutate(particle.surface.area.um2 = case_when(shape == "sphere" ~ SAfnx(a = size.
                                              shape == "fragment" ~ SAfnx(a = size.length.um.used.for.conversions,
                                                                          b = 0.77 * size.length.um.used.for.conversions,
                                                                          c = 0.77 * 0.67 * size.length.um.used.for.conversions))) %>% 
-  #calcualte volume
+  #calculate particle volume
   mutate(particle.volume.um3 = case_when(shape == "sphere" ~ particle.volume.um3, #sphere volume is correct in excel
                                          shape == "fiber"  ~ volumefnx_fiber(width = 15, length = size.length.um.used.for.conversions), #assume 15 um as width (kooi et al 2021)
                                         # shape == "fiber" & !is.na(size.width.um.used.for.conversions) ~ volumefnx_fiber(width = size.width.um.used.for.conversions, length = size.length.um.used.for.conversions), #if width reported
                                          shape == "fragment" ~ volumefnx(R = 0.77, L = size.length.um.used.for.conversions))) %>% 
   
-  #calcualte dose metrics accordingly
+  #calculate particle mass
+  mutate(particle.mass.mg = particle.volume.um3*density.mg.um3) %>%
+  
+  #Count
+  mutate(dose.particles.mL.master = if_else(dose.particles.L.master.reported.converted == "converted",
+                                            (dose.mg.mL.master/particle.mass.mg),
+                                            dose.particles.L.master/1000)) %>%
+  
+  #calculate dose metrics accordingly
   mutate(dose.surface.area.um2.mL.master = particle.surface.area.um2 * dose.particles.mL.master) %>% 
   mutate(particle.surface.area.um2.mg = particle.surface.area.um2 / mass.per.particle.mg) %>% 
   
@@ -703,10 +711,15 @@ mutate(particle.surface.area.um2 = case_when(shape == "sphere" ~ SAfnx(a = size.
   #calculate minimum and maximum volume for polydisperse particles
   mutate(mass.per.particle.mg.min = massfnx_poly(length = size.length.min.um.used.for.conversions,
                                                  width = size.width.min.um.used.for.conversions,
-                                                 p = density.g.cm3)) %>% #equation usess g/cm3
+                                                 p = density.g.cm3)) %>% #equation uses g/cm3
   mutate(mass.per.particle.mg.max = massfnx_poly(length = size.length.max.um.used.for.conversions,
                                                  width = size.width.max.um.used.for.conversions,
-                                                 p = density.g.cm3)) %>%   #equation usess g/cm3
+                                                 p = density.g.cm3)) %>%   #equation uses g/cm3
+  
+  #Mass
+  mutate(dose.ug.mL.master = if_else(dose.mg.mL.master.reported.converted == "converted",
+                                    (dose.particles.mL.master*particle.mass.mg)/1000,
+                                     dose.particles.mL.master)/1000) %>%
   
   #Volume
   mutate(dose.um3.mL.master = particle.volume.um3 * dose.particles.mL.master) %>%  #calculate volume/mL
@@ -716,12 +729,6 @@ mutate(particle.surface.area.um2 = case_when(shape == "sphere" ~ SAfnx(a = size.
   
   #Specific Surface Area
   mutate(dose.um2.ug.mL.master = dose.um2.mL.master / (mass.per.particle.mg / 1000)) %>% #correct mg to ug
-  
-  #Mass
-  mutate(dose.ug.mL.master = dose.mg.mL.master/1000) %>% 
-  
-  
-  
   
   #Additional tidying for nicer values
   mutate(authors = gsub(".", " & ", as.character(authors), fixed = TRUE)) %>% 
