@@ -667,7 +667,7 @@ tabItem(tabName = "Exploration",
                                 column(width = 4,
                                        radioButtons(inputId = "dose_check", # dosing units
                                                   label = "Dose Metric:",
-                                                  choices = c("Particles/mL", "µg/mL", "µm3/mL"),
+                                                  choices = c("Particles/mL", "µg/mL", "µm3/mL", "µm2/mL", "µm2/µg/mL"),
                                                   selected = "µg/mL")),
 
                                 column(width = 4,
@@ -1386,6 +1386,34 @@ server <- function(input, output) {
     if(Rep_Con_rad == "all" & dose_check == "µm3/mL"){
       human_setup <- human_setup %>%
         mutate(dose_new = dose.um3.mL.master)}
+    
+    if(Rep_Con_rad == "reported" & dose_check == "µm2/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "reported") %>% 
+        mutate(dose_new = dose.um2.mL.master)}
+    
+    if(Rep_Con_rad == "converted" & dose_check == "µm2/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "converted") %>% 
+        mutate(dose_new = dose.um2.mL.master)} 
+    
+    if(Rep_Con_rad == "all" & dose_check == "µm2/mL"){
+      human_setup <- human_setup %>%
+        mutate(dose_new = dose.um2.mL.master)}
+    
+    if(Rep_Con_rad == "reported" & dose_check == "µm2/µg/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "reported") %>% 
+        mutate(dose_new = dose.um2.ug.mL.master)}
+    
+    if(Rep_Con_rad == "converted" & dose_check == "µm2/µg/mL"){
+      human_setup <- human_setup %>%
+        filter(dose.particles.L.master.reported.converted == "converted") %>% 
+        mutate(dose_new = dose.um2.ug.mL.master)} 
+    
+    if(Rep_Con_rad == "all" & dose_check == "µm2/µg/mL"){
+      human_setup <- human_setup %>%
+        mutate(dose_new = dose.um2.ug.mL.master)}
     
     human_setup %>% # take original dataset
       filter(lvl1_h_f %in% lvl1_h_c) %>% # filter by level inputs
