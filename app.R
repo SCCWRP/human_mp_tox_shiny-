@@ -630,7 +630,12 @@ tabItem(tabName = "Exploration",
                               
                               fluidRow(    
                                 column(width = 12,
-                                       p("Only in vivo data are included in the study screening dataset.")), 
+                                         strong("Warning:"),"Only 'Particle Only' in vivo ingestion data are included in the study screening dataset.", 
+                                         br(),
+                                         "'Red criteria' do not represent full scoring criteria. The full set of scoring criteria from Gouin et al. (In Review) may be downloaded via the Search tab or visualized via the Study Screening tab.",
+                                         br(),
+                                         br(),
+                                  ),
                                 
                                 #particle red criteria
                                 column(width = 4,
@@ -806,7 +811,7 @@ tabItem(tabName = "Screening",
                      
                      tabPanel("Data Type",
                               
-                              "Only in vivo ingestion data are included in the study screening dataset."          
+                              "Only 'Particle Only' in vivo ingestion data are included in the study screening dataset."          
                               
                      ), #close tabpanel
                      
@@ -913,6 +918,14 @@ tabItem(tabName = "Screening",
                      tabPanel("Study Screening", 
                               
                               fluidRow(    
+                                   
+                                  column(width = 12,
+                                         strong("Warning:"),"Only 'Particle Only' in vivo ingestion data are included in the study screening dataset.", 
+                                         br(),
+                                         "'Red criteria' do not represent full scoring criteria. The full set of scoring criteria from Gouin et al. (In Review) may be downloaded via the Search tab or visualized via the Study Screening tab.",
+                                         br(),
+                                         br(),
+                                  ),
                                 
                                 #particle red criteria
                                 column(width = 3,
