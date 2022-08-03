@@ -812,9 +812,45 @@ human_search <- human_setup %>%
                                            grepl("dose.particles.L", `Original Dose Units`) ~ "particles/L",
                                            grepl("dose.mg.L.air", `Original Dose Units`) ~ "mg/L (air)",
                                            grepl("dose.mg.kg.day.bw", `Original Dose Units`) ~ "mg/kg (body weight)/day",
-                                           grepl("dose.cm2.mL", `Original Dose Units`) ~ "cm^2/mL"))   
+                                           grepl("dose.cm2.mL", `Original Dose Units`) ~ "cm^2/mL")) %>% 
+  drop_na(`Original Concentration`)
 #Turn all character strings into factors if they aren't already so they are searchable via dropdown
 human_search[sapply(human_search, is.character)] <- lapply(human_search[sapply(human_search, is.character)], as.factor)
+
+#Rename table columns
+human_search <- human_search %>% 
+  dplyr::rename('DOI' = doi,'Authors' = authors, 'Year' = year, 'Particle "Red Criteria"' = particle_red_criteria, 
+                'Design "Red Criteria"' = design_red_criteria, 'Risk "Red Criteria"' = risk_red_criteria, 'Species' = species_h_f, 
+                'Life Stage' = life_h_f, 'In vitro/in vivo' = vivo_h_f,
+                'Sex' = sex, 'Experiment Type' = exp_type_f,
+                'Exposure Route' = exposure_route_h_f, 'Particle Mix?' = mix, 'Negative Control' = negative.control, 
+                'Reference Particle' = reference.material, 'Exposure Media' = exposure.media,
+                'Solvent' = solvent, 'Detergent' = detergent, 'pH' = media.ph, 'Salinity (ppt)' = media.sal, 
+                'Temperature (Avg)' = media.temp, 'Temperature (Min)' = media.temp.min,
+                'Temperature (Max)' = media.temp.max, 'Exposure Duration (days)' = exposure.duration.d, 
+                'Number of Doses' = treatment, 'Replicates' = replicates,
+                'Sample Size' = sample.size, 'Dosing Frequency' = dosing.frequency, 'Chemicals Added' = chem, 
+                'Added Chemical Dose μg/L (nominal)' = chem.dose.ug.L.nominal,
+                'Added Chemical Dose μg/L (measured)' = chem.dose.ug.L.measured,
+                'Added Chemical Dose μmol/kg/body weight/day' = chem.dose.umol.kg.bw.day,
+                'Added Chemical Dose μM' = chem.dose.uM,
+                'Effect' = effect_h_f, 'Direction' = direction, 'Broad Endpoint Category' = lvl1_h_f, 
+                'Specific Endpoint Category' = lvl2_h_f,'Endpoint' = lvl3_h_f, 
+                'Level of Biological Organization' = bio_h_f, 'Target Cell or Tissue' = target.organelle.cell.tissue, 
+                'Polymer' = poly_h_f, 'Shape' = shape_h_f, 'Density (g/cm^3)' = density.g.cm3, 
+                'Density, reported or estimated' = density.reported.estimated, 'Charge' = charge,
+                'Zeta Potential (mV)' = zetapotential, 'Functional Group' = functional.group,
+                'Particle Length (μm)' = size.length.um.used.for.conversion,
+                'Size Category' = size_h_f,'Zeta Potential Media' = zeta.potential.media, 
+                'Particle Volume (μm^3)' = particle.volume.um, 'Particle Mass (mg)'= mass.per.particle.mg,
+                'Weathered or Biofouled?' = weathered.biofouled, 'Size Validated?' = size.valid, 
+                'Polymer Validated?' = polymer.valid, 'Shape Validated' = shape.valid, 'Particle Source' = particle.source,
+                'Sodium Azide Present?' = sodium.azide,
+                'Screened for Chemical Contamination?' = contaminant.screen, 'Particle Cleaning?' = clean.method, 
+                'Solvent Rinse'= sol.rinse, 'Background Contamination Monitored?' = background.plastics,
+                'Concentration Validated?' = con.valid, 
+                'Particle Behavior' = particle.behavior, 'Uptake Validated?' = uptake.valid,
+                'Tissue Distribution' = tissue.distribution, 'Organisms Fed?' = fed)
 
 #### Study Screening Setup ####
 
