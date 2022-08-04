@@ -774,13 +774,6 @@ human_search <- human_setup %>%
                 media.ph, media.sal, media.temp, media.temp.min, media.temp.max, exposure.duration.d, 
                 treatment, replicates, sample.size, dosing.frequency, chem, chem.dose.ug.L.nominal, chem.dose.ug.L.measured, 
                 chem.dose.umol.kg.bw.day, chem.dose.uM, 
-                #reported doses
-                dose.ug.g.food.nominal, dose.uM.nominal, dose.ug.cm2.nominal, dose.particles.day.nominal, dose.particles.kg.bw.nominal,
-                dose.mg.day.nominal, dose.particles.L.nominal, dose.mg.L.air.nominal, dose.mg.kg.day.bw.nominal, 
-                dose.cm2.mL.nominal, 
-                dose.ug.g.food.measured, dose.uM.measured, dose.ug.cm2.measured, dose.particles.day.measured, 
-                dose.mg.day.measured, dose.particles.L.measured, dose.mg.L.air.measured, dose.mg.kg.day.bw.measured, 
-                dose.cm2.mL.measured,
                 #master doses
                 dose.particles.mL.master, dose.particles.L.master.reported.converted, dose.ug.mL.master, dose.mg.mL.master.reported.converted,
                 dose.um3.mL.master, 
@@ -792,28 +785,29 @@ human_search <- human_setup %>%
                 mass.per.particle.mg, weathered.biofouled,
                 #quality
                 size.valid, polymer.valid, shape.valid, particle.source, sodium.azide, contaminant.screen, clean.method, sol.rinse, background.plastics,
-                con.valid, particle.behavior, uptake.valid, tissue.distribution, fed) %>%  
-  #rename 'master' dose columns so they don't get pivoted
+                con.valid, particle.behavior, uptake.valid, tissue.distribution, fed,
+                #reported doses
+                dose.ug.g.food.nominal, dose.uM.nominal, dose.ug.cm2.nominal, dose.particles.day.nominal, dose.particles.kg.bw.nominal,
+                dose.mg.day.nominal, dose.particles.L.nominal, dose.mg.L.air.nominal, dose.mg.kg.day.bw.nominal, 
+                dose.cm2.mL.nominal, 
+                dose.ug.g.food.measured, dose.uM.measured, dose.ug.cm2.measured, dose.particles.day.measured, 
+                dose.mg.day.measured, dose.particles.L.measured, dose.mg.L.air.measured, dose.mg.kg.day.bw.measured, 
+                dose.cm2.mL.measured) %>%      
+  #rename 'master' dose columns 
   rename("particles/mL (master)" = dose.particles.mL.master, "particles/mL (master), reported or converted" = dose.particles.L.master.reported.converted,
          "μg/mL (master)" = dose.ug.mL.master, "μg/mL (master), reported or converted" = dose.mg.mL.master.reported.converted,
          "μm^3/mL (master)" = dose.um3.mL.master) %>% 
-  #pivot non-master dose columns
-  pivot_longer(cols = starts_with("dose"),
-               names_to = "Original Dose Units",
-               values_to = "Original Concentration") %>%  
-  mutate(`Original Dose Units Nominal or Measured` = case_when(grepl("nominal", `Original Dose Units`) ~ "nominal",
-                                                               grepl("measured", `Original Dose Units`) ~ "measured")) %>%   
-  mutate(`Original Dose Units` = case_when(grepl("dose.ug.g.food", `Original Dose Units`) ~ "μg/g (food)",
-                                           grepl("dose.uM", `Original Dose Units`) ~ "uM",
-                                           grepl("dose.ug.cm2", `Original Dose Units`) ~ "μg/cm^2",
-                                           grepl("dose.particles.day", `Original Dose Units`) ~ "particles/day",
-                                           grepl("dose.particles.kg.bw", `Original Dose Units`) ~ "particles/kg (body weight)",
-                                           grepl("dose.mg.day", `Original Dose Units`) ~ "mg/day",
-                                           grepl("dose.particles.L", `Original Dose Units`) ~ "particles/L",
-                                           grepl("dose.mg.L.air", `Original Dose Units`) ~ "mg/L (air)",
-                                           grepl("dose.mg.kg.day.bw", `Original Dose Units`) ~ "mg/kg (body weight)/day",
-                                           grepl("dose.cm2.mL", `Original Dose Units`) ~ "cm^2/mL")) %>% 
-  drop_na(`Original Concentration`)
+  #rename 'other' dose columns
+  rename("μg/g (food) - nominal" = dose.ug.g.food.nominal, "uM - nominal" = dose.uM.nominal, "μg/cm^2 - nominal" = dose.ug.cm2.nominal,
+         "particles/day - nominal" = dose.particles.day.nominal, "particles/kg (body weight) - nominal" = dose.particles.kg.bw.nominal,
+         "mg/day - nominal" = dose.mg.day.nominal, "particles/L - nominal" = dose.particles.L.nominal, "mg/L (air) - nominal" = dose.mg.L.air.nominal, 
+         "mg/kg (body weight)/da - nominal" = dose.mg.kg.day.bw.nominal, "cm^2/mL - nominal" = dose.cm2.mL.nominal,
+         
+         "μg/g (food) - measured" = dose.ug.g.food.measured, "uM - measured" = dose.uM.measured, "μg/cm^2 - measured" = dose.ug.cm2.measured,
+         "particles/day - measured" = dose.particles.day.measured, "mg/kg (body weight)/da - measured" = dose.mg.kg.day.bw.measured,
+         "mg/day - measured" = dose.mg.day.measured, "particles/L - measured" = dose.particles.L.measured, "mg/L (air) - measured" = dose.mg.L.air.measured, 
+         "cm^2/mL - measured" = dose.cm2.mL.measured)
+
 #Turn all character strings into factors if they aren't already so they are searchable via dropdown
 human_search[sapply(human_search, is.character)] <- lapply(human_search[sapply(human_search, is.character)], as.factor)
 
