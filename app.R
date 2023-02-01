@@ -1,4 +1,4 @@
-#### Aquatic Microplastics Toxicology Shiny App
+#### Human Health Microplastics Toxicology Shiny App
 #### File created: September 23, 2020
 #### Code contributors: Heili Lowman, Leah Thornton Hampton, Scott Coffin, Emily Darin
 
@@ -48,7 +48,7 @@ source("functions.R")
 #Set up for polymer overview plot
 polydf<-rowPerc(xtabs( ~polymer +effect, human)) #pulls polymers by effect 
 polyf<-as.data.frame(polydf)%>% #Makes data frame 
-  replace_na(list(polymer = "Not Reported")) %>%  
+  # replace_na(list(polymer = "Not Reported")) %>%  
   mutate(effect = case_when(effect == "Y" ~ "Yes",
                             effect == "N" ~ "No")) %>% 
   filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
@@ -146,7 +146,7 @@ lvl1final<- data.frame(cbind(lvl1f, study_l))%>%
 #Set up for life stage overview plot
 lifedf<-rowPerc(xtabs(~life.stage +effect, human))
 lifef<-as.data.frame(lifedf)%>%
-  replace_na(list(life.stage = "Not Reported")) %>% 
+  # replace_na(list(life.stage = "Not Reported")) %>% 
   mutate(effect = case_when(effect == "Y" ~ "Yes",
                             effect == "N" ~ "No")) %>% 
   filter(effect %in% c("Yes","No"))%>% #Sorts into Yes and No
@@ -1051,7 +1051,7 @@ tabItem(tabName = "Submission",
             br(),
             p("For questions regarding data submission or to check to see if data from a specific study has already been uploaded to ToMEx, please email tomex@sccwrp.org"),
             br(),
-            p(align = "center", downloadButton(href = "https://sccwrp-my.sharepoint.com/:x:/g/personal/leahth_sccwrp_org/EZ0Gvnn4BkdHsQ2VKVEQQnkBFToXfPW9r4qNX-qcZ5z_LA?e=eISa57&download=1", label = "Download Data Submission Template", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+            p(align = "center", downloadButton(href = "https://sccwrp-my.sharepoint.com/:x:/g/personal/leahth_sccwrp_org/Eesloj8x7RZKppOjBuVS-r0Be4iD_AaCdxNVuXQEBOAGIg?e=KP5VZI", label = "Download Data Submission Template", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4")),
             br(),
             p(align = "center", actionButton(inputId = "submit", onclick = "window.open('https://sccwrp-my.sharepoint.com/:f:/g/personal/leahth_sccwrp_org/EhnzSiN8GqZFjnGpTbNJgskBGaWp0sVKtnB9nrqszAYoQA')", label = "Upload Completed Data Template", icon("file-upload"), style="color: #fff; background-color:  #117a65; border-color:  #0e6655"))),
         
