@@ -261,7 +261,7 @@ routefinal<- data.frame(cbind(routef, study_r))%>%
 
 ui <- dashboardPage(
   
-  dashboardHeader(title = "Toxicity of Microplastics Explorer", titleWidth = 400),
+  dashboardHeader(title = "Toxicity of Microplastics Explorer 2.0", titleWidth = 400),
   
   dashboardSidebar(width = 175,
                    
@@ -302,7 +302,7 @@ ui <- dashboardPage(
 tabItem(tabName = "Welcome", 
                                                
         #Header     
-        h1("Welcome to the Toxicity of Microplastics Explorer,",br(),"Human Health Database!", align = 'center'),
+        h1("Welcome to the Toxicity of Microplastics Explorer 2.0,",br(),"Human Health Database!", align = 'center'),
         br(),
         
         
@@ -312,6 +312,11 @@ tabItem(tabName = "Welcome",
               column(width = 12, 
                      
                      p(tags$img(src="welcome.png", width = "40%", height = "40%", style = "float:left; display: block; margin-left: auto; margin-right: 30px;")),
+                     
+                     h3("Toxicity of Microplastics Explorer 2.0", align = "center"), 
+                     
+                     strong(p("The Toxicity of Microplastics Explorer 2.0 (ToMEx 2.0) is a major expansion of the orginal ToMEx database coordinated by SCCWRP through
+                              a four-part virtual workshop series of approximately 70 researchers from 14 different nations. ToMEx 2.0 will be released to the public in fall 2023.")),
                      
                      h3("What is the Microplastics Toxicity Database?", align = "center"), 
                      
