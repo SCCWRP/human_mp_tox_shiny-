@@ -50,7 +50,7 @@ df.list <- lapply(file.list,function(x) {
                        `Media Temp Min` = col_character(),
                        `Media Temp Max` = col_character(),
                        `Exposure Duration (Days)` = col_double(),
-                       # `Recovery (Days)` = col_double(),
+                       `Recovery (Days)` = col_double(),
                        Treatments = col_double(),
                        Replicates = col_character(),
                        `Dosing Frequency` = col_double(),
@@ -232,6 +232,9 @@ tomex2.0_human_setup <- tomex2.0 %>%
          media.sal = `media.salinity..ppt.`,
          media.temp = `media.temp..mean.`,
          exposure.duration.d = `exposure.duration..days.`) %>%
+  #Rename recovery column 
+  rename(`Recovery (Days)` = `recovery..days.`) %>% 
+  relocate(`Recovery (Days)`, .after = exposure.duration.d) %>% 
   #Dosing restructuring #ONBOARDING CHECK - ADD UNITS AS NEEDED TO CASE_WHEN STATEMENTS#
   #Count - Nominal
   mutate(dose.particles.mL.nominal = case_when(
@@ -313,8 +316,9 @@ tomex2.0_human_setup <- tomex2.0 %>%
     effect == "NO" ~ "No",
     effect == "no" ~ "No"))) %>% 
   rename(effect_h_f = effect) %>%
-  #Factor effect metric
-  mutate(effect.metric = factor(effect.metric)) %>% 
+  #Remove effect metrics when there are less than 3 treatments
+  mutate(effect.metric = as.character(effect.metric)) %>% 
+  mutate(effect.metric = factor(ifelse(treatment < 3, NA_character_, effect.metric))) %>% 
   #Factor and rename endpoint columns
   mutate(broad.endpoint.category = factor(broad.endpoint.category)) %>% 
   rename(lvl1_h_f = broad.endpoint.category) %>%
@@ -377,7 +381,7 @@ tomex2.0_human_setup <- tomex2.0 %>%
     size.length.um.used.for.conversions >= 100 & size.length.um.used.for.conversions < 1000 ~ "100µm < 1mm",
     size.length.um.used.for.conversions >= 1000 & size.length.um.used.for.conversions < 5000 ~ "1mm < 5mm",
     is.na(size.length.um.used.for.conversions) ~ "Not Reported"),  
-    levels = c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm", "1mm < 5mm", "Not Reported"))) %>% # creates new column with nicer names and order by size levels.
+    levels = c("1nm < 100nm", "100nm < 1µm", "1µm < 100µm", "100µm < 1mm", "Not Reported"))) %>% # creates new column with nicer names and order by size levels.
   relocate(size_h_f, .after = size.width.um.used.for.conversions) %>% 
   #Calculate particle surface area
   mutate(particle.surface.area.um2 = case_when(shape_h_f == "Sphere" ~ 4*pi*((size.length.um.used.for.conversions/2)^2),
@@ -566,6 +570,7 @@ tomex2.0_human_setup <- tomex2.0_human_setup %>%
   select(all_of(names))
 
 human_setup <- human_setup %>%
+  add_column(`Recovery (Days)` = NA_real_) %>% 
   select((names))
 
 #Join rows
@@ -573,20 +578,20 @@ tomex2.0_human_setup_final <- bind_rows(human_setup, tomex2.0_human_setup)
 
 ##### QA/QC - FLAGGING STUDIES ####
 
-tomex2.0_human_setup_final <- tomex2.0_human_setup_final %>%
-  group_by(doi) %>% 
-  mutate(`Issue Flag` = case_when(
-    source == "ToMEx 2.0" & all(is.na(effect.metric)) 
-    ~ "Effect metrics missing.")) %>%
-  relocate(`Issue Flag`, .before = doi) %>% 
-  ungroup() %>% 
-  mutate(`Issue Flag` = case_when(
-    !is.na(`Issue Flag`) ~ `Issue Flag`,
-    source == "ToMEx 2.0" & exp_type_f == "Particle Only" & is.na(particle.1) 
-    ~ "Screening scores need to be completed for Particle Only type data.",
-    source == "ToMEx 2.0" & effect_h_f == "Yes" & is.na(direction)
-    ~ "Detected effects missing direction."
-  )) 
+# tomex2.0_human_setup_final <- tomex2.0_human_setup_final %>%
+#   group_by(doi) %>% 
+#   mutate(`Issue Flag` = case_when(
+#     source == "ToMEx 2.0" & all(is.na(effect.metric)) & treatment >= 3 
+#     ~ "Effect metrics missing.")) %>%
+#   relocate(`Issue Flag`, .before = doi) %>% 
+#   ungroup() %>% 
+#   mutate(`Issue Flag` = case_when(
+#     !is.na(`Issue Flag`) ~ `Issue Flag`,
+#     source == "ToMEx 2.0" & exp_type_f == "Particle Only" & is.na(particle.1) 
+#     ~ "Screening scores need to be completed for Particle Only type data.",
+#     source == "ToMEx 2.0" & effect_h_f == "Yes" & is.na(direction)
+#     ~ "Detected effects missing direction."
+#   )) 
 
 #Save RDS file
 saveRDS(tomex2.0_human_setup_final, file = "human_setup_tomex2.RDS")
@@ -604,10 +609,10 @@ saveRDS(tomex2.0_human_endpoint_final, file = "human_endpoint_tomex2.RDS")
 
 tomex2.0_human_search_final <- tomex2.0_human_setup_final %>%
   #general
-  dplyr::select(source, `Issue Flag`, doi, authors, year, species_h_f, life_h_f, vivo_h_f, sex,
+  dplyr::select(source, doi, authors, year, species_h_f, life_h_f, vivo_h_f, sex,
                 #experimental parameters
                 exp_type_f, exposure_route_h_f, mix, negative.control, reference.material, exposure.media, solvent, detergent,
-                media.ph, media.sal, media.temp, media.temp.min, media.temp.max, exposure.duration.d, 
+                media.ph, media.sal, media.temp, media.temp.min, media.temp.max, exposure.duration.d, `Recovery (Days)`,
                 treatment, replicates, sample.size, dosing.frequency, 
                 #master doses
                 dose.particles.mL.master, dose.particles.mL.master.converted.reported, dose.ug.mL.master, dose.mg.mL.master.reported.converted,
@@ -750,16 +755,22 @@ saveRDS(tomex2.0_human_quality_final, file = "human_quality_tomex2.RDS")
 #quick stats
 library(tidyverse)
 
-pubs <- as.data.frame(unique(human_setup_tomex2$doi))
-
-study_types <- human_setup_tomex2 %>%
-  group_by(doi, exp_type_f) %>% 
-  summarise()
-
-vivo <- human_setup_tomex2 %>% 
-  filter(vivo_h_f == "In Vivo")
-
-species <- human_setup_tomex2 %>%
-  group_by(species_h_f) %>% 
-  summarise()
-
+# pubs <- as.data.frame(unique(human_setup_tomex2$doi))
+# 
+# study_types <- human_setup_tomex2 %>%
+#   group_by(doi, exp_type_f) %>% 
+#   summarise()
+# 
+# vivo <- human_setup_tomex2 %>% 
+#   filter(vivo_h_f == "In Vivo")
+# 
+# species <- human_setup_tomex2 %>%
+#   group_by(species_h_f) %>% 
+#   summarise()
+# 
+# not_tidy <- tomex2.0_human_setup_final %>% 
+#   filter(!is.na(`Issue Flag`)) 
+# 
+# not_tidy_studies <- not_tidy %>% 
+#   group_by(source, doi,authors,`Issue Flag`) %>% 
+#   summarise() 
