@@ -278,11 +278,11 @@ ui <- dashboardPage(
                      br(),
                      br(),
                      #Twitter icon
-                     menuItem("Aquatic Organisms", href = "https://sccwrp.shinyapps.io/aq_mp_tox_shiny/", icon = icon("fish")),
+                     menuItem("Aquatic Organisms v1.1", href = "https://sccwrp.shinyapps.io/aq_mp_tox_shiny/", icon = icon("fish")),
+                     menuItem("Aquatic Organisms v2.0", href = "https://sccwrp.shinyapps.io/tomex_20_aquatic_organisms/", icon = icon("fish")),
                      br(),
-                     br(),
-                     #Twitter icon
-                     menuItem("Follow Us on Twitter!", href = "https://twitter.com/ToMExApp", icon = icon("twitter")))
+                     menuItem("Human Health v2.0", href = "https://sccwrp.shinyapps.io/tomex_20_human_health/", icon = icon("user")),
+                     br())
                    
   ), #End dashboard sidebar
   
@@ -297,7 +297,7 @@ ui <- dashboardPage(
 tabItem(tabName = "Welcome", 
                                                
         #Header     
-        h1("Welcome to the Toxicity of Microplastics Explorer,",br(),"Human Health Database!", align = 'center'),
+        h1("Welcome to the Toxicity of Microplastics Explorer v1.0,",br(),"Human Health Database!", align = 'center'),
         br(),
         
         
@@ -307,6 +307,10 @@ tabItem(tabName = "Welcome",
               column(width = 12, 
                      
                      p(tags$img(src="welcome.png", width = "40%", height = "40%", style = "float:left; display: block; margin-left: auto; margin-right: 30px;")),
+                     
+                     h3("Toxicity of Microplastics Explorer v1.0", align = "center"), 
+                     
+                     strong(p("Disclaimer: ToMEx is an evolving, community-built tool. It is highly recommended that underlying data and code are carefully scrutinized before finalizing analyses or drawing major conclusions.")),
                      
                      h3("What is the Microplastics Toxicity Database?", align = "center"), 
                      
@@ -1024,36 +1028,41 @@ tabItem(tabName = "Screening",
         
 ), #closes out tab
 
-#### Resources UI ####
+##### Resources UI ####
 
 tabItem(tabName = "Resources", 
         
         
-        box(title = "Resources", width = 6, status = "primary",     
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EeyE7n7JZdJPi_EYUD_D-dsBxNv5qlBtzwihmr9SbxH_Og?e=88hiV8", 'Data Category Descriptions')),
+        box(title = "Resources", width = 12, status = "primary",     
+            h4(align = "left", "Data Submission Template:"),
+            
+            h5(align = "left",a(href = "https://sccwrp-my.sharepoint.com/:x:/g/personal/leahth_sccwrp_org/EUOMAPG9I3FBor2pUEpGmKYB1hjGDsDvg6WTOUAwfYXzPg?e=wphbNJ", 'Data Mining Template')),
             br(),
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EQ2GRL8-CB9NnYjqkB7_avABMy-gxRtMSsxD19VUe-0Rsg?e=nESD3x", 'Study Screening Rubric')),
-            br(),
-            p(align = "center",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EXz5dUQtgKVMuB79N6YcwasBhKYwO1uhRAQRqumnRqSQuQ?e=OhOO6L", 'Human Health Study List')),
-        )           
+            h4(align = "left", "Data Category Descriptions and Data Mining Guides:"),
+            
+            h5(align = "left",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EdU9Xj4Loc1HtoO-L3aAl-oBfluhMzKwjlaChyWZfGWpnA?e=40VyRT", 'Particle Only Studies')),
+            
+            h5(align = "left",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EbmjFIgU9kFFvH1LVy2-NjEB8jjkRVBVK-AzHl11LMSFqg?e=brn8Xh", 'Leachate Studies')),
+            
+            h5(align = "left",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EYk-r5MbFtNDrI2zL6GYvo0B0F9PK7C-lYqeVOvnKU3PKg?e=OkVneU", 'Chemical Transfer Studies')),
+            
+            h5(align = "left",a(href = "https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/ETArwhasnrtOgeqSfuxJDRQBdfYWXK5UDngqGHjNtKAKJw?e=pUzLfS", 'Chemical Co-Exposure Studies'))),
+        
 ), #close tab
 
-#### Data Submission UI ####
+##### Data Submission UI ####
 
 tabItem(tabName = "Submission", 
         
         box(title = "Data Submission", width = 6, status = "primary",
-            p("To submit new data to ToMEx, download the data submission template using the link below. Complete the submission template
-              using the embedded descriptions and the ", 
-              a(href ="https://sccwrp-my.sharepoint.com/:b:/g/personal/leahth_sccwrp_org/EeyE7n7JZdJPi_EYUD_D-dsBxNv5qlBtzwihmr9SbxH_Og?e=Crfu6Z",
-                'Data Category Descriptions', .noOWs = "outside"),
-              ". Once the data submission template is completed, upload the completed template using the button below."),
+            
+            p("To submit new data to ToMEx, complete a Data Mining Template using the appropriate Guide, which may be found on the Resources tab. Submit completed templates using the button below."),
+            
             br(),
             p("For questions regarding data submission or to check to see if data from a specific study has already been uploaded to ToMEx, please email tomex@sccwrp.org"),
             br(),
-            p(align = "center", downloadButton(href = "https://sccwrp-my.sharepoint.com/:x:/g/personal/leahth_sccwrp_org/EZ0Gvnn4BkdHsQ2VKVEQQnkBFToXfPW9r4qNX-qcZ5z_LA?e=eISa57&download=1", label = "Download Data Submission Template", icon("download"), style="color: #fff; background-color: #337ab7; border-color: #2e6da4")),
-            br(),
-            p(align = "center", actionButton(inputId = "submit", onclick = "window.open('https://sccwrp-my.sharepoint.com/:f:/g/personal/leahth_sccwrp_org/EhnzSiN8GqZFjnGpTbNJgskBGaWp0sVKtnB9nrqszAYoQA')", label = "Upload Completed Data Template", icon("file-upload"), style="color: #fff; background-color:  #117a65; border-color:  #0e6655"))),
+            p(align = "center", actionButton(inputId = "submit", onclick = "window.open('https://sccwrp-my.sharepoint.com/:f:/g/personal/leahth_sccwrp_org/EhnzSiN8GqZFjnGpTbNJgskBGaWp0sVKtnB9nrqszAYoQA')", label = "Upload Data Template", icon("file-upload"), style="color: #fff; background-color:  #117a65; border-color:  #0e6655"))
+        ),
         
 ), #close tab
 
